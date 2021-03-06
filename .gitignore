@@ -1,0 +1,16 @@
+# Notice:
+#
+# You should not write some files depended your environment here,
+# should write ones at global ignore file.
+#
+# e.g.
+#  * `*~` (Vim swap file)
+#  *`.DS_Store` (Mac OS Store File)
+#  * `Thumb.db` (Windows Store File)
+#  * etc.
+#
+
+/dist*/
+
+# for Node.js
+/node_modules/
