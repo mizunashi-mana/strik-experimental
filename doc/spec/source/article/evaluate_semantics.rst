@@ -7,7 +7,7 @@ Desugaring
 Do Block
 ::::::::
 
-.. code-block::
+.. code-block:: none
 
     do { e }                = e
     do { e ; stmts }        = e >> do { stmts }
@@ -17,13 +17,13 @@ Do Block
 Integer Literal
 :::::::::::::::
 
-.. code-block::
+.. code-block:: none
 
     fromIntegerLiteral :: IntegerLiteral -> a
 
 Primitive:
 
-.. code-block::
+.. code-block:: none
 
     Integer.fromIntegerLiteral :: IntegerLiteral -> Integer
     Int.fromIntegerLiteral :: IntegerLiteral -> Int
@@ -41,6 +41,6 @@ Primitive:
     Float.fromIntegerLiteral :: IntegerLiteral -> Float
     Double.fromIntegerLiteral :: IntegerLiteral -> Double
 
-.. code-block::
+.. code-block:: none
 
     Int8.1 == Int8.(fromIntegerLiteral ...) -- 1 of Int8

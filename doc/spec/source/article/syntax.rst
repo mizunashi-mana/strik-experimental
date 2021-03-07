@@ -309,9 +309,9 @@ Grammar
 
 .. productionlist::
     decl_body   : "{" decl_items "}"
-                | "{{" decl_items "}}"
-                | '{' decl_items '}'
-    decl_items: lsemis? (decl_item lsemis)* decl_item?
+                : "{{" decl_items "}}"
+                : '{' decl_items '}'
+    decl_items  : lsemis? (decl_item lsemis)* decl_item?
     decl_item   : sig_item
                 : type_decl
                 : data_decl
@@ -325,34 +325,41 @@ Grammar
 .. productionlist::
     type_decl: "type" decltype "=" type ("where" type_decl_where_body)?
     type_decl_where_body: "{" type_decl_where_items "}"
-                        | "{{" type_decl_where_items "}}"
-                        | '{' type_decl_where_items '}'
+                        : "{{" type_decl_where_items "}}"
+                        : '{' type_decl_where_items '}'
     type_decl_where_items: lsemis? (type_decl_where_item lsemis)* type_decl_where_item?
-    type_decl_where_item: type_decl
+    type_decl_where_item: typesig_decl
+                        : type_decl
 
 .. productionlist::
-    data_decl   : "data" con (":" type)? ("where" data_decl_body)?
+    data_decl   : "data" declcon (":" type)? ("where" data_decl_body)?
+                : "data" decltype "=" alg_data_type ("where" type_decl_where_body)?
                 : "newtype" decltype "=" type ("where" type_decl_where_body)?
     data_decl_body  : "{" data_decl_items "}"
-                    | "{{" data_decl_items "}}"
-                    | '{' data_decl_items '}'
+                    : "{{" data_decl_items "}}"
+                    : '{' data_decl_items '}'
     data_decl_items: lsemis? (data_decl_item lsemis)* data_decl_item?
-    data_decl_item: consig_decl
+    data_decl_item  : typesig_decl
+                    : consig_decl
+                    : type_decl
+    alg_data_type   : "(" alg_data_type_items ")"
+                    : alg_data_type_items
+    alg_data_type_items : "|"* (impltype "|"+)* impltype "|"*
 
 .. productionlist::
     val_decl: declvarexpr "=" expr ("where" val_decl_where_body)?
     val_bind: pat "=" expr ("where" val_decl_where_body)?
     val_decl_where_body : "{" val_decl_where_items "}"
-                        | "{{" val_decl_where_items "}}"
-                        | '{' val_decl_where_items '}'
+                        : "{{" val_decl_where_items "}}"
+                        : '{' val_decl_where_items '}'
     val_decl_where_items: lsemis? (val_decl_where_item lsemis)* val_decl_where_item?
     val_decl_where_item: let_bind_item
 
 .. productionlist::
     decltype    : declcon bind_var*
                 : bind_var declconop bind_var
-    declconexpr : declcon bind_var*
-                : bind_var declconop bind_var
+    impltype    : con type_qualified*
+                : type_qualified conop type_qualified
     declvarexpr : declvar bind_var*
                 : bind_var declop bind_var
 
@@ -380,16 +387,12 @@ Grammar
                 : "(" type_tuple_items ")"
                 : "[" type_array_items "]"
                 : "{" type_simplrecord_items "}"
-                : "record" type_record_body
     type_tuple_items: (type ",")+ type ","?
     type_array_items: (type ",")* type?
     type_simplrecord_items: (type_simplrecord_item ",")* type_simplrecord_item?
     type_simplrecord_item: var ":" type
-    type_record_body: "{" type_record_items "}"
-                    | "{{" type_record_items "}}"
-                    | '{' type_record_items '}'
-    type_record_items: lsemis? (type_record_item lsemis)* type_record_item?
-    type_record_item: valsig_decl
+
+.. productionlist::
     sig_item: typesig_decl
             : valsig_decl
             : consig_decl
@@ -397,7 +400,12 @@ Grammar
 .. productionlist::
     expr: expr_infix ":" type
         : expr_infix
-    expr_infix: expr_apps ((qual_op | qual_conop) expr_apps)*
+    expr_infix: expr_apps (expr_op expr_apps)*
+    expr_op : con_sym
+            : var_sym_ext
+            : "`" expr_qualified_op "`"
+    expr_qualified_op   : sym_ext
+                        : expr_qualified
     expr_apps: expr_qualified expr_app*
     expr_app: expr_qualified
             : "@" type_qualified
@@ -418,25 +426,40 @@ Grammar
                 : "(" expr_tuple_items ")"
                 : "[" expr_array_items "]"
                 : "{" expr_simplrecord_items "}"
-                : "record" expr_record_body
     expr_interp_string  : interp_string_without_interp
                         : interp_string_start expr (interp_string_cont expr)* interp_string_end
     expr_tuple_items: (expr ",")+ expr ","?
     expr_array_items: (expr ",")* expr?
     expr_simplrecord_items: (expr_simplrecord_item ",")* expr_simplrecord_item?
     expr_simplrecord_item: var "=" expr
-    expr_record_body: "{" expr_record_items "}"
-                    | "{{" expr_record_items "}}"
-                    | '{' expr_record_items '}'
-    expr_record_items: lsemis? (expr_record_item lsemis)* expr_record_item?
-    expr_record_item: valsig_decl
-                    : val_decl
+
+.. productionlist::
+    pat : pat_unit ":" type
+        : pat_unit
+    pat_unit: pat_infix ("|" pat_infix)*
+    pat_infix: pat_apps (qual_conop  pat_apps)*
+    pat_apps: pat_qualified pat_app*
+    pat_app : pat_qualified
+            : "@" pat_qualified
+    pat_qualified: pat_atomic
+    pat_atomic  : "(" pat ")"
+                : con
+                : var
+                : pat_literal
+    pat_literal : literal
+                : "(" pat_tuple_items ")"
+                : "[" pat_array_items "]"
+                : "{" pat_simplrecord_items "}"
+    pat_tuple_items: (pat ",")+ pat ","?
+    pat_array_items: (pat ",")* pat?
+    pat_simplrecord_items: (pat_simplrecord_item ",")* pat_simplrecord_item?
+    pat_simplrecord_item: var "=" pat
 
 .. productionlist::
     let_body: let_binds "in" expr
     let_binds   : "{" let_bind_items "}"
-                | "{{" let_bind_items "}}"
-                | '{' let_bind_items '}'
+                : "{{" let_bind_items "}}"
+                : '{' let_bind_items '}'
     let_bind_items: lsemis? (let_bind_item lsemis)* let_bind_item?
     let_bind_item   : sig_item
                     : type_decl
@@ -445,15 +468,15 @@ Grammar
 
 .. productionlist::
     case_alt_body   : "{" case_alt_items "}"
-                    | "{{" case_alt_items "}}"
-                    | '{' case_alt_items '}'
+                    : "{{" case_alt_items "}}"
+                    : '{' case_alt_items '}'
     case_alt_items: lsemis? (case_alt_item lsemis)* case_alt_item?
     case_alt_item: (pat ",")* pat? guarded_alt
     guarded_alt : "->" expr
                 : "when" guarded_alt_body
     guarded_alt_body: "{" guarded_alt_items "}"
-                    | "{{" guarded_alt_items "}}"
-                    | '{' guarded_alt_items '}'
+                    : "{{" guarded_alt_items "}}"
+                    : '{' guarded_alt_items '}'
     guarded_alt_items: lsemis? (guarded_alt_item lsemis)* guarded_alt_item?
     guarded_alt_item: guard_qual "->" expr
     guard_qual: expr
@@ -463,8 +486,8 @@ Grammar
 
 .. productionlist::
     do_body : "{" do_stmt_items "}"
-            | "{{" do_stmt_items "}}"
-            | '{' do_stmt_items '}'
+            : "{{" do_stmt_items "}}"
+            : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* expr lsemis?
     do_stmt_item    : expr
                     : pat "<-" expr

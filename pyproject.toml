@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "quell"
+version = "0.1.0"
+description = "A description of Quell"
+
+authors = [
+    'Mizunashi Mana'
+]
+
+readme = 'README.md'  # Markdown files are supported
+
+[tool.poetry.dev-dependencies]
+sphinx = "*"
+sphinx-autobuild = "*"
+sphinxcontrib-katex = "*"
+sphinxcontrib-bibtex = "*"
