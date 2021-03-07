@@ -4,10 +4,13 @@ module Language.Quell.Parsing.Parser where
 import Language.Quell.Prelude
 
 import qualified Prelude
+import qualified Language.Quell.Type.Ast as Ast
 import qualified Language.Quell.Type.Token as Token
 import qualified Language.Quell.Parsing.Parser.Layout as Layout
 import qualified Language.Quell.Data.Bag as Bag
 import qualified Language.Quell.Parsing.Spanned as Spanned
+import qualified Language.Quell.Parsing.Runner as Runner
+import           Data.Foldable (toList)
 }
 
 %expect 0
@@ -69,7 +72,7 @@ import qualified Language.Quell.Parsing.Spanned as Spanned
     INTERP_STRING_CONTINUE          { S (Token.LitInterpStringContinue _) }
     INTERP_STRING_END               { S (Token.LitInterpStringEnd _) }
 
-%monad { ParserWithL }{ >>= }{ return }
+%monad { Runner.T }{ >>= }{ return }
 %lexer { lexer }{ S Token.EndOfSource }
 %tokentype { Spanned.T Token.T }
 
@@ -80,25 +83,25 @@ import qualified Language.Quell.Parsing.Spanned as Spanned
 %name parseLiteral          literal
 %%
 
-program :: { () }
-    : decl_body   { $1 }
+program :: { Ast.Program C }
+    : decl_body   { Ast.Program { decls = toList $1 } }
 
-decl_body :: { () }
-    : lopen decl_items lclose { () }
+decl_body :: { Bag.T (Ast.Decl C) }
+    : lopen decl_items lclose   { $2 }
 
-decl_items :: { () }
-    : decl_items_semis decl_item  { () }
-    | decl_items_semis                   { () }
+decl_items :: { Bag.T (Ast.Decl C) }
+    : decl_items_semis decl_item    { $1 <> pure $2 }
+    | decl_items_semis              { $1 }
 
-decl_items_semis :: { () }
-    : decl_items_semis decl_item lsemis   { () }
-    | {- empty -}                                       { () }
+decl_items_semis :: { Bag.T (Ast.Decl C) }
+    : decl_items_semis decl_item lsemis     { $1 <> pure $2 }
+    | {- empty -}                           { mempty }
 
-decl_item :: { () }
-    : sig_item              { () }
-    | type_decl             { () }
-    | data_decl             { () }
-    | val_decl              { () }
+decl_item :: { Ast.Decl C }
+    : sig_item              { $1 }
+    | type_decl             { undefined }
+    | data_decl             { undefined }
+    | val_decl              { undefined }
 
 
 typesig_decl :: { () }
@@ -285,9 +288,9 @@ type_simplrecord_item :: { () }
     : var ':' type      { () }
 
 
-sig_item :: { () }
-    : typesig_decl      { () }
-    | valsig_decl       { () }
+sig_item :: { Ast.Decl C }
+    : typesig_decl      { undefined }
+    | valsig_decl       { undefined }
 
 
 expr :: { () }
@@ -650,18 +653,14 @@ bind_vars :: { () }
     : bind_vars bind_var    { () }
     | {- empty -}           { () }
 {
+type C = AstParsed
+data AstParsed
+
 pattern S :: Token.T -> Spanned.T Token.T
 pattern S t <- Spanned.Spanned
     {
         getSpan = _,
         unSpanned = t
-    }
-
-type ParserWithL = State ParseContext
-
-data ParseContext = ParseContext
-    {
-        layoutStack :: [Layout.T]
     }
 
 lexer = undefined

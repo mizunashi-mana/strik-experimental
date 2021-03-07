@@ -1,9 +1,10 @@
 module Language.Quell.Parsing.Runner (
-  Runner (..),
-  Context (..),
-  Result (..),
+    T,
+    Runner (..),
+    Context (..),
+    Result (..),
 
-  LayoutContext (..),
+    LayoutContext (..),
 ) where
 
 import           Language.Quell.Prelude
@@ -11,35 +12,37 @@ import           Language.Quell.Prelude
 import qualified Language.Quell.Parsing.Spanned as Spanned
 
 
+type T = Runner
+
 newtype Runner a = Runner {
-  runRunner :: StateT Context Result a
+    runRunner :: StateT Context Result a
 } deriving (Functor, Applicative, Monad) via StateT Context Result
 
 data Context = Context {
-  currentLoc  :: Spanned.Loc,
-  layoutStack :: [LayoutContext]
+    currentLoc  :: Spanned.Loc,
+    layoutStack :: [LayoutContext]
 } deriving (Eq, Show)
 
 data Result a
-  = ParseOk a
-  | ParseFailed
-  deriving (Eq, Show, Functor)
+    = ParseOk a
+    | ParseFailed
+    deriving (Eq, Show, Functor)
 
 instance Applicative Result where
-  pure x = ParseOk x
+    pure x = ParseOk x
 
-  mf <*> mx = case mf of
-    ParseFailed -> ParseFailed
-    ParseOk f   -> case mx of
-      ParseFailed -> ParseFailed
-      ParseOk x   -> ParseOk do f x
+    mf <*> mx = case mf of
+        ParseFailed -> ParseFailed
+        ParseOk f   -> case mx of
+            ParseFailed -> ParseFailed
+            ParseOk x   -> ParseOk do f x
 
 instance Monad Result where
-  mx >>= f = case mx of
-    ParseFailed -> ParseFailed
-    ParseOk x   -> f x
+    mx >>= f = case mx of
+        ParseFailed -> ParseFailed
+        ParseOk x   -> f x
 
 data LayoutContext
-  = NoLayout
-  | Layout Int
-  deriving (Eq, Show)
+    = NoLayout
+    | Layout Int
+    deriving (Eq, Show)
