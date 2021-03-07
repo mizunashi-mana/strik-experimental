@@ -42,17 +42,17 @@ Lexical Syntax
             : special
             : brace
             : reserved_id
-            : reserved_op
+            : reserved_sym
             : var_id
-            : var_op
+            : var_sym
             : con_id
-            : con_op
+            : con_sym
 
 .. productionlist::
     var_id: (small (small | large | digit | other)*)<reserved_id>
     con_id: (large (small | large | digit | other)*)<reserved_id>
-    var_op: (symbol<":"> (symbol | other)*)<reserved_op>
-    con_op: (":" (symbol | other)*)<reserved_op>
+    var_sym: (symbol<":"> (symbol | other)*)<reserved_sym>
+    con_sym: (":" (symbol | other)*)<reserved_sym>
 
 .. productionlist::
     reserved_id : "as"
@@ -84,7 +84,7 @@ Lexical Syntax
                 : "_"
                 : "Default"
                 : "Self"
-    reserved_op : "!"
+    reserved_sym: "!"
                 : "->" | "→"
                 : ".." | "…"
                 : "."
@@ -250,11 +250,11 @@ These nonterminals must be disjoint:
 
 * ``whitespace``
 * ``var_id``
-* ``var_op``
+* ``var_sym``
 * ``con_id``
-* ``con_op``
+* ``con_sym``
 * ``reserved_id``
-* ``reserved_op``
+* ``reserved_sym``
 * ``special``
 * ``brace``
 * ``literal``
@@ -280,7 +280,7 @@ These expressions must be empty:
 
 * ``((lexeme | whitespace)*)<ANY*>``
 * ``reserved_id<(small | large) (small | large | digit | other)*>``
-* ``reserved_op<symbol (symbol | other)*>``
+* ``reserved_sym<symbol (symbol | other)*>``
 * ``(brace)<other_special*>``
 * ``literal<("+" | "-" | digit | "'" | other_special) ANY*>``
 * ``(multiline_comment | doc_comment | pragma_comment | nested_comment)<comment_open ANY* comment_close>``

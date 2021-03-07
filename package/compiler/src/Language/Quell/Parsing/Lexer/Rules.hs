@@ -95,7 +95,7 @@ lexerRules :: ScannerBuilder ()
 lexerRules = do
     whiteSpaceRules
 
-    -- be before varOpRule to avoid conflicting
+    -- be before varSymRule to avoid conflicting
     literalRules
 
     specialRules
@@ -103,13 +103,13 @@ lexerRules = do
 
     -- be before varIdRule / conIdRule to avoid conflicting
     reservedIdRules
-    -- be before varOpRule / conOpRule to avoid conflicting
+    -- be before varSymRule / conSymRule to avoid conflicting
     reservedOpRules
 
     varIdRule
-    varOpRule
+    varSymRule
     conIdRule
-    conOpRule
+    conSymRule
 
 varIdRule :: ScannerBuilder ()
 varIdRule =
@@ -137,11 +137,11 @@ conIdP = largeP <> Tlex.manyP do
             otherP
         ]
 
-varOpRule :: ScannerBuilder ()
-varOpRule =
-    initialRule varOpP [||withIdToken Token.IdVarOp||]
+varSymRule :: ScannerBuilder ()
+varSymRule =
+    initialRule varSymP [||withIdToken Token.IdVarSym||]
 
-varOpP = symbolWithoutColonP <> Tlex.manyP do
+varSymP = symbolWithoutColonP <> Tlex.manyP do
     Tlex.orP
         [
             symbolP,
@@ -151,11 +151,11 @@ varOpP = symbolWithoutColonP <> Tlex.manyP do
         symbolWithoutColonP = charSetP
             do symbolCs `csDifference` charsCs [':']
 
-conOpRule :: ScannerBuilder ()
-conOpRule =
-    initialRule conOpP [||withIdToken Token.IdConOp||]
+conSymRule :: ScannerBuilder ()
+conSymRule =
+    initialRule conSymP [||withIdToken Token.IdConSym||]
 
-conOpP = chP ':' <> Tlex.manyP do
+conSymP = chP ':' <> Tlex.manyP do
     Tlex.orP
         [
             symbolP,

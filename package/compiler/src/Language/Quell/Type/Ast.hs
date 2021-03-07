@@ -1,6 +1,15 @@
 module Language.Quell.Type.Ast (
   Program (..),
   Decl (..),
+  TypeSigDecl (..),
+  ValSigDecl (..),
+  ConSigDecl (..),
+  TypeDecl (..),
+  DataTypeDecl (..),
+  ValDecl (..),
+  Name,
+  mkName,
+  BindVar (..),
 ) where
 
 import           Language.Quell.Prelude
@@ -13,8 +22,6 @@ data Program c = Program
         decls      :: [Decl c]
     }
     deriving (Eq, Show)
-
-type Name = TextId.T
 
 data Decl c
     = DeclTypeSig (TypeSigDecl c)
@@ -195,6 +202,11 @@ data InterpStringPart c
     = InterpStringLit Text
     | InterpStringExpr (Expr c)
     deriving (Eq, Show)
+
+type Name = TextId.T
+
+mkName :: Text -> Name
+mkName n = TextId.textId n
 
 data BindVar c
     = BindVar Name (Maybe (TypeExpr c))

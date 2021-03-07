@@ -81,9 +81,9 @@ data Token
     | SpVSemi
 
     | IdConId TextId.T
-    | IdConOp TextId.T
+    | IdConSym TextId.T
     | IdVarId TextId.T
-    | IdVarOp TextId.T
+    | IdVarSym TextId.T
 
     | LitByteChar Word8
     | LitByteString ByteString
@@ -167,9 +167,9 @@ instance Pretty Token where
         SpVBraceClose                   -> pretty "}"
         SpVSemi                         -> pretty ";"
         IdConId v                       -> pretty v
-        IdConOp v                       -> pretty v
+        IdConSym v                      -> pretty v
         IdVarId v                       -> pretty v
-        IdVarOp v                       -> pretty v
+        IdVarSym v                      -> pretty v
         LitByteChar v                   -> prettyByteChar v
         LitByteString v                 -> prettyByteString v
         LitChar v                       -> pretty do text "'" <> opoint v <> text "'" -- FIXME: escape

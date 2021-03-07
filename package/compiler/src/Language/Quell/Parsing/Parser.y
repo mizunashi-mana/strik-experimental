@@ -10,7 +10,6 @@ import qualified Language.Quell.Parsing.Parser.Layout as Layout
 import qualified Language.Quell.Data.Bag as Bag
 import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Parsing.Runner as Runner
-import           Data.Foldable (toList)
 }
 
 %expect 0
@@ -56,9 +55,9 @@ import           Data.Foldable (toList)
     VSEMI       { S Token.SpVSemi }
 
     CONID       { S (Token.IdConId _) }
-    CONSYM      { S (Token.IdConOp _) }
+    CONSYM      { S (Token.IdConSym _) }
     VARID       { S (Token.IdVarId _) }
-    VARSYM      { S (Token.IdVarOp _) }
+    VARSYM      { S (Token.IdVarSym _) }
 
     BYTECHAR    { S (Token.LitByteChar _) }
     BYTESTRING  { S (Token.LitByteString _) }
@@ -84,7 +83,13 @@ import           Data.Foldable (toList)
 %%
 
 program :: { Ast.Program C }
-    : decl_body   { Ast.Program { decls = toList $1 } }
+    : decl_body
+    {
+        Ast.Program
+            {
+                decls = otoList $1
+            }
+    }
 
 decl_body :: { Bag.T (Ast.Decl C) }
     : lopen decl_items lclose   { $2 }
@@ -104,11 +109,27 @@ decl_item :: { Ast.Decl C }
     | val_decl              { undefined }
 
 
-typesig_decl :: { () }
-    : 'type' declcon ':' type       { () }
+typesig_decl :: { S (Ast.TypeSigDecl C) }
+    : 'type' declcon ':' type
+    {
+        spn ($1, $2, $3) do -- FIXME: add $4
+            Ast.TypeSigDecl
+                {
+                    typeSigDeclCon = unS $2,
+                    typeSigDeclType = undefined
+                }
+    }
 
-valsig_decl :: { () }
-    : var ':' type                  { () } -- declvar ':' type
+valsig_decl :: { S (Ast.ValSigDecl C) }
+    : var ':' type -- declvar ':' type
+    {
+        spn ($1, $2) do -- FIXME: add $3
+            Ast.ValSigDecl
+                {
+                    valSigDeclVar = unS $1,
+                    valSigDeclType = undefined
+                }
+    }
 
 consig_decl :: { () }
     : con ':' type                  { () } -- declcon ':' type
@@ -562,58 +583,58 @@ bind_var :: { () }
     : '@' simple_bind_var           { () }
     | simple_bind_var               { () }
 
-simple_bind_var :: { () }
-    : var_id_ext                    { () }
-    | '(' var_id_ext ':' type ')'   { () }
+simple_bind_var :: { (S (Ast.BindVar C)) }
+    : var_id_ext                    { undefined }
+    | '(' var_id_ext ':' type ')'   { undefined }
 
-con :: { () }
-    : con_id_ext            { () }
-    | '(' con_sym_ext ')'   { () }
+con :: { S Ast.Name }
+    : con_id_ext            { $1 }
+    | '(' con_sym_ext ')'   { spn ($1, $2, $3) do unS $2 }
 
-conop :: { () }
-    : con_sym_ext           { () }
-    | '`' con_sym_ext '`'   { () }
-    | '`' con_id_ext '`'    { () }
+conop :: { S Ast.Name }
+    : con_sym_ext           { $1 }
+    | '`' con_sym_ext '`'   { spn ($1, $2, $3) do unS $2 }
+    | '`' con_id_ext '`'    { spn ($1, $2, $3) do unS $2 }
 
-var :: { () }
-    : var_id_ext                { () }
-    | '(' var_sym_ext ')'       { () }
+var :: { S Ast.Name }
+    : var_id_ext                { $1 }
+    | '(' var_sym_ext ')'       { spn ($1, $2, $3) do unS $2 }
 
-sym_ext :: { () }
-    : con_sym_ext       { () }
-    | var_sym_ext       { () }
+sym_ext :: { S Ast.Name }
+    : con_sym_ext       { $1 }
+    | var_sym_ext       { $1 }
 
 
-declcon :: { () }
-    : CONID             { () }
-    | '(' CONSYM ')'    { () }
+declcon :: { S Ast.Name }
+    : conid             { $1 }
+    | '(' consym ')'    { spn ($1, $2, $3) do unS $2 }
 
-declconop :: { () }
-    : CONSYM            { () }
-    | '`' CONID '`'     { () }
+declconop :: { S Ast.Name }
+    : consym            { $1 }
+    | '`' conid '`'     { spn ($1, $2, $3) do unS $2 }
 
-con_id_ext :: { () }
-    : CONID             { () }
-    | '(' ')'           { () }
+con_id_ext :: { S Ast.Name }
+    : conid             { $1 }
+    | '(' ')'           { spn $1 do mkName "()" }
 
-con_sym_ext :: { () }
-    : CONSYM            { () }
-    | '->'              { () }
+con_sym_ext :: { S Ast.Name }
+    : consym            { $1 }
+    | '->'              { spn $1 do mkName "->" }
 
-declvar :: { () }
-    : VARID             { () }
-    | '`' VARSYM '`'    { () }
+declvar :: { S Ast.Name }
+    : varid             { $1 }
+    | '`' varsym '`'    { spn ($1, $2, $3) do unS $2 }
 
-declop :: { () }
-    : VARSYM            { () }
-    | '`' VARID '`'     { () }
+declop :: { S Ast.Name }
+    : varsym            { $1 }
+    | '`' varid '`'     { spn ($1, $2, $3) do unS $2 }
 
-var_id_ext :: { () }
-    : VARID             { () }
-    | '_'               { () }
+var_id_ext :: { S Ast.Name }
+    : varid     { $1 }
+    | '_'       { spn $1 do mkName "_" }
 
-var_sym_ext :: { () }
-    : VARSYM            { () }
+var_sym_ext :: { S Ast.Name }
+    : varsym    { $1 }
 
 
 lopen :: { () }
@@ -652,16 +673,84 @@ may_type_sig :: { () }
 bind_vars :: { () }
     : bind_vars bind_var    { () }
     | {- empty -}           { () }
+
+
+conid :: { S Ast.Name }
+    : CONID
+    {
+        $1 <&> \case
+            Token.IdConId n     -> n
+            _                   -> error "unreachable"
+    }
+
+consym :: { S Ast.Name }
+    : CONSYM
+    {
+        $1 <&> \case
+            Token.IdConSym n     -> n
+            _                   -> error "unreachable"
+    }
+
+varid :: { S Ast.Name }
+    : VARID
+    {
+        $1 <&> \case
+            Token.IdVarId n     -> n
+            _                   -> error "unreachable"
+    }
+
+varsym :: { S Ast.Name }
+    : VARSYM
+    {
+        $1 <&> \case
+            Token.IdVarSym n    -> n
+            _                   -> error "unreachable"
+    }
 {
 type C = AstParsed
 data AstParsed
 
-pattern S :: Token.T -> Spanned.T Token.T
-pattern S t <- Spanned.Spanned
+type S = Spanned.T
+
+pattern S :: a -> S a
+pattern S x <- Spanned.Spanned
     {
         getSpan = _,
-        unSpanned = t
+        unSpanned = x
     }
+
+unS :: S a -> a
+unS sx = Spanned.unSpanned sx
+
+class SpannedBuilder s where
+    sp :: s -> Spanned.Span
+
+    spn :: s -> a -> S a
+    spn s x = Spanned.Spanned
+        {
+            getSpan = sp s,
+            unSpanned = x
+        }
+
+instance SpannedBuilder Spanned.Span where
+    sp s = s
+
+instance SpannedBuilder (S a) where
+    sp sx = Spanned.getSpan sx
+
+instance (SpannedBuilder s1, SpannedBuilder s2) => SpannedBuilder (s1, s2) where
+    sp (s1, s2) = sp s1 <> sp s2
+
+instance (SpannedBuilder s1, SpannedBuilder s2, SpannedBuilder s3)
+        => SpannedBuilder (s1, s2, s3) where
+    sp (s1, s2, s3) = sp s1 <> sp s2 <> sp s3
+
+instance (SpannedBuilder s1, SpannedBuilder s2, SpannedBuilder s3, SpannedBuilder s4)
+        => SpannedBuilder (s1, s2, s3, s4) where
+    sp (s1, s2, s3, s4) = sp s1 <> sp s2 <> sp s3 <> sp s4
+
+mkName :: StringLit -> Ast.Name
+mkName s = Ast.mkName do text s
 
 lexer = undefined
 
