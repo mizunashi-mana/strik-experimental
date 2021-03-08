@@ -7,9 +7,17 @@ module Language.Quell.Type.Ast (
   TypeDecl (..),
   DataTypeDecl (..),
   ValDecl (..),
+  TypeExpr (..),
+  AppExpr (..),
+  XAppExpr,
+  XUnivAppExpr,
   Name,
   mkName,
   BindVar (..),
+  XBindVar,
+  XUnivBindVar,
+  XEq,
+  XShow,
 ) where
 
 import           Language.Quell.Prelude
@@ -145,9 +153,15 @@ data Expr c
     deriving (Eq, Show)
 
 data AppExpr c
-    = AppExpr (Expr c)
-    | UnivAppExpr (TypeExpr c)
-    deriving (Eq, Show)
+    = AppExpr (Expr c) (XAppExpr c)
+    | UnivAppExpr (TypeExpr c) (XUnivAppExpr c)
+
+type family XAppExpr c :: Type
+type family XUnivAppExpr c :: Type
+
+deriving instance XEq c => Eq (AppExpr c)
+deriving instance XShow c => Show (AppExpr c)
+
 
 data CaseAlt c = CaseAlt
     {
@@ -209,6 +223,24 @@ mkName :: Text -> Name
 mkName n = TextId.textId n
 
 data BindVar c
-    = BindVar Name (Maybe (TypeExpr c))
-    | UnivBindVar Name (Maybe (TypeExpr c))
-    deriving (Eq, Show)
+    = BindVar Name (Maybe (TypeExpr c)) (XBindVar c)
+    | UnivBindVar Name (Maybe (TypeExpr c)) (XUnivBindVar c)
+
+type family XBindVar c :: Type
+type family XUnivBindVar c :: Type
+
+deriving instance XEq c => Eq (BindVar c)
+deriving instance XShow c => Show (BindVar c)
+
+
+type XC :: (Type -> Constraint) -> Type -> Constraint
+type XC f c =
+    (
+        f (XAppExpr c),
+        f (XUnivAppExpr c),
+        f (XBindVar c),
+        f (XUnivBindVar c)
+    )
+
+class XC Eq c => XEq c
+class XC Show c => XShow c

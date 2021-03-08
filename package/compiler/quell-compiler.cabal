@@ -72,6 +72,7 @@ common general
         RoleAnnotations
         ScopedTypeVariables
         StandaloneDeriving
+        StandaloneKindSignatures
         Strict
         TypeApplications
         TypeFamilies

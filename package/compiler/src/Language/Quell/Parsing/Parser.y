@@ -579,13 +579,20 @@ do_stmt_item :: { () }
     | 'rec' let_binds               { () }
 
 
-bind_var :: { () }
-    : '@' simple_bind_var           { () }
-    | simple_bind_var               { () }
+bind_var :: { Ast.BindVar C }
+    : '@' simple_bind_var
+    { spAnn ($1, $2) case unS $2 of (name, mayTy) -> Ast.UnivBindVar name mayTy }
+    | simple_bind_var
+    { spAnn $1 case unS $1 of (name, mayTy) -> Ast.BindVar name mayTy }
 
-simple_bind_var :: { (S (Ast.BindVar C)) }
-    : var_id_ext                    { undefined }
-    | '(' var_id_ext ':' type ')'   { undefined }
+simple_bind_var :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
+    : var_id_ext
+    { spn $1 (unS $1, Nothing) }
+    | '(' var_id_ext ':' type ')'
+    {
+        spn ($1, $2, $3, $5) -- FIXME: add $4
+            (unS $2, Just undefined)
+    }
 
 con :: { S Ast.Name }
     : con_id_ext            { $1 }
@@ -637,25 +644,25 @@ var_sym_ext :: { S Ast.Name }
     : varsym    { $1 }
 
 
-lopen :: { () }
-    : lopen VSEMI   { () }
-    | '{'           { () }
-    | '{{'          { () }
-    | VOBRACE       { () }
+lopen :: { Maybe Span }
+    : lopen VSEMI   { $1 }
+    | '{'           { Just do sp $1 }
+    | '{{'          { Just do sp $1 }
+    | VOBRACE       { Nothing }
 
-lclose :: { () }
-    : '}'           { () }
-    | '}}'          { () }
-    | VCBRACE       { () }
-    | error         { () }
+lclose :: { Maybe Span }
+    : '}'           { Just do sp $1 }
+    | '}}'          { Just do sp $1 }
+    | VCBRACE       { Nothing }
+    | error         { Nothing }
 
-lsemis :: { () }
-    : lsemis semi   { () }
-    | semi          { () }
+lsemis :: { Maybe Span }
+    : lsemis semi   { $1 <:> $2 }
+    | semi          { $1 }
 
-semi :: { () }
-    : ';'       { () }
-    | VSEMI     { () }
+semi :: { Maybe Span }
+    : ';'       { Just do sp $1 }
+    | VSEMI     { Nothing }
 
 
 literal :: { () }
@@ -707,9 +714,7 @@ varsym :: { S Ast.Name }
             _                   -> error "unreachable"
     }
 {
-type C = AstParsed
-data AstParsed
-
+type Span = Spanned.Span
 type S = Spanned.T
 
 pattern S :: a -> S a
@@ -732,6 +737,9 @@ class SpannedBuilder s where
             unSpanned = x
         }
 
+    spAnn :: s -> (Span -> a) -> a
+    spAnn s f = f do sp s
+
 instance SpannedBuilder Spanned.Span where
     sp s = s
 
@@ -749,10 +757,37 @@ instance (SpannedBuilder s1, SpannedBuilder s2, SpannedBuilder s3, SpannedBuilde
         => SpannedBuilder (s1, s2, s3, s4) where
     sp (s1, s2, s3, s4) = sp s1 <> sp s2 <> sp s3 <> sp s4
 
+instance (
+            SpannedBuilder s1,
+            SpannedBuilder s2,
+            SpannedBuilder s3,
+            SpannedBuilder s4,
+            SpannedBuilder s5
+        ) => SpannedBuilder (s1, s2, s3, s4, s5) where
+    sp (s1, s2, s3, s4, s5) = sp s1 <> sp s2 <> sp s3 <> sp s4 <> sp s5
+
+
+(<:>) :: Maybe Span -> Maybe Span -> Maybe Span
+Nothing  <:> Nothing  = Nothing
+msp1     <:> Nothing  = msp1
+Nothing  <:> msp2     = msp2
+Just sp1 <:> Just sp2 = Just do sp1 <> sp2
+
 mkName :: StringLit -> Ast.Name
 mkName s = Ast.mkName do text s
 
 lexer = undefined
 
 happyError = undefined
+
+
+type C = AstParsed
+data AstParsed
+
+type instance Ast.XAppExpr C = Span
+type instance Ast.XUnivAppExpr C = Span
+type instance Ast.XBindVar C = Span
+type instance Ast.XUnivBindVar C = Span
+
+instance Ast.XEq C
 }
