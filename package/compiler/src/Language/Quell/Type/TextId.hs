@@ -1,6 +1,8 @@
-module Language.Quell.Data.TextId (
+module Language.Quell.Type.TextId (
   T,
   TextId (..),
+  PrimTextId (..),
+  primTextId,
   textId,
   stringLit,
   showByText,
@@ -16,6 +18,18 @@ newtype TextId = UnsafeTextId
         unsafeUnTextId :: Text -- FIXME: Use memorized hash integer
     }
     deriving (Eq, Show)
+
+data PrimTextId
+    = PrimTextUnit
+    | PrimTextArrow
+    | PrimTextWildcard
+    deriving (Eq, Show, Ord, Enum, Bounded)
+
+primTextId :: PrimTextId -> TextId
+primTextId = \case
+    PrimTextUnit        -> stringLit "()"
+    PrimTextArrow       -> stringLit "->"
+    PrimTextWildcard    -> stringLit "_"
 
 textId :: Text -> TextId
 textId txt = UnsafeTextId do txt

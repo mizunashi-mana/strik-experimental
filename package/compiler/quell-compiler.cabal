@@ -165,12 +165,12 @@ library
         Language.Quell.Prelude
         Language.Quell.Data.Bag
         Language.Quell.Data.Monad.MonadST
-        Language.Quell.Data.TextId
         Language.Quell.Data.STBuffer
         Language.Quell.Data.Unlifted.MutInt
         Language.Quell.Type.Ast
         Language.Quell.Type.Error
         Language.Quell.Type.ErrorCode
+        Language.Quell.Type.TextId
         Language.Quell.Type.Token
         Language.Quell.Parsing.Spanned
         Language.Quell.Parsing.Runner

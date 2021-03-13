@@ -4,12 +4,12 @@ module Language.Quell.Parsing.Parser where
 import Language.Quell.Prelude
 
 import qualified Prelude
-import qualified Language.Quell.Type.Ast as Ast
-import qualified Language.Quell.Type.Token as Token
-import qualified Language.Quell.Parsing.Parser.Layout as Layout
-import qualified Language.Quell.Data.Bag as Bag
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Parsing.Runner as Runner
+import qualified Language.Quell.Type.Ast                as Ast
+import qualified Language.Quell.Type.Token              as Token
+import qualified Language.Quell.Parsing.Parser.Layout   as Layout
+import qualified Language.Quell.Data.Bag                as Bag
+import qualified Language.Quell.Parsing.Spanned         as Spanned
+import qualified Language.Quell.Parsing.Runner          as Runner
 }
 
 %expect 0
@@ -24,6 +24,7 @@ import qualified Language.Quell.Parsing.Runner as Runner
     'newtype'       { S Token.KwNewtype }
     'of'            { S Token.KwOf }
     'rec'           { S Token.KwRec }
+    'use'           { S Token.KwUse }
     'type'          { S Token.KwType }
     'when'          { S Token.KwWhen }
     'where'         { S Token.KwWhere }
@@ -132,7 +133,7 @@ valsig_decl :: { S (Ast.ValSigDecl C) }
     }
 
 consig_decl :: { () }
-    : con ':' type                  { () } -- declcon ':' type
+    : declcon ':' type              { () }
 
 
 type_decl :: { () }
@@ -186,17 +187,13 @@ alg_data_type :: { () }
     | alg_data_type_items           { () }
 
 alg_data_type_items :: { () }
-    : alg_data_type_items_vbars impltype vbars  { () }
-    | alg_data_type_items_vbars impltype        { () }
+    : alg_data_type_items_vbar impltype '|'     { () }
+    | alg_data_type_items_vbar impltype         { () }
 
-alg_data_type_items_vbars :: { () }
-    : alg_data_type_items_vbars impltype vbars  { () }
-    | vbars                                     { () }
+alg_data_type_items_vbar :: { () }
+    : alg_data_type_items_vbar impltype '|'     { () }
+    | '|'                                       { () }
     | {- empty -} %shift                        { () }
-
-vbars :: { () }
-    : vbars '|'     { () }
-    | '|'           { () }
 
 
 val_decl :: { () }
@@ -243,7 +240,7 @@ type :: { () }
     | type_unit %shift              { () }
 
 type_unit :: { () }
-    : type_infix %shift         { () }
+    : type_infix %shift         { $1 }
 
 type_infix :: { () }
     : type_infix type_op type_apps %shift   { () }
@@ -565,18 +562,34 @@ do_body :: { () }
     : lopen do_stmt_items lclose        { () }
 
 do_stmt_items :: { () }
-    : do_stmt_items_semis expr                  { () }
-    | do_stmt_items_semis do_stmt_item lsemis   { () } -- do_stmt_items_semis expr lsemis
+    : do_stmt_items_semis do_stmt_item lsemis   { () } -- do_stmt_items_semis expr lsemis
+    | do_stmt_items_semis expr                  { () }
 
 do_stmt_items_semis :: { () }
     : do_stmt_items_semis do_stmt_item lsemis   { () }
     | {- empty -}                               { () }
 
 do_stmt_item :: { () }
-    : expr                          { () }
-    | expr '<-' expr                { () } -- pat '<-' expr
-    | expr '=' expr                 { () } -- pat '=' expr
-    | 'rec' let_binds               { () }
+    : expr                                      { () }
+    | var_id_ext may_type_sig '<-' expr         { () }
+    | var_id_ext may_type_sig '=' expr          { () }
+    | 'use' do_binds                            { () }
+    | 'rec' let_binds                           { () }
+
+do_binds :: { () }
+    : lopen do_bind_items lclose    { () }
+
+do_bind_items :: { () }
+    : do_bind_items_semis do_bind_item  { () }
+    | do_bind_items_semis               { () }
+
+do_bind_items_semis :: { () }
+    : do_bind_items_semis do_bind_item lsemis   { () }
+    | {- empty -}                               { () }
+
+do_bind_item :: { () }
+    : let_bind_item     { () }
+    | pat '<-' expr     { () }
 
 
 bind_var :: { Ast.BindVar C }
@@ -604,44 +617,61 @@ conop :: { S Ast.Name }
     | '`' con_id_ext '`'    { spn ($1, $2, $3) do unS $2 }
 
 var :: { S Ast.Name }
-    : var_id_ext                { $1 }
+    : var_id_ext %shift         { $1 }
     | '(' var_sym_ext ')'       { spn ($1, $2, $3) do unS $2 }
+
+op :: { S Ast.Name }
+    : var_sym_ext               { $1 }
+    | '`' var_sym_ext '`'       { spn ($1, $2, $3) do unS $2 }
+    | '`' var_id_ext '`'        { spn ($1, $2, $3) do unS $2 }
 
 sym_ext :: { S Ast.Name }
     : con_sym_ext       { $1 }
     | var_sym_ext       { $1 }
 
-
-declcon :: { S Ast.Name }
-    : conid             { $1 }
-    | '(' consym ')'    { spn ($1, $2, $3) do unS $2 }
-
-declconop :: { S Ast.Name }
-    : consym            { $1 }
-    | '`' conid '`'     { spn ($1, $2, $3) do unS $2 }
-
 con_id_ext :: { S Ast.Name }
     : conid             { $1 }
-    | '(' ')'           { spn $1 do mkName "()" }
+    | '(' ')'           { spn $1 Ast.primNameUnit }
 
 con_sym_ext :: { S Ast.Name }
     : consym            { $1 }
-    | '->'              { spn $1 do mkName "->" }
-
-declvar :: { S Ast.Name }
-    : varid             { $1 }
-    | '`' varsym '`'    { spn ($1, $2, $3) do unS $2 }
-
-declop :: { S Ast.Name }
-    : varsym            { $1 }
-    | '`' varid '`'     { spn ($1, $2, $3) do unS $2 }
+    | '->'              { spn $1 Ast.primNameArrow }
 
 var_id_ext :: { S Ast.Name }
     : varid     { $1 }
-    | '_'       { spn $1 do mkName "_" }
+    | '_'       { spn $1 Ast.primNameWildcard }
 
 var_sym_ext :: { S Ast.Name }
     : varsym    { $1 }
+
+
+declcon :: { S Ast.Name }
+    : con
+    { if
+        | isExtName do unS $1 -> undefined
+        | otherwise -> $1
+    }
+
+declconop :: { S Ast.Name }
+    : conop
+    { if
+        | isExtName do unS $1 -> undefined
+        | otherwise -> $1
+    }
+
+declvar :: { S Ast.Name }
+    : var
+    { if
+        | isExtName do unS $1 -> undefined
+        | otherwise -> $1
+    }
+
+declop :: { S Ast.Name }
+    : op
+    { if
+        | isExtName do unS $1 -> undefined
+        | otherwise -> $1
+    }
 
 
 lopen :: { Maybe Span }
@@ -661,25 +691,55 @@ lsemis :: { Maybe Span }
     | semi          { $1 }
 
 semi :: { Maybe Span }
-    : ';'       { Just do sp $1 }
-    | VSEMI     { Nothing }
+    : ';'           { Just do sp $1 }
+    | VSEMI         { Nothing }
 
 
-literal :: { () }
-    : BYTECHAR              { () }
-    | BYTESTRING            { () }
-    | CHAR                  { () }
-    | STRING                { () }
-    | INTEGER               { () }
-    | RATIONAL              { () }
+literal :: { Ast.Lit C }
+    : BYTECHAR
+    {
+        spAnn $1 case unS $1 of
+            Token.LitByteChar w -> Ast.LitByteChar w
+            _                   -> error "unreachable"
+    }
+    | BYTESTRING
+    {
+        spAnn $1 case unS $1 of
+            Token.LitByteString s   -> Ast.LitByteString s
+            _                       -> error "unreachable"
+    }
+    | CHAR
+    {
+        spAnn $1 case unS $1 of
+            Token.LitChar c -> Ast.LitChar c
+            _               -> error "unreachable"
+    }
+    | STRING
+    {
+        spAnn $1 case unS $1 of
+            Token.LitString s   -> Ast.LitString s
+            _                   -> error "unreachable"
+    }
+    | INTEGER
+    {
+        spAnn $1 case unS $1 of
+            Token.LitInteger i  -> Ast.LitInteger i
+            _                   -> error "unreachable"
+    }
+    | RATIONAL
+    {
+        spAnn $1 case unS $1 of
+            Token.LitRational r -> Ast.LitRational r
+            _                   -> error "unreachable"
+    }
 
 may_type_sig :: { () }
     : ':' type              { () }
     | {- empty -} %shift    { () }
 
-bind_vars :: { () }
-    : bind_vars bind_var    { () }
-    | {- empty -}           { () }
+bind_vars :: { Bag.T (Ast.BindVar C) }
+    : bind_vars bind_var    { snoc $1 $2 }
+    | {- empty -}           { mempty }
 
 
 conid :: { S Ast.Name }
@@ -776,6 +836,14 @@ Just sp1 <:> Just sp2 = Just do sp1 <> sp2
 mkName :: StringLit -> Ast.Name
 mkName s = Ast.mkName do text s
 
+isExtName :: Ast.Name -> Bool
+isExtName n = any (== n)
+    [
+        Ast.primNameUnit,
+        Ast.primNameArrow,
+        Ast.primNameWildcard
+    ]
+
 lexer = undefined
 
 happyError = undefined
@@ -788,6 +856,14 @@ type instance Ast.XAppExpr C = Span
 type instance Ast.XUnivAppExpr C = Span
 type instance Ast.XBindVar C = Span
 type instance Ast.XUnivBindVar C = Span
+type instance Ast.XLitRational C = Span
+type instance Ast.XLitInteger C = Span
+type instance Ast.XLitByteString C = Span
+type instance Ast.XLitString C = Span
+type instance Ast.XLitByteChar C = Span
+type instance Ast.XLitChar C = Span
+type instance Ast.XLitInterpString C = Span
 
 instance Ast.XEq C
+instance Ast.XShow C
 }

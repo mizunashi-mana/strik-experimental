@@ -6,7 +6,7 @@ module Language.Quell.Type.Token (
 import           Language.Quell.Prelude
 
 import qualified GHC.Show                   as GHC
-import qualified Language.Quell.Data.TextId as TextId
+import qualified Language.Quell.Type.TextId as TextId
 import qualified Prelude
 
 

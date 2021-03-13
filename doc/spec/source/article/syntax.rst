@@ -490,9 +490,16 @@ Grammar
             : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* expr lsemis?
     do_stmt_item    : expr
-                    : pat "<-" expr
-                    : pat "=" expr
+                    : var_id_ext (":" type)? "<-" expr
+                    : var_id_ext (":" type)? "=" expr
+                    : "use" do_binds
                     : "rec" let_binds
+    do_binds    : "{" do_bind_items "}"
+                : "{{" do_bind_items "}}"
+                : '{' do_bind_items '}'
+    do_bind_items   : lsemis? (do_bind_item lsemis)* do_bind_item?
+    do_bind_item    : let_bind_item
+                    : pat "<-" expr
 
 .. productionlist::
     bind_var: "@" simple_bind_var
@@ -502,30 +509,34 @@ Grammar
     con : con_id_ext
         : "(" con_sym_ext ")"
     conop   : con_sym_ext
+            : "`" con_sym_ext "`"
             : "`" con_id_ext "`"
     var : var_id_ext
         : "(" var_sym_ext ")"
     op  : var_sym_ext
+        : "`" var_sym_ext "`"
         : "`" var_id_ext "`"
     sym_ext : con_sym_ext
             : var_sym_ext
+    con_id_ext  : con_id
+                : "(" ")"
+    con_sym_ext : con_sym
+                : "->"
+    var_id_ext  : var_id
+                : "_"
+    var_sym_ext : var_sym
 
 .. productionlist::
     declcon : con_id
             : "(" con_sym ")"
     declconop   : con_sym
+                : "`" con_sym "`"
                 : "`" con_id "`"
-    con_id_ext  : con_id
-                : "(" ")"
-    con_sym_ext : con_sym
-                : "->"
-    declvar : con_id
-            : "(" con_sym ")"
-    declop  : con_sym
-            : "`" con_id "`"
-    var_id_ext  : var_id
-                : "_"
-    var_sym_ext : var_sym
+    declvar : var_id
+            : "(" var_sym ")"
+    declop  : var_sym
+            : "`" var_sym "`"
+            : "`" var_id "`"
 
 .. productionlist::
     lsemis: (';' | ";")+

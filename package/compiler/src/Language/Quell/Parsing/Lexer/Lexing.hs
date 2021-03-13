@@ -11,7 +11,7 @@ import qualified Language.Lexer.Tlex                         as Tlex
 import qualified Language.Lexer.Tlex.Data.EnumSet            as EnumSet
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Data.STBuffer                as STBuffer
-import qualified Language.Quell.Data.TextId                  as TextId
+import qualified Language.Quell.Type.TextId                  as TextId
 import qualified Language.Quell.Parsing.Lexer.CodeUnit       as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Error          as Error
 import qualified Language.Quell.Parsing.Lexer.Lexing.CharEsc as CharEscLex
