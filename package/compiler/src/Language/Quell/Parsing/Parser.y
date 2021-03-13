@@ -733,9 +733,9 @@ literal :: { Ast.Lit C }
             _                   -> error "unreachable"
     }
 
-may_type_sig :: { () }
-    : ':' type              { () }
-    | {- empty -} %shift    { () }
+may_type_sig :: { Maybe (S (Ast.TypeExpr C)) }
+    : ':' type              { Just do spn ($1, $2) $2 }
+    | {- empty -} %shift    { Nothing }
 
 bind_vars :: { Bag.T (Ast.BindVar C) }
     : bind_vars bind_var    { snoc $1 $2 }

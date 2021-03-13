@@ -105,46 +105,7 @@ instance SemiSequence (Bag a) where
             []      -> [UnitBag x]
             b:bs    -> BagCons x b:bs
 
-    sortBy cmp b0 = go b0 where
-        go = \case
-            EmptyBag        -> EmptyBag
-            UnitBag x       -> UnitBag x
-            BagCons x b     -> merge [UnitBag x] [go b]
-            BagSnoc b x     -> merge [go b] [UnitBag x]
-            TwoBags b1 b2   -> merge [go b1] [go b2]
-
-        merge []                        []                          = EmptyBag
-        merge []                        (b2:bs2)                    = b2 <> merge [] bs2
-        merge (b1:bs1)                  []                          = b1 <> merge [] bs1
-        merge (EmptyBag:bs1)            bs2                         = merge bs1 bs2
-        merge bs1                       (EmptyBag:bs2)              = merge bs1 bs2
-        merge (TwoBags b1 b2:bs1)       bs2                         = merge (b1:b2:bs1) bs2
-        merge bs1                       (TwoBags b1 b2:bs2)         = merge bs1 (b1:b2:bs2)
-        merge bs1@(UnitBag x1:bs1')     bs2@(UnitBag x2:bs2')       = case cmp x1 x2 of
-            LT  -> BagCons x1 do merge bs1' bs2
-            GT  -> BagCons x2 do merge bs1 bs2'
-            EQ  -> BagCons x1 do BagCons x2 do merge bs1' bs2'
-        merge bs1@(UnitBag x1:bs1')     bs2@(BagCons x2 b2:bs2') = case cmp x1 x2 of
-            LT  -> BagCons x1 do merge bs1' bs2
-            GT  -> BagCons x2 do merge bs1 (b2:bs2')
-            EQ  -> BagCons x1 do BagCons x2 do merge bs1' (b2:bs2')
-        merge bs1@(UnitBag x1:bs1')     (b2@(BagSnoc b2' x2):bs2') = case cmp x1 x2 of
-            LT  -> merge [UnitBag x1] [b2'] <> merge bs1' (UnitBag x2:bs2')
-            GT  -> b2 <> merge bs1 bs2'
-            EQ  -> BagSnoc b2 x1 <> merge bs1' bs2'
-        merge bs1@(BagCons x1 b1:bs1')  bs2@(BagCons x2 b2:bs2') = case cmp x1 x2 of
-            LT  -> BagCons x1 do merge (b1:bs1') bs2
-            GT  -> BagCons x2 do merge bs1 (b2:bs2')
-            EQ  -> BagCons x1 do BagCons x2 do merge (b1:bs1') (b2:bs2')
-        merge bs1@(BagCons x1 b1:bs1')  (b2@(BagSnoc b2' x2):bs2') = case cmp x1 x2 of
-            LT  -> merge bs1 (b2':UnitBag x2:bs2')
-            GT  -> b2 <> merge bs1 bs2'
-            EQ  -> BagSnoc b2 x1 <> merge (b1:bs1') bs2'
-        merge (b1@(BagSnoc b1' x1):bs1')  (b2@(BagSnoc b2' x2):bs2') = case cmp x1 x2 of
-            LT  -> merge [b1] [b2'] <> merge bs1' (UnitBag x2:bs2')
-            GT  -> merge [b1'] [b2] <> merge (UnitBag x1:bs1') bs2'
-            EQ  -> BagSnoc (BagSnoc (merge [b1'] [b2']) x1) x2 <> merge bs1' bs2'
-        merge bs1 bs2 = merge bs2 bs1
+    sortBy cmp xs = fromList do sortBy cmp do toList xs
 
     cons x b = BagCons x b
     snoc b x = BagSnoc b x
@@ -153,8 +114,9 @@ instance MonoPointed (Bag a) where
     opoint = pure
 
 instance IsSequence (Bag a) where
-    fromList :: [a] -> Bag a
     fromList xs = foldr
         do \x b -> BagCons x b
         do EmptyBag
         do xs
+
+    splitWhen f xs = [ fromList l | l <- splitWhen f do toList xs ]
