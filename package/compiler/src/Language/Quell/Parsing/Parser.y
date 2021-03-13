@@ -4,12 +4,13 @@ module Language.Quell.Parsing.Parser where
 import Language.Quell.Prelude
 
 import qualified Prelude
-import qualified Language.Quell.Type.Ast                as Ast
-import qualified Language.Quell.Type.Token              as Token
-import qualified Language.Quell.Parsing.Parser.Layout   as Layout
-import qualified Language.Quell.Data.Bag                as Bag
-import qualified Language.Quell.Parsing.Spanned         as Spanned
-import qualified Language.Quell.Parsing.Runner          as Runner
+import qualified Language.Quell.Type.Ast                        as Ast
+import qualified Language.Quell.Type.Token                      as Token
+import qualified Language.Quell.Parsing.Parser.Layout           as Layout
+import qualified Language.Quell.Data.Bag                        as Bag
+import qualified Language.Quell.Parsing.Spanned                 as Spanned
+import qualified Language.Quell.Parsing.Runner                  as Runner
+import           Language.Quell.Parsing.Parser.AstParsed
 }
 
 %expect 0
@@ -234,40 +235,41 @@ declvarexpr :: { () }
     | simple_bind_var declop simple_bind_var    { () }
 
 
-type :: { () }
-    : '\\/' bind_vars '=>' type     { () }
-    | type_unit '->' type           { () }
-    | type_unit %shift              { () }
+type :: { Ast.TypeExpr C }
+    : '\\/' bind_vars '=>' type     { undefined }
+    | type_unit '->' type           { undefined }
+    | type_unit %shift              { $1 }
 
-type_unit :: { () }
+type_unit :: { Ast.TypeExpr C }
     : type_infix %shift         { $1 }
 
-type_infix :: { () }
-    : type_infix type_op type_apps %shift   { () }
-    | type_apps %shift                      { () }
+type_infix :: { Ast.TypeExpr C }
+    : type_infix type_op type_apps %shift   { undefined }
+    | type_apps %shift                      { $1 }
 
-type_op :: { () }
-    : CONSYM                        { () }
-    | var_sym_ext                   { () }
-    | '`' type_qualified_op '`'     { () }
+type_op :: { Ast.TypeExpr C }
+    : consym                        { spAnn $1 do Ast.TypeCon do unS $1 }
+    | var_sym_ext                   { spAnn $1 do Ast.TypeVar do unS $1 }
+    | '`' type_qualified_op '`'     { spAnn ($1, $2, $3) do Ast.TypeAnn $2 }
 
-type_qualified_op :: { () }
-    : sym_ext       { () }
-    | type_block    { () }
+type_qualified_op :: { Ast.TypeExpr C }
+    : con_sym_ext   { spAnn $1 do Ast.TypeCon do unS $1 }
+    | var_sym_ext   { spAnn $1 do Ast.TypeVar do unS $1 }
+    | type_block    { $1 }
 
-type_apps :: { () }
-    : type_apps type_app        { () }
-    | type_qualified            { () }
+type_apps :: { Ast.TypeExpr C }
+    : type_apps type_app        { undefined }
+    | type_qualified            { $1 }
 
 type_app :: { () }
     : '@' type_qualified    { () }
     | type_qualified        { () }
 
-type_qualified :: { () }
-    : type_block                  { () }
+type_qualified :: { Ast.TypeExpr C }
+    : type_block            { $1 }
 
-type_block :: { () }
-    : type_atomic                       { () }
+type_block :: { Ast.TypeExpr C }
+    : type_atomic           { undefined }
 
 type_atomic :: { () }
     : '(' type may_type_sig ')'         { () }
@@ -327,7 +329,8 @@ expr_op :: { () }
     | '`' expr_qualified_op '`'     { () }
 
 expr_qualified_op :: { () }
-    : sym_ext           { () }
+    : con_sym_ext       { () }
+    | var_sym_ext       { () }
     | expr_block        { () }
 
 expr_apps :: { () }
@@ -417,8 +420,9 @@ pat_op :: { () }
     | '`' pat_qualified_op '`'      { () }
 
 pat_qualified_op :: { () }
-    : sym_ext    { () }
-    | pat_qualified                 { () }
+    : con_sym_ext       { () }
+    | var_sym_ext       { () }
+    | pat_qualified     { () }
 
 pat_apps :: { () }
     : pat_qualified pat_apps_args       { () }
@@ -625,10 +629,6 @@ op :: { S Ast.Name }
     | '`' var_sym_ext '`'       { spn ($1, $2, $3) do unS $2 }
     | '`' var_id_ext '`'        { spn ($1, $2, $3) do unS $2 }
 
-sym_ext :: { S Ast.Name }
-    : con_sym_ext       { $1 }
-    | var_sym_ext       { $1 }
-
 con_id_ext :: { S Ast.Name }
     : conid             { $1 }
     | '(' ')'           { spn $1 Ast.primNameUnit }
@@ -787,44 +787,8 @@ pattern S x <- Spanned.Spanned
 unS :: S a -> a
 unS sx = Spanned.unSpanned sx
 
-class SpannedBuilder s where
-    sp :: s -> Spanned.Span
 
-    spn :: s -> a -> S a
-    spn s x = Spanned.Spanned
-        {
-            getSpan = sp s,
-            unSpanned = x
-        }
-
-    spAnn :: s -> (Span -> a) -> a
-    spAnn s f = f do sp s
-
-instance SpannedBuilder Spanned.Span where
-    sp s = s
-
-instance SpannedBuilder (S a) where
-    sp sx = Spanned.getSpan sx
-
-instance (SpannedBuilder s1, SpannedBuilder s2) => SpannedBuilder (s1, s2) where
-    sp (s1, s2) = sp s1 <> sp s2
-
-instance (SpannedBuilder s1, SpannedBuilder s2, SpannedBuilder s3)
-        => SpannedBuilder (s1, s2, s3) where
-    sp (s1, s2, s3) = sp s1 <> sp s2 <> sp s3
-
-instance (SpannedBuilder s1, SpannedBuilder s2, SpannedBuilder s3, SpannedBuilder s4)
-        => SpannedBuilder (s1, s2, s3, s4) where
-    sp (s1, s2, s3, s4) = sp s1 <> sp s2 <> sp s3 <> sp s4
-
-instance (
-            SpannedBuilder s1,
-            SpannedBuilder s2,
-            SpannedBuilder s3,
-            SpannedBuilder s4,
-            SpannedBuilder s5
-        ) => SpannedBuilder (s1, s2, s3, s4, s5) where
-    sp (s1, s2, s3, s4, s5) = sp s1 <> sp s2 <> sp s3 <> sp s4 <> sp s5
+type C = AstParsed
 
 
 (<:>) :: Maybe Span -> Maybe Span -> Maybe Span
@@ -847,23 +811,4 @@ isExtName n = any (== n)
 lexer = undefined
 
 happyError = undefined
-
-
-type C = AstParsed
-data AstParsed
-
-type instance Ast.XAppExpr C = Span
-type instance Ast.XUnivAppExpr C = Span
-type instance Ast.XBindVar C = Span
-type instance Ast.XUnivBindVar C = Span
-type instance Ast.XLitRational C = Span
-type instance Ast.XLitInteger C = Span
-type instance Ast.XLitByteString C = Span
-type instance Ast.XLitString C = Span
-type instance Ast.XLitByteChar C = Span
-type instance Ast.XLitChar C = Span
-type instance Ast.XLitInterpString C = Span
-
-instance Ast.XEq C
-instance Ast.XShow C
 }

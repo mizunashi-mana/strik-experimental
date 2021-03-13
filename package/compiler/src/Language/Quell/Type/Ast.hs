@@ -7,7 +7,19 @@ module Language.Quell.Type.Ast (
   TypeDecl (..),
   DataTypeDecl (..),
   ValDecl (..),
+
   TypeExpr (..),
+  XTypeForall,
+  XTypeInfix,
+  XTypeApp,
+  XTypeSig,
+  XTypeCon,
+  XTypeVar,
+  XTypeLit,
+  XTypeTuple,
+  XTypeArray,
+  XTypeRecord,
+  XTypeAnn,
 
   AppExpr (..),
   XAppExpr,
@@ -171,14 +183,29 @@ deriving instance XShow c => Show (DeclExpr c)
 
 
 data TypeExpr c
-    = TypeForAll [BindVar c] (TypeExpr c)
-    | TypeInfix (TypeExpr c) (TypeExpr c) (TypeExpr c)
-    | TypeApp (TypeExpr c) [AppType c]
-    | TypeSig (TypeExpr c) (TypeExpr c)
-    | TypeLit (Lit c)
-    | TypeTuple [TypeExpr c]
-    | TypeArray [TypeExpr c]
-    | TypeRecord [(Name, TypeExpr c)]
+    = TypeForall [BindVar c] (TypeExpr c) (XTypeForall c)
+    | TypeInfix (TypeExpr c) (TypeExpr c) (TypeExpr c) (XTypeInfix c)
+    | TypeApp (TypeExpr c) [AppType c] (XTypeApp c)
+    | TypeSig (TypeExpr c) (TypeExpr c) (XTypeSig c)
+    | TypeCon Name (XTypeCon c)
+    | TypeVar Name (XTypeVar c)
+    | TypeLit (Lit c) (XTypeLit c)
+    | TypeTuple [TypeExpr c] (XTypeTuple c)
+    | TypeArray [TypeExpr c] (XTypeArray c)
+    | TypeRecord [(Name, TypeExpr c)] (XTypeRecord c)
+    | TypeAnn (TypeExpr c) (XTypeAnn c)
+
+type family XTypeForall c :: Type
+type family XTypeInfix c :: Type
+type family XTypeApp c :: Type
+type family XTypeSig c :: Type
+type family XTypeCon c :: Type
+type family XTypeVar c :: Type
+type family XTypeLit c :: Type
+type family XTypeTuple c :: Type
+type family XTypeArray c :: Type
+type family XTypeRecord c :: Type
+type family XTypeAnn c :: Type
 
 deriving instance XEq c => Eq (TypeExpr c)
 deriving instance XShow c => Show (TypeExpr c)
@@ -347,7 +374,18 @@ type XC f c =
         f (XLitString c),
         f (XLitByteChar c),
         f (XLitChar c),
-        f (XLitInterpString c)
+        f (XLitInterpString c),
+        f (XTypeForall c),
+        f (XTypeInfix c),
+        f (XTypeApp c),
+        f (XTypeSig c),
+        f (XTypeCon c),
+        f (XTypeVar c),
+        f (XTypeLit c),
+        f (XTypeTuple c),
+        f (XTypeArray c),
+        f (XTypeRecord c),
+        f (XTypeAnn c)
     )
 
 class XC Eq c => XEq c

@@ -185,6 +185,7 @@ library
         Language.Quell.Parsing.Parser.Layout
         Language.Quell.Parsing.Parser.Runner
         Language.Quell.Parsing.Parser.Error
+        Language.Quell.Parsing.Parser.AstParsed
     other-modules:
         Language.Quell.Prelude.Core
         Language.Quell.Prelude.Literal
