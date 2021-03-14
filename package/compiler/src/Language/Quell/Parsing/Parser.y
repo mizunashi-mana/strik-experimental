@@ -148,7 +148,8 @@ type_decl_where_item :: { () }
 
 
 data_decl :: { () }
-    : 'data' declcon may_type_sig data_decl_where               { () }
+    : 'data' declcon ':' type data_decl_where                   { () }
+    | 'data' declcon data_decl_where                            { () }
     | 'data' decltype '=' alg_data_type type_decl_where         { () }
     | 'newtype' decltype '=' type type_decl_where               { () }
 
@@ -270,12 +271,9 @@ type_block :: { Ast.TypeExpr C }
     : type_atomic           { $1 }
 
 type_atomic :: { Ast.TypeExpr C }
-    : '(' type may_type_sig ')'
-    {
-        case $3 of
-            Nothing -> spAnn ($1, $2, $4) do Ast.TypeAnn $2
-            Just t3 -> spAnn ($1, $2, t3, $4) do Ast.TypeSig $2 do unS t3
-    }
+    : '(' type ':' type ')'
+    { spAnn ($1, $2, $3, $4, $5) do Ast.TypeSig $2 $4 }
+    | '(' type ')'                      { spAnn ($1, $2, $3) $2 }
     | con                               { spAnn $1 do Ast.TypeCon do unS $1 }
     | var                               { spAnn $1 do Ast.TypeVar do unS $1 }
     | literal                           { spAnn $1 do Ast.TypeLit $1 }
@@ -289,8 +287,14 @@ type_atomic :: { Ast.TypeExpr C }
             Just sts ->
                 spAnn ($1, sts, $3) do Ast.TypeArray do otoList do unS sts
     }
-    | '{' type_simplrecord_items '}'    { undefined }
-
+    | '{' type_simplrecord_items '}'
+    {
+        case $2 of
+            Nothing ->
+                spAnn ($1, $3) do Ast.TypeRecord []
+            Just sts ->
+                spAnn ($1, sts, $3) do Ast.TypeRecord do otoList do unS sts
+    }
 type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
     : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
     | type_tuple_items_commas type      { spn ($1, $2) do snoc (unS $1) $2 }
@@ -321,16 +325,30 @@ type_array_items_commas :: { Maybe (S (Bag.T (Ast.TypeExpr C))) }
     }
     | {- empty -}               { Nothing }
 
-type_simplrecord_items :: { () }
-    : type_simplrecord_items_commas type_simplrecord_item   { () }
-    | type_simplrecord_items_commas                         { () }
+type_simplrecord_items :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
+    : type_simplrecord_items_commas type_simplrecord_item
+    {
+        case $1 of
+            Nothing ->
+                Just do spn $2 do pure do unS $2
+            Just sts ->
+                Just do spn (sts, $2) do snoc (unS sts) do unS $2
+    }
+    | type_simplrecord_items_commas                         { $1 }
 
-type_simplrecord_items_commas :: { () }
-    : type_simplrecord_items_commas type_simplrecord_item ','   { () }
-    | {- empty -}                                               { () }
+type_simplrecord_items_commas :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
+    : type_simplrecord_items_commas type_simplrecord_item ','
+    {
+        case $1 of
+            Nothing ->
+                Just do spn ($2, $3) do pure do unS $2
+            Just sts ->
+                Just do spn (sts, $2, $3) do snoc (unS sts) do unS $2
+    }
+    | {- empty -}       { Nothing }
 
-type_simplrecord_item :: { () }
-    : var ':' type      { () }
+type_simplrecord_item :: { S (Ast.Name, Ast.TypeExpr C) }
+    : var ':' type      { spn ($1, $2, $3) (unS $1, $3) }
 
 
 sig_item :: { Ast.Decl C }
@@ -339,7 +357,8 @@ sig_item :: { Ast.Decl C }
 
 
 expr :: { () }
-    : expr_unit may_type_sig    { () }
+    : expr_unit ':' type        { () }
+    | expr_unit %shift          { () }
 
 expr_unit :: { () }
     : expr_infix %shift         { $1 }
@@ -429,7 +448,8 @@ expr_simplrecord_item :: { () }
 
 
 pat :: { () }
-    : pat_unit may_type_sig     { () }
+    : pat_unit ':' type     { () }
+    | pat_unit              { () }
 
 pat_unit :: { () }
     : pat_unit '|' pat_infix        { () }
@@ -600,8 +620,10 @@ do_stmt_items_semis :: { () }
 
 do_stmt_item :: { () }
     : expr                                      { () }
-    | var_id_ext may_type_sig '<-' expr         { () }
-    | var_id_ext may_type_sig '=' expr          { () }
+    | var_id_ext ':' type '<-' expr             { () }
+    | var_id_ext '<-' expr                      { () }
+    | var_id_ext ':' type '=' expr              { () }
+    | var_id_ext '=' expr                       { () }
     | 'use' do_binds                            { () }
     | 'rec' let_binds                           { () }
 
@@ -757,10 +779,6 @@ literal :: { Ast.Lit C }
             Token.LitRational r -> Ast.LitRational r
             _                   -> error "unreachable"
     }
-
-may_type_sig :: { Maybe (S (Ast.TypeExpr C)) }
-    : ':' type              { Just do spn ($1, $2) $2 }
-    | {- empty -} %shift    { Nothing }
 
 bind_vars :: { Bag.T (Ast.BindVar C) }
     : bind_vars bind_var    { snoc $1 $2 }
