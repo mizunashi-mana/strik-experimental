@@ -1,55 +1,79 @@
 module Language.Quell.Type.Ast (
-  Program (..),
-  Decl (..),
-  TypeSigDecl (..),
-  ValSigDecl (..),
-  ConSigDecl (..),
-  TypeDecl (..),
-  DataTypeDecl (..),
-  ValDecl (..),
+    Program (..),
 
-  TypeExpr (..),
-  XTypeForall,
-  XTypeInfix,
-  XTypeApp,
-  XTypeSig,
-  XTypeCon,
-  XTypeVar,
-  XTypeLit,
-  XTypeTuple,
-  XTypeArray,
-  XTypeRecord,
-  XTypeAnn,
+    Decl (..),
+    XDeclTypeSig,
+    XDeclValSig,
+    XDeclConSig,
+    XDeclType,
+    XDeclDataType,
+    XDeclVal,
+    XDeclValBind,
+    XDeclMonBind,
 
-  AppType (..),
-  XAppType,
-  XUnivAppType,
+    TypeSigDecl (..),
+    XTypeSigDecl,
 
-  AppExpr (..),
-  XAppExpr,
-  XUnivAppExpr,
+    ValSigDecl (..),
+    XValSigDecl,
 
-  Lit (..),
-  XLitRational,
-  XLitInteger,
-  XLitByteString,
-  XLitString,
-  XLitByteChar,
-  XLitChar,
-  XLitInterpString,
+    ConSigDecl (..),
+    XConSigDecl,
 
-  BindVar (..),
-  XBindVar,
-  XUnivBindVar,
+    TypeDecl (..),
+    XTypeDecl,
 
-  Name,
-  mkName,
-  primNameUnit,
-  primNameArrow,
-  primNameWildcard,
+    DataTypeDecl (..),
+    ValDecl (..),
 
-  XEq,
-  XShow,
+    ValBind (..),
+    XValBind,
+
+    MonBind (..),
+    XMonBind,
+
+    TypeExpr (..),
+    XTypeForall,
+    XTypeInfix,
+    XTypeApp,
+    XTypeSig,
+    XTypeCon,
+    XTypeVar,
+    XTypeLit,
+    XTypeTuple,
+    XTypeArray,
+    XTypeRecord,
+    XTypeAnn,
+
+    AppType (..),
+    XAppType,
+    XUnivAppType,
+
+    AppExpr (..),
+    XAppExpr,
+    XUnivAppExpr,
+
+    Lit (..),
+    XLitRational,
+    XLitInteger,
+    XLitByteString,
+    XLitString,
+    XLitByteChar,
+    XLitChar,
+    XLitInterpString,
+
+    BindVar (..),
+    XBindVar,
+    XUnivBindVar,
+
+    Name,
+    mkName,
+    primNameUnit,
+    primNameArrow,
+    primNameWildcard,
+
+    XEq,
+    XShow,
 ) where
 
 import           Language.Quell.Prelude
@@ -67,54 +91,55 @@ deriving instance XShow c => Show (Program c)
 
 
 data Decl c
-    = DeclTypeSig (TypeSigDecl c)
-    | DeclValSig (ValSigDecl c)
-    | DeclConSig (ConSigDecl c)
-    | DeclType (TypeDecl c)
-    | DeclDataType (DataTypeDecl c)
-    | DeclVal (ValDecl c)
-    | DeclValBind (ValBind c)
+    = DeclTypeSig (TypeSigDecl c) (XDeclTypeSig c)
+    | DeclValSig (ValSigDecl c) (XDeclValSig c)
+    | DeclConSig (ConSigDecl c) (XDeclConSig c)
+    | DeclType (TypeDecl c) (XDeclType c)
+    | DeclDataType (DataTypeDecl c) (XDeclDataType c)
+    | DeclVal (ValDecl c) (XDeclVal c)
+    | DeclValBind (ValBind c) (XDeclValBind c)
+    | DeclMonBind (MonBind c) (XDeclMonBind c)
+
+type family XDeclTypeSig c :: Type
+type family XDeclValSig c :: Type
+type family XDeclConSig c :: Type
+type family XDeclType c :: Type
+type family XDeclDataType c :: Type
+type family XDeclVal c :: Type
+type family XDeclValBind c :: Type
+type family XDeclMonBind c :: Type
 
 deriving instance XEq c => Eq (Decl c)
 deriving instance XShow c => Show (Decl c)
 
 
-data TypeSigDecl c = TypeSigDecl
-    {
-        typeSigDeclCon :: Name,
-        typeSigDeclType :: TypeExpr c
-    }
+data TypeSigDecl c = TypeSigDecl Name (TypeExpr c) (XTypeSigDecl c)
+
+type family XTypeSigDecl c :: Type
 
 deriving instance XEq c => Eq (TypeSigDecl c)
 deriving instance XShow c => Show (TypeSigDecl c)
 
 
-data ValSigDecl c = ValSigDecl
-    {
-        valSigDeclVar :: Name,
-        valSigDeclType :: TypeExpr c
-    }
+data ValSigDecl c = ValSigDecl Name (TypeExpr c) (XValSigDecl c)
+
+type family XValSigDecl c :: Type
 
 deriving instance XEq c => Eq (ValSigDecl c)
 deriving instance XShow c => Show (ValSigDecl c)
 
 
-data ConSigDecl c = ConSigDecl
-    {
-        conSigDeclCon :: Name,
-        conSigDeclType :: TypeExpr c
-    }
+data ConSigDecl c = ConSigDecl Name (TypeExpr c) (XConSigDecl c)
+
+type family XConSigDecl c :: Type
 
 deriving instance XEq c => Eq (ConSigDecl c)
 deriving instance XShow c => Show (ConSigDecl c)
 
 
-data TypeDecl c = TypeDecl
-    {
-        typeDeclVar :: DeclType c,
-        typeDeclType :: TypeExpr c,
-        typeDeclAssumptions :: [Decl c]
-    }
+data TypeDecl c = TypeDecl (DeclType c) (TypeExpr c) [Decl c] (XTypeDecl c)
+
+type family XTypeDecl c :: Type
 
 deriving instance XEq c => Eq (TypeDecl c)
 deriving instance XShow c => Show (TypeDecl c)
@@ -151,15 +176,20 @@ deriving instance XEq c => Eq (ValDecl c)
 deriving instance XShow c => Show (ValDecl c)
 
 
-data ValBind c = ValBind
-    {
-        valBindPat :: Pat c,
-        valBindExpr :: Expr c,
-        valBindAssumptions :: [Decl c]
-    }
+data ValBind c = ValBind (Pat c) (Expr c) [Decl c] (XValBind c)
+
+type family XValBind c :: Type
 
 deriving instance XEq c => Eq (ValBind c)
 deriving instance XShow c => Show (ValBind c)
+
+
+data MonBind c = MonBind (Pat c) (Expr c) [Decl c] (XMonBind c)
+
+type family XMonBind c :: Type
+
+deriving instance XEq c => Eq (MonBind c)
+deriving instance XShow c => Show (MonBind c)
 
 
 data DeclType c
@@ -394,7 +424,21 @@ type XC f c =
         f (XTypeRecord c),
         f (XTypeAnn c),
         f (XAppType c),
-        f (XUnivAppType c)
+        f (XUnivAppType c),
+        f (XTypeSigDecl c),
+        f (XValSigDecl c),
+        f (XConSigDecl c),
+        f (XTypeDecl c),
+        f (XValBind c),
+        f (XMonBind c),
+        f (XDeclTypeSig c),
+        f (XDeclValSig c),
+        f (XDeclConSig c),
+        f (XDeclType c),
+        f (XDeclDataType c),
+        f (XDeclVal c),
+        f (XDeclValBind c),
+        f (XDeclMonBind c)
     )
 
 class XC Eq c => XEq c

@@ -111,30 +111,17 @@ decl_item :: { Ast.Decl C }
     | val_decl              { undefined }
 
 
-typesig_decl :: { S (Ast.TypeSigDecl C) }
+typesig_decl :: { Ast.TypeSigDecl C }
     : 'type' declcon ':' type
-    {
-        spn ($1, $2, $3) do -- FIXME: add $4
-            Ast.TypeSigDecl
-                {
-                    typeSigDeclCon = unS $2,
-                    typeSigDeclType = undefined
-                }
-    }
+    { spAnn ($1, $2, $3, $4) do Ast.TypeSigDecl (unS $2) $4 }
 
-valsig_decl :: { S (Ast.ValSigDecl C) }
+valsig_decl :: { Ast.ValSigDecl C }
     : var ':' type -- declvar ':' type
-    {
-        spn ($1, $2) do -- FIXME: add $3
-            Ast.ValSigDecl
-                {
-                    valSigDeclVar = unS $1,
-                    valSigDeclType = undefined
-                }
-    }
+    { spAnn ($1, $2, $3) do Ast.ValSigDecl (unS $1) $3 }
 
-consig_decl :: { () }
-    : declcon ':' type              { () }
+consig_decl :: { Ast.ConSigDecl C }
+    : declcon ':' type
+    { spAnn ($1, $2, $3) do Ast.ConSigDecl (unS $1) $3 }
 
 
 type_decl :: { () }
@@ -347,8 +334,8 @@ type_simplrecord_item :: { () }
 
 
 sig_item :: { Ast.Decl C }
-    : typesig_decl      { undefined }
-    | valsig_decl       { undefined }
+    : typesig_decl      { spAnn $1 do Ast.DeclTypeSig $1 }
+    | valsig_decl       { spAnn $1 do Ast.DeclValSig $1 }
 
 
 expr :: { () }
