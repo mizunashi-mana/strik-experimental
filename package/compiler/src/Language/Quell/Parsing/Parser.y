@@ -273,7 +273,7 @@ type_block :: { Ast.TypeExpr C }
 type_atomic :: { Ast.TypeExpr C }
     : '(' type ':' type ')'
     { spAnn ($1, $2, $3, $4, $5) do Ast.TypeSig $2 $4 }
-    | '(' type ')'                      { spAnn ($1, $2, $3) $2 }
+    | '(' type ')'                      { spAnn ($1, $2, $3) do Ast.TypeAnn $2 }
     | con                               { spAnn $1 do Ast.TypeCon do unS $1 }
     | var                               { spAnn $1 do Ast.TypeVar do unS $1 }
     | literal                           { spAnn $1 do Ast.TypeLit $1 }
@@ -356,68 +356,128 @@ sig_item :: { Ast.Decl C }
     | valsig_decl       { spAnn $1 do Ast.DeclValSig $1 }
 
 
-expr :: { () }
-    : expr_unit ':' type        { () }
-    | expr_unit %shift          { () }
+expr :: { Ast.Expr C }
+    : expr_unit ':' type        { spAnn ($1, $2, $3) do Ast.ExprSig $1 $3 }
+    | expr_unit %shift          { $1 }
 
-expr_unit :: { () }
+expr_unit :: { Ast.Expr C }
     : expr_infix %shift         { $1 }
 
-expr_infix :: { () }
-    : expr_infix expr_op expr_apps %shift   { () }
-    | expr_apps %shift                      { () }
+expr_infix :: { Ast.Expr C }
+    : expr_infix expr_op expr_apps %shift   { spAnn ($1, $2, $3) do Ast.ExprInfix $1 $2 $3 }
+    | expr_apps %shift                      { $1 }
 
-expr_op :: { () }
-    : CONSYM                        { () }
-    | var_sym_ext                   { () }
-    | '`' expr_qualified_op '`'     { () }
+expr_op :: { Ast.Expr C }
+    : consym                        { spAnn $1 do Ast.ExprCon do unS $1 }
+    | var_sym_ext                   { spAnn $1 do Ast.ExprVar do unS $1 }
+    | '`' expr_qualified_op '`'     { spAnn ($1, $2, $3) do Ast.ExprAnn $2 }
 
-expr_qualified_op :: { () }
-    : con_sym_ext       { () }
-    | var_sym_ext       { () }
-    | expr_block        { () }
+expr_qualified_op :: { Ast.Expr C }
+    : con_sym_ext       { spAnn $1 do Ast.ExprCon do unS $1 }
+    | var_sym_ext       { spAnn $1 do Ast.ExprVar do unS $1 }
+    | expr_block        { $1 }
 
-expr_apps :: { () }
-    : expr_apps expr_app        { () }
-    | expr_qualified            { () }
+expr_apps :: { Ast.Expr C }
+    : expr_apps_list %shift
+    {
+        case $1 of
+            (e, b) -> case otoList b of
+                [] ->
+                    e
+                xs0@(x:xs) ->
+                    spAnn (e, x :| xs) do Ast.ExprApp e xs0
+    }
 
-expr_app :: { () }
-    : '@' expr_qualified        { () }
-    | expr_qualified            { () }
+expr_apps_list :: { (Ast.Expr C, Bag.T (Ast.AppExpr C)) }
+    : expr_apps_list expr_app   { case $1 of (e, xs) -> (e, snoc xs $2) }
+    | expr_qualified            { ($1, mempty) }
 
-expr_qualified :: { () }
-    : expr_block                  { () }
+expr_app :: { Ast.AppExpr C }
+    : '@' type_qualified        { spAnn ($1, $2) do Ast.UnivAppExpr $2 }
+    | expr_qualified            { spAnn $1 do Ast.AppExpr $1 }
 
-expr_block :: { () }
-    : '\\' 'case' case_alt_body             { () }
-    | '\\' 'when' guarded_alt_body          { () }
-    | '\\' lambda_body                      { () } -- conflict with expr
-    | 'let' let_body                        { () } -- conflict with expr
-    | 'letrec' let_body                     { () } -- conflict with expr
-    | 'case' case_body                      { () }
-    | 'do' do_body                          { () }
-    | expr_atomic                           { () }
+expr_qualified :: { Ast.Expr C }
+    : expr_block                { $1 }
 
-expr_atomic :: { () }
-    : '(' expr ')'                  { () }
-    | con                           { () }
-    | var                           { () }
-    | expr_literal                  { () }
+expr_block :: { Ast.Expr C }
+    : '\\' 'case' case_alt_body             { undefined }
+    | '\\' 'when' guarded_alt_body          { undefined }
+    | '\\' lambda_body                      { undefined } -- conflict with expr
+    | 'let' let_body                        { undefined } -- conflict with expr
+    | 'letrec' let_body                     { undefined } -- conflict with expr
+    | 'case' case_body                      { undefined }
+    | 'do' do_body                          { undefined }
+    | expr_atomic                           { $1 }
 
-expr_literal :: { () }
-    : literal                           { () }
-    | expr_interp_string                { () }
-    | '(' expr_tuple_items ')'          { () }
-    | '[' expr_array_items ']'          { () }
-    | '{' expr_simplrecord_items '}'    { () }
+expr_atomic :: { Ast.Expr C }
+    : '(' expr ')'                  { spAnn ($1, $2, $3) do Ast.ExprAnn $2 }
+    | con                           { spAnn $1 do Ast.ExprCon do unS $1 }
+    | var                           { spAnn $1 do Ast.ExprVar do unS $1 }
+    | expr_literal                  { $1 }
 
-expr_interp_string :: { () }
-    : INTERP_STRING_WITHOUT_INTERP                                          { () }
-    | INTERP_STRING_START expr expr_interp_string_conts INTERP_STRING_END   { () }
+expr_literal :: { Ast.Expr C }
+    : literal                           { spAnn $1 do Ast.ExprLit $1 }
+    | expr_interp_string                { undefined }
+    | '(' expr_tuple_items ')'          { undefined }
+    | '[' expr_array_items ']'          { undefined }
+    | '{' expr_simplrecord_items '}'    { undefined }
 
-expr_interp_string_conts :: { () }
-    : expr_interp_string_conts INTERP_STRING_CONTINUE expr  { () }
-    | {- empty -}                                           { () }
+expr_interp_string :: { Ast.Expr C }
+    : interp_string_without_interp
+    { spAnn $1 do Ast.ExprInterpString [$1] }
+    | interp_string_start interp_string_expr expr_interp_string_conts interp_string_end
+    {
+        case otoList do cons $2 do snoc $3 $4 of
+            xs -> spAnn ($1 :| xs) do Ast.ExprInterpString do $1:xs
+    }
+
+expr_interp_string_conts :: { Bag.T (Ast.InterpStringPart C) }
+    : expr_interp_string_conts interp_string_cont interp_string_expr
+    { snoc (snoc $1 $2) $3 }
+    | {- empty -}   { mempty }
+
+interp_string_without_interp :: { Ast.InterpStringPart C }
+    : INTERP_STRING_WITHOUT_INTERP
+    {
+        case unS $1 of
+            Token.LitInterpStringWithoutInterp txt ->
+                spAnn $1 do Ast.InterpStringLit txt
+            _ ->
+                error "unreachable"
+    }
+
+interp_string_start :: { Ast.InterpStringPart C }
+    : INTERP_STRING_START
+    {
+        case unS $1 of
+            Token.LitInterpStringStart txt ->
+                spAnn $1 do Ast.InterpStringLit txt
+            _ ->
+                error "unreachable"
+    }
+
+interp_string_cont :: { Ast.InterpStringPart C }
+    : INTERP_STRING_CONTINUE
+    {
+        case unS $1 of
+            Token.LitInterpStringContinue txt ->
+                spAnn $1 do Ast.InterpStringLit txt
+            _ ->
+                error "unreachable"
+    }
+
+interp_string_end :: { Ast.InterpStringPart C }
+    : INTERP_STRING_END
+    {
+        case unS $1 of
+            Token.LitInterpStringEnd txt ->
+                spAnn $1 do Ast.InterpStringLit txt
+            _ ->
+                error "unreachable"
+    }
+
+interp_string_expr :: { Ast.InterpStringPart C }
+    : expr  { spAnn $1 do Ast.InterpStringExpr $1 }
 
 expr_tuple_items :: { () }
     : expr_tuple_items_commas expr ','   { () }

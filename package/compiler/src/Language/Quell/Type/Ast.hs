@@ -45,6 +45,28 @@ module Language.Quell.Type.Ast (
     XTypeRecord,
     XTypeAnn,
 
+    Expr (..),
+    XExprSig,
+    XExprInfix,
+    XExprApp,
+    XExprLambda,
+    XExprCase,
+    XExprDo,
+    XExprLetrec,
+    XExprLet,
+    XExprCon,
+    XExprVar,
+    XExprLit,
+    XExprInterpString,
+    XExprTuple,
+    XExprArray,
+    XExprRecord,
+    XExprAnn,
+
+    InterpStringPart (..),
+    XInterpStringLit,
+    XInterpStringExpr,
+
     AppType (..),
     XAppType,
     XUnivAppType,
@@ -60,7 +82,6 @@ module Language.Quell.Type.Ast (
     XLitString,
     XLitByteChar,
     XLitChar,
-    XLitInterpString,
 
     BindVar (..),
     XBindVar,
@@ -257,21 +278,39 @@ deriving instance XShow c => Show (AppType c)
 
 
 data Expr c
-    = ExprSig (Expr c) (TypeExpr c)
-    | ExprInfix (Expr c) (Expr c) (Expr c)
-    | ExprApp (Expr c) [AppExpr c]
-    | ExprLambdaCase [CaseAlt c]
-    | ExprLambda [Pat c] [GuardedAlt c]
-    | ExprLetrec [Decl c] (Expr c)
-    | ExprLet [Decl c] (Expr c)
-    | ExprCase [Expr c] [CaseAlt c]
-    | ExprDo [DoStmt c] (Expr c)
-    | ExprCon Name
-    | ExprVar Name
-    | ExprLit (Lit c)
-    | ExprTuple [Expr c]
-    | ExprArray [Expr c]
-    | ExprRecord [(Name, Expr c)]
+    = ExprSig (Expr c) (TypeExpr c) (XExprSig c)
+    | ExprInfix (Expr c) (Expr c) (Expr c) (XExprInfix c)
+    | ExprApp (Expr c) [AppExpr c] (XExprApp c)
+    | ExprLambda [CaseAlt c] (XExprLambda c)
+    | ExprLetrec [Decl c] (Expr c) (XExprLetrec c)
+    | ExprLet [Decl c] (Expr c) (XExprLet c)
+    | ExprCase [Expr c] [CaseAlt c] (XExprCase c)
+    | ExprDo [DoStmt c] (Expr c) (XExprDo c)
+    | ExprCon Name (XExprCon c)
+    | ExprVar Name (XExprVar c)
+    | ExprLit (Lit c) (XExprLit c)
+    | ExprInterpString [InterpStringPart c] (XExprInterpString c)
+    | ExprTuple [Expr c] (XExprTuple c)
+    | ExprArray [Expr c] (XExprArray c)
+    | ExprRecord [(Name, Expr c)] (XExprRecord c)
+    | ExprAnn (Expr c) (XExprAnn c)
+
+type family XExprSig c :: Type
+type family XExprInfix c :: Type
+type family XExprApp c :: Type
+type family XExprLambda c :: Type
+type family XExprLetrec c :: Type
+type family XExprLet c :: Type
+type family XExprCase c :: Type
+type family XExprDo c :: Type
+type family XExprCon c :: Type
+type family XExprVar c :: Type
+type family XExprLit c :: Type
+type family XExprInterpString c :: Type
+type family XExprTuple c :: Type
+type family XExprArray c :: Type
+type family XExprRecord c :: Type
+type family XExprAnn c :: Type
 
 deriving instance XEq c => Eq (Expr c)
 deriving instance XShow c => Show (Expr c)
@@ -350,7 +389,6 @@ data Lit c
     | LitString Text (XLitString c)
     | LitByteChar Word8 (XLitByteChar c)
     | LitChar Char (XLitChar c)
-    | LitInterpString [InterpStringPart c] (XLitInterpString c)
 
 type family XLitRational c :: Type
 type family XLitInteger c :: Type
@@ -358,15 +396,17 @@ type family XLitByteString c :: Type
 type family XLitString c :: Type
 type family XLitByteChar c :: Type
 type family XLitChar c :: Type
-type family XLitInterpString c :: Type
 
 deriving instance XEq c => Eq (Lit c)
 deriving instance XShow c => Show (Lit c)
 
 
 data InterpStringPart c
-    = InterpStringLit Text
-    | InterpStringExpr (Expr c)
+    = InterpStringLit Text (XInterpStringLit c)
+    | InterpStringExpr (Expr c) (XInterpStringExpr c)
+
+type family XInterpStringLit c :: Type
+type family XInterpStringExpr c :: Type
 
 deriving instance XEq c => Eq (InterpStringPart c)
 deriving instance XShow c => Show (InterpStringPart c)
@@ -411,7 +451,6 @@ type XC f c =
         f (XLitString c),
         f (XLitByteChar c),
         f (XLitChar c),
-        f (XLitInterpString c),
         f (XTypeForall c),
         f (XTypeInfix c),
         f (XTypeApp c),
@@ -438,7 +477,25 @@ type XC f c =
         f (XDeclDataType c),
         f (XDeclVal c),
         f (XDeclValBind c),
-        f (XDeclMonBind c)
+        f (XDeclMonBind c),
+        f (XExprSig c),
+        f (XExprInfix c),
+        f (XExprLambda c),
+        f (XExprApp c),
+        f (XExprLetrec c),
+        f (XExprLet c),
+        f (XExprCase c),
+        f (XExprDo c),
+        f (XExprCon c),
+        f (XExprVar c),
+        f (XExprLit c),
+        f (XExprInterpString c),
+        f (XExprTuple c),
+        f (XExprArray c),
+        f (XExprRecord c),
+        f (XExprAnn c),
+        f (XInterpStringLit c),
+        f (XInterpStringExpr c)
     )
 
 class XC Eq c => XEq c

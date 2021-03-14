@@ -59,6 +59,30 @@ instance SpannedBuilder (Ast.AppType AstParsed) where
         Ast.AppType _ x -> x
         Ast.UnivAppType _ x -> x
 
+instance SpannedBuilder (Ast.Expr AstParsed) where
+    sp = \case
+        Ast.ExprSig _ _ x -> x
+        Ast.ExprInfix _ _ _ x -> x
+        Ast.ExprApp _ _ x -> x
+        Ast.ExprLambda _ x -> x
+        Ast.ExprCase _ _ x -> x
+        Ast.ExprLetrec _ _ x -> x
+        Ast.ExprLet _ _ x -> x
+        Ast.ExprDo _ _ x -> x
+        Ast.ExprCon _ x -> x
+        Ast.ExprVar _ x -> x
+        Ast.ExprLit _ x -> x
+        Ast.ExprInterpString _ x -> x
+        Ast.ExprTuple _ x -> x
+        Ast.ExprArray _ x -> x
+        Ast.ExprRecord _ x -> x
+        Ast.ExprAnn _ x -> x
+
+instance SpannedBuilder (Ast.AppExpr AstParsed) where
+    sp = \case
+        Ast.AppExpr _ x -> x
+        Ast.UnivAppExpr _ x -> x
+
 instance SpannedBuilder (Ast.Lit AstParsed) where
     sp = \case
         Ast.LitRational _ x -> x
@@ -67,7 +91,11 @@ instance SpannedBuilder (Ast.Lit AstParsed) where
         Ast.LitString _ x -> x
         Ast.LitByteChar _ x -> x
         Ast.LitChar _ x -> x
-        Ast.LitInterpString _ x -> x
+
+instance SpannedBuilder (Ast.InterpStringPart AstParsed) where
+    sp = \case
+        Ast.InterpStringLit _ x -> x
+        Ast.InterpStringExpr _ x -> x
 
 instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
     sp l = sconcat do l <&> \s -> sp s
@@ -105,7 +133,6 @@ type instance Ast.XLitByteString AstParsed = Spanned.Span
 type instance Ast.XLitString AstParsed = Spanned.Span
 type instance Ast.XLitByteChar AstParsed = Spanned.Span
 type instance Ast.XLitChar AstParsed = Spanned.Span
-type instance Ast.XLitInterpString AstParsed = Spanned.Span
 type instance Ast.XTypeForall AstParsed = Spanned.Span
 type instance Ast.XTypeInfix AstParsed = Spanned.Span
 type instance Ast.XTypeApp AstParsed = Spanned.Span
@@ -133,6 +160,24 @@ type instance Ast.XDeclDataType AstParsed = Spanned.Span
 type instance Ast.XDeclVal AstParsed = Spanned.Span
 type instance Ast.XDeclValBind AstParsed = Spanned.Span
 type instance Ast.XDeclMonBind AstParsed = Spanned.Span
+type instance Ast.XExprSig AstParsed = Spanned.Span
+type instance Ast.XExprInfix AstParsed = Spanned.Span
+type instance Ast.XExprLambda AstParsed = Spanned.Span
+type instance Ast.XExprLetrec AstParsed = Spanned.Span
+type instance Ast.XExprLet AstParsed = Spanned.Span
+type instance Ast.XExprCase AstParsed = Spanned.Span
+type instance Ast.XExprApp AstParsed = Spanned.Span
+type instance Ast.XExprDo AstParsed = Spanned.Span
+type instance Ast.XExprCon AstParsed = Spanned.Span
+type instance Ast.XExprVar AstParsed = Spanned.Span
+type instance Ast.XExprLit AstParsed = Spanned.Span
+type instance Ast.XExprInterpString AstParsed = Spanned.Span
+type instance Ast.XExprTuple AstParsed = Spanned.Span
+type instance Ast.XExprArray AstParsed = Spanned.Span
+type instance Ast.XExprRecord AstParsed = Spanned.Span
+type instance Ast.XExprAnn AstParsed = Spanned.Span
+type instance Ast.XInterpStringLit AstParsed = Spanned.Span
+type instance Ast.XInterpStringExpr AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed
