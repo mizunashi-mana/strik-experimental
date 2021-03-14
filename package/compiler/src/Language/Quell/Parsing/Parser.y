@@ -292,25 +292,47 @@ type_atomic :: { Ast.TypeExpr C }
     | con                               { spAnn $1 do Ast.TypeCon do unS $1 }
     | var                               { spAnn $1 do Ast.TypeVar do unS $1 }
     | literal                           { spAnn $1 do Ast.TypeLit $1 }
-    | '(' type_tuple_items ')'          { undefined }
-    | '[' type_array_items ']'          { undefined }
+    | '(' type_tuple_items ')'
+    { spAnn ($1, $2, $3) do Ast.TypeTuple do otoList do unS $2 }
+    | '[' type_array_items ']'
+    {
+        case $2 of
+            Nothing ->
+                spAnn ($1, $3) do Ast.TypeArray []
+            Just sts ->
+                spAnn ($1, sts, $3) do Ast.TypeArray do otoList do unS sts
+    }
     | '{' type_simplrecord_items '}'    { undefined }
 
-type_tuple_items :: { () }
-    : type_tuple_items_commas type ','   { () }
-    | type_tuple_items_commas type       { () }
+type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
+    : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | type_tuple_items_commas type      { spn ($1, $2) do snoc (unS $1) $2 }
 
-type_tuple_items_commas :: { () }
-    : type_tuple_items_commas type ','  { () }
-    | type ','                          { () }
+type_tuple_items_commas :: { S (Bag.T (Ast.TypeExpr C)) }
+    : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | type ','                          { spn ($1, $2) do pure $1 }
 
-type_array_items :: { () }
-    : type_array_items_commas type  { () }
-    | type_array_items_commas       { () }
+type_array_items :: { Maybe (S (Bag.T (Ast.TypeExpr C))) }
+    : type_array_items_commas type
+    {
+        case $1 of
+            Nothing ->
+                Just do spn $2 do pure $2
+            Just sts ->
+                Just do spn (sts, $2) do snoc (unS sts) $2
+    }
+    | type_array_items_commas   { $1 }
 
-type_array_items_commas :: { () }
-    : type_array_items_commas type ','  { () }
-    | {- empty -}                       { () }
+type_array_items_commas :: { Maybe (S (Bag.T (Ast.TypeExpr C))) }
+    : type_array_items_commas type ','
+    {
+        case $1 of
+            Nothing ->
+                Just do spn ($2, $3) do pure $2
+            Just sts ->
+                Just do spn (sts, $2, $3) do snoc (unS sts) $2
+    }
+    | {- empty -}               { Nothing }
 
 type_simplrecord_items :: { () }
     : type_simplrecord_items_commas type_simplrecord_item   { () }
