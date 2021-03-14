@@ -244,7 +244,7 @@ type_unit :: { Ast.TypeExpr C }
     : type_infix %shift         { $1 }
 
 type_infix :: { Ast.TypeExpr C }
-    : type_infix type_op type_apps %shift   { undefined }
+    : type_infix type_op type_apps %shift   { spAnn ($1, $2, $3) do Ast.TypeInfix $1 $2 $3 }
     | type_apps %shift                      { $1 }
 
 type_op :: { Ast.TypeExpr C }
@@ -258,27 +258,43 @@ type_qualified_op :: { Ast.TypeExpr C }
     | type_block    { $1 }
 
 type_apps :: { Ast.TypeExpr C }
-    : type_apps type_app        { undefined }
-    | type_qualified            { $1 }
+    : type_apps_list %shift
+    {
+        case $1 of
+            (t, b) -> case otoList b of
+                [] ->
+                    t
+                xs0@(x:xs) ->
+                    spAnn (t, x :| xs) do Ast.TypeApp t xs0
+    }
 
-type_app :: { () }
-    : '@' type_qualified    { () }
-    | type_qualified        { () }
+type_apps_list :: { (Ast.TypeExpr C, Bag.T (Ast.AppType C)) }
+    : type_apps_list type_app   { case $1 of (t, xs) -> (t, snoc xs $2) }
+    | type_qualified            { ($1, mempty) }
+
+type_app :: { Ast.AppType C }
+    : '@' type_qualified    { spAnn ($1, $2) do Ast.UnivAppType $2 }
+    | type_qualified        { spAnn $1 do Ast.AppType $1 }
 
 type_qualified :: { Ast.TypeExpr C }
     : type_block            { $1 }
 
 type_block :: { Ast.TypeExpr C }
-    : type_atomic           { undefined }
+    : type_atomic           { $1 }
 
-type_atomic :: { () }
-    : '(' type may_type_sig ')'         { () }
-    | con                               { () }
-    | var                               { () }
-    | literal                           { () }
-    | '(' type_tuple_items ')'          { () }
-    | '[' type_array_items ']'          { () }
-    | '{' type_simplrecord_items '}'    { () }
+type_atomic :: { Ast.TypeExpr C }
+    : '(' type may_type_sig ')'
+    {
+        case $3 of
+            Nothing -> spAnn ($1, $2, $4) do Ast.TypeAnn $2
+            Just t3 -> spAnn ($1, $2, t3, $4) do Ast.TypeSig $2 do unS t3
+    }
+    | con                               { spAnn $1 do Ast.TypeCon do unS $1 }
+    | var                               { spAnn $1 do Ast.TypeVar do unS $1 }
+    | literal                           { spAnn $1 do Ast.TypeLit $1 }
+    | '(' type_tuple_items ')'          { undefined }
+    | '[' type_array_items ']'          { undefined }
+    | '{' type_simplrecord_items '}'    { undefined }
 
 type_tuple_items :: { () }
     : type_tuple_items_commas type ','   { () }

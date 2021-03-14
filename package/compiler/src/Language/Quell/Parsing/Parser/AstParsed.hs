@@ -42,6 +42,24 @@ instance SpannedBuilder (Ast.TypeExpr AstParsed) where
         Ast.TypeRecord _ x -> x
         Ast.TypeAnn _ x -> x
 
+instance SpannedBuilder (Ast.AppType AstParsed) where
+    sp = \case
+        Ast.AppType _ x -> x
+        Ast.UnivAppType _ x -> x
+
+instance SpannedBuilder (Ast.Lit AstParsed) where
+    sp = \case
+        Ast.LitRational _ x -> x
+        Ast.LitInteger _ x -> x
+        Ast.LitByteString _ x -> x
+        Ast.LitString _ x -> x
+        Ast.LitByteChar _ x -> x
+        Ast.LitChar _ x -> x
+        Ast.LitInterpString _ x -> x
+
+instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
+    sp l = sconcat do l <&> \s -> sp s
+
 instance (SpannedBuilder s1, SpannedBuilder s2) => SpannedBuilder (s1, s2) where
     sp (s1, s2) = sp s1 <> sp s2
 
@@ -87,6 +105,8 @@ type instance Ast.XTypeTuple AstParsed = Spanned.Span
 type instance Ast.XTypeArray AstParsed = Spanned.Span
 type instance Ast.XTypeRecord AstParsed = Spanned.Span
 type instance Ast.XTypeAnn AstParsed = Spanned.Span
+type instance Ast.XAppType AstParsed = Spanned.Span
+type instance Ast.XUnivAppType AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed

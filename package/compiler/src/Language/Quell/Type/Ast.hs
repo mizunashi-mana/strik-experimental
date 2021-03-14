@@ -21,6 +21,10 @@ module Language.Quell.Type.Ast (
   XTypeRecord,
   XTypeAnn,
 
+  AppType (..),
+  XAppType,
+  XUnivAppType,
+
   AppExpr (..),
   XAppExpr,
   XUnivAppExpr,
@@ -212,8 +216,11 @@ deriving instance XShow c => Show (TypeExpr c)
 
 
 data AppType c
-    = AppType (TypeExpr c)
-    | UnivAppType (TypeExpr c)
+    = AppType (TypeExpr c) (XAppType c)
+    | UnivAppType (TypeExpr c) (XUnivAppType c)
+
+type family XAppType c :: Type
+type family XUnivAppType c :: Type
 
 deriving instance XEq c => Eq (AppType c)
 deriving instance XShow c => Show (AppType c)
@@ -385,7 +392,9 @@ type XC f c =
         f (XTypeTuple c),
         f (XTypeArray c),
         f (XTypeRecord c),
-        f (XTypeAnn c)
+        f (XTypeAnn c),
+        f (XAppType c),
+        f (XUnivAppType c)
     )
 
 class XC Eq c => XEq c
