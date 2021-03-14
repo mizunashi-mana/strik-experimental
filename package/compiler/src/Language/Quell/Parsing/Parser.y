@@ -417,7 +417,7 @@ expr_atomic :: { Ast.Expr C }
 
 expr_literal :: { Ast.Expr C }
     : literal                           { spAnn $1 do Ast.ExprLit $1 }
-    | expr_interp_string                { undefined }
+    | expr_interp_string                { $1 }
     | '(' expr_tuple_items ')'          { undefined }
     | '[' expr_array_items ']'          { undefined }
     | '{' expr_simplrecord_items '}'    { undefined }
