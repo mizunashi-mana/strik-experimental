@@ -295,6 +295,7 @@ type_atomic :: { Ast.TypeExpr C }
             Just sts ->
                 spAnn ($1, sts, $3) do Ast.TypeRecord do otoList do unS sts
     }
+
 type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
     : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
     | type_tuple_items_commas type      { spn ($1, $2) do snoc (unS $1) $2 }
@@ -334,7 +335,7 @@ type_simplrecord_items :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
             Just sts ->
                 Just do spn (sts, $2) do snoc (unS sts) do unS $2
     }
-    | type_simplrecord_items_commas                         { $1 }
+    | type_simplrecord_items_commas         { $1 }
 
 type_simplrecord_items_commas :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
     : type_simplrecord_items_commas type_simplrecord_item ','
@@ -479,32 +480,37 @@ interp_string_end :: { Ast.InterpStringPart C }
 interp_string_expr :: { Ast.InterpStringPart C }
     : expr  { spAnn $1 do Ast.InterpStringExpr $1 }
 
-expr_tuple_items :: { () }
-    : expr_tuple_items_commas expr ','   { () }
-    | expr_tuple_items_commas expr       { () }
+expr_tuple_items :: { S (Bag.T (Ast.Expr C)) }
+    : expr_tuple_items_commas expr ','   { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | expr_tuple_items_commas expr       { spn ($1, $2) do snoc (unS $1) $2 }
 
-expr_tuple_items_commas :: { () }
-    : expr_tuple_items_commas expr ','  { () }
-    | expr ','                          { () }
+expr_tuple_items_commas :: { S (Bag.T (Ast.Expr C)) }
+    : expr_tuple_items_commas expr ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | expr ','                          { spn ($1, $2) do pure $1 }
 
-expr_array_items :: { () }
-    : expr_array_items_commas expr  { () }
-    | expr_array_items_commas       { () }
+expr_array_items :: { MaySpBag (Ast.Expr C) }
+    : expr_array_items_commas expr
+    { maySpBagAppend $1 $2 $2 }
+    | expr_array_items_commas       { $1 }
 
-expr_array_items_commas :: { () }
-    : expr_array_items_commas expr ','  { () }
-    | {- empty -}                       { () }
+expr_array_items_commas :: { MaySpBag (Ast.Expr C) }
+    : expr_array_items_commas expr ','
+    { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}                       { Nothing }
 
-expr_simplrecord_items :: { () }
-    : expr_simplrecord_items_semis expr_simplrecord_item    { () }
-    | expr_simplrecord_items_semis                          { () }
+expr_simplrecord_items :: { MaySpBag (Ast.Name, Ast.Expr C) }
+    : expr_simplrecord_items_semis expr_simplrecord_item
+    { maySpBagAppend $1 $2 do unS $2 }
+    | expr_simplrecord_items_semis
+    { $1 }
 
-expr_simplrecord_items_semis :: { () }
-    : expr_simplrecord_items_semis expr_simplrecord_item ','    { () }
-    | {- empty -}                                               { () }
+expr_simplrecord_items_semis :: { MaySpBag (Ast.Name, Ast.Expr C) }
+    : expr_simplrecord_items_semis expr_simplrecord_item ','
+    { maySpBagAppend $1 ($2, $3) do unS $2 }
+    | {- empty -}           { Nothing }
 
-expr_simplrecord_item :: { () }
-    : var '=' type      { () }
+expr_simplrecord_item :: { S (Ast.Name, Ast.Expr C) }
+    : var '=' expr      { spn ($1, $2, $3) do (unS $1, $3) }
 
 
 pat :: { () }
@@ -890,6 +896,13 @@ pattern S x <- Spanned.Spanned
 unS :: S a -> a
 unS sx = Spanned.unSpanned sx
 
+type MaySpBag a = Maybe (S (Bag.T a))
+
+maySpBagAppend :: SpannedBuilder s => MaySpBag a -> s -> a -> MaySpBag a
+maySpBagAppend m s x = case m of
+    Just sxs -> Just do spn (sxs, s) do snoc (unS sxs) x
+    Nothing  -> Just do spn s do pure x
+
 
 type C = AstParsed
 
@@ -910,6 +923,7 @@ isExtName n = any (== n)
         Ast.primNameArrow,
         Ast.primNameWildcard
     ]
+
 
 lexer = undefined
 
