@@ -32,6 +32,16 @@ module Language.Quell.Type.Ast (
     MonBind (..),
     XMonBind,
 
+    DeclType (..),
+    XDeclAppType,
+    XDeclInfixType,
+
+    ImplType (..),
+    XImplAppType,
+    XImplInfixType,
+
+    DeclExpr (..),
+
     TypeExpr (..),
     XTypeForall,
     XTypeInfix,
@@ -214,16 +224,22 @@ deriving instance XShow c => Show (MonBind c)
 
 
 data DeclType c
-    = DeclAppType Name [BindVar c]
-    | DeclInfixType (BindVar c) Name (BindVar c)
+    = DeclAppType Name [BindVar c] (XDeclAppType c)
+    | DeclInfixType (BindVar c) Name (BindVar c) (XDeclInfixType c)
+
+type family XDeclAppType c :: Type
+type family XDeclInfixType c :: Type
 
 deriving instance XEq c => Eq (DeclType c)
 deriving instance XShow c => Show (DeclType c)
 
 
 data ImplType c
-    = ImplAppType Name [TypeExpr c]
-    | ImplInfixType (TypeExpr c) Name (TypeExpr c)
+    = ImplAppType Name [AppType c] (XImplAppType c)
+    | ImplInfixType (TypeExpr c) Name (TypeExpr c) (XImplInfixType c)
+
+type family XImplAppType c :: Type
+type family XImplInfixType c :: Type
 
 deriving instance XEq c => Eq (ImplType c)
 deriving instance XShow c => Show (ImplType c)
@@ -495,7 +511,11 @@ type XC f c =
         f (XExprRecord c),
         f (XExprAnn c),
         f (XInterpStringLit c),
-        f (XInterpStringExpr c)
+        f (XInterpStringExpr c),
+        f (XDeclAppType c),
+        f (XDeclInfixType c),
+        f (XImplAppType c),
+        f (XImplInfixType c)
     )
 
 class XC Eq c => XEq c

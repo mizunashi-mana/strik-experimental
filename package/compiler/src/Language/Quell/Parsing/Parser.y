@@ -210,22 +210,53 @@ val_decl_where_item :: { () }
     : let_bind_item     { () }
 
 
-decltype :: { () }
-    : declcon bind_vars                         { () }
-    | simple_bind_var declconop simple_bind_var { () }
+decltype :: { Ast.DeclType C }
+    : declcon bind_vars
+    {
+        case otoList $2 of
+            [] ->
+                spAnn $1 do Ast.DeclAppType (unS $1) []
+            xs0@(x:xs) ->
+                spAnn ($1, x :| xs) do Ast.DeclAppType (unS $1) xs0
+    }
+    | simpl_bind_var_decl declconop simpl_bind_var_decl
+    { spAnn ($1, $2, $3) do Ast.DeclInfixType $1 (unS $2) $3 }
 
-impltype :: { () }
-    : con type_qualified                        { () }
-    | type_qualified conop type_qualified       { () }
+impltype :: { Ast.ImplType C }
+    : con type_apps_list
+    {
+        case otoList $2 of
+            [] ->
+                spAnn $1 do Ast.ImplAppType (unS $1) []
+            xs0@(x:xs) ->
+                spAnn ($1, x :| xs) do Ast.ImplAppType (unS $1) xs0
+    }
+    | type_qualified conop type_qualified
+    { spAnn ($1, $2, $3) do Ast.ImplInfixType $1 (unS $2) $3 }
 
 declvarexpr :: { () }
     : declvar bind_vars                         { () }
     | simple_bind_var declop simple_bind_var    { () }
 
+simpl_bind_var_decl :: { Ast.BindVar C }
+    : simple_bind_var
+    { spAnn $1 case unS $1 of (n, mt) -> Ast.BindVar n mt }
+
 
 type :: { Ast.TypeExpr C }
-    : '\\/' bind_vars '=>' type     { undefined }
-    | type_unit '->' type           { undefined }
+    : '\\/' bind_vars '=>' type
+    {
+        case otoList $2 of
+            [] ->
+                spAnn ($1, $3, $4) do Ast.TypeForall [] $4
+            bvs0@(bv:bvs) ->
+                spAnn ($1, bv :| bvs, $3, $4) do Ast.TypeForall bvs0 $4
+    }
+    | type_unit '->' type
+    {
+        case spAnn $2 do Ast.TypeVar Ast.primNameArrow of
+            t2 -> spAnn ($1, $2, $3) do Ast.TypeInfix $1 t2 $3
+    }
     | type_unit %shift              { $1 }
 
 type_unit :: { Ast.TypeExpr C }
@@ -246,19 +277,18 @@ type_qualified_op :: { Ast.TypeExpr C }
     | type_block    { $1 }
 
 type_apps :: { Ast.TypeExpr C }
-    : type_apps_list %shift
+    : type_qualified type_apps_list %shift
     {
-        case $1 of
-            (t, b) -> case otoList b of
-                [] ->
-                    t
-                xs0@(x:xs) ->
-                    spAnn (t, x :| xs) do Ast.TypeApp t xs0
+        case otoList $2 of
+            [] ->
+                $1
+            xs0@(x:xs) ->
+                spAnn ($1, x :| xs) do Ast.TypeApp $1 xs0
     }
 
-type_apps_list :: { (Ast.TypeExpr C, Bag.T (Ast.AppType C)) }
-    : type_apps_list type_app   { case $1 of (t, xs) -> (t, snoc xs $2) }
-    | type_qualified            { ($1, mempty) }
+type_apps_list :: { Bag.T (Ast.AppType C) }
+    : type_apps_list type_app   { snoc $1 $2 }
+    | type_qualified            { mempty }
 
 type_app :: { Ast.AppType C }
     : '@' type_qualified    { spAnn ($1, $2) do Ast.UnivAppType $2 }
@@ -304,48 +334,24 @@ type_tuple_items_commas :: { S (Bag.T (Ast.TypeExpr C)) }
     : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
     | type ','                          { spn ($1, $2) do pure $1 }
 
-type_array_items :: { Maybe (S (Bag.T (Ast.TypeExpr C))) }
+type_array_items :: { MaySpBag (Ast.TypeExpr C) }
     : type_array_items_commas type
-    {
-        case $1 of
-            Nothing ->
-                Just do spn $2 do pure $2
-            Just sts ->
-                Just do spn (sts, $2) do snoc (unS sts) $2
-    }
+    { maySpBagAppend $1 $2 $2 }
     | type_array_items_commas   { $1 }
 
-type_array_items_commas :: { Maybe (S (Bag.T (Ast.TypeExpr C))) }
+type_array_items_commas :: { MaySpBag (Ast.TypeExpr C) }
     : type_array_items_commas type ','
-    {
-        case $1 of
-            Nothing ->
-                Just do spn ($2, $3) do pure $2
-            Just sts ->
-                Just do spn (sts, $2, $3) do snoc (unS sts) $2
-    }
+    { maySpBagAppend $1 ($2, $3) $2 }
     | {- empty -}               { Nothing }
 
-type_simplrecord_items :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
+type_simplrecord_items :: { MaySpBag (Ast.Name, Ast.TypeExpr C) }
     : type_simplrecord_items_commas type_simplrecord_item
-    {
-        case $1 of
-            Nothing ->
-                Just do spn $2 do pure do unS $2
-            Just sts ->
-                Just do spn (sts, $2) do snoc (unS sts) do unS $2
-    }
+    { maySpBagAppend $1 $2 do unS $2 }
     | type_simplrecord_items_commas         { $1 }
 
-type_simplrecord_items_commas :: { Maybe (S (Bag.T (Ast.Name, Ast.TypeExpr C))) }
+type_simplrecord_items_commas :: { MaySpBag (Ast.Name, Ast.TypeExpr C) }
     : type_simplrecord_items_commas type_simplrecord_item ','
-    {
-        case $1 of
-            Nothing ->
-                Just do spn ($2, $3) do pure do unS $2
-            Just sts ->
-                Just do spn (sts, $2, $3) do snoc (unS sts) do unS $2
-    }
+    { maySpBagAppend $1 ($2, $3) do unS $2 }
     | {- empty -}       { Nothing }
 
 type_simplrecord_item :: { S (Ast.Name, Ast.TypeExpr C) }
@@ -419,9 +425,24 @@ expr_atomic :: { Ast.Expr C }
 expr_literal :: { Ast.Expr C }
     : literal                           { spAnn $1 do Ast.ExprLit $1 }
     | expr_interp_string                { $1 }
-    | '(' expr_tuple_items ')'          { undefined }
-    | '[' expr_array_items ']'          { undefined }
-    | '{' expr_simplrecord_items '}'    { undefined }
+    | '(' expr_tuple_items ')'
+    { spAnn ($1, $2, $3) do Ast.ExprTuple do otoList do unS $2 }
+    | '[' expr_array_items ']'
+    {
+        case $2 of
+            Nothing ->
+                spAnn ($1, $3) do Ast.ExprArray []
+            Just ses ->
+                spAnn ($1, ses, $3) do Ast.ExprArray do otoList do unS ses
+    }
+    | '{' expr_simplrecord_items '}'
+    {
+        case $2 of
+            Nothing ->
+                spAnn ($1, $3) do Ast.ExprRecord []
+            Just ses ->
+                spAnn ($1, ses, $3) do Ast.ExprRecord do otoList do unS ses
+    }
 
 expr_interp_string :: { Ast.Expr C }
     : interp_string_without_interp
@@ -478,7 +499,7 @@ interp_string_end :: { Ast.InterpStringPart C }
     }
 
 interp_string_expr :: { Ast.InterpStringPart C }
-    : expr  { spAnn $1 do Ast.InterpStringExpr $1 }
+    : expr      { spAnn $1 do Ast.InterpStringExpr $1 }
 
 expr_tuple_items :: { S (Bag.T (Ast.Expr C)) }
     : expr_tuple_items_commas expr ','   { spn ($1, $2, $3) do snoc (unS $1) $2 }
@@ -719,10 +740,7 @@ simple_bind_var :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
     : var_id_ext
     { spn $1 (unS $1, Nothing) }
     | '(' var_id_ext ':' type ')'
-    {
-        spn ($1, $2, $3, $5) -- FIXME: add $4
-            (unS $2, Just undefined)
-    }
+    { spn ($1, $2, $3, $4, $5)  (unS $2, Just $4) }
 
 con :: { S Ast.Name }
     : con_id_ext            { $1 }

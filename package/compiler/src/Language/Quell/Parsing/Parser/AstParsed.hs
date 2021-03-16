@@ -97,6 +97,11 @@ instance SpannedBuilder (Ast.InterpStringPart AstParsed) where
         Ast.InterpStringLit _ x -> x
         Ast.InterpStringExpr _ x -> x
 
+instance SpannedBuilder (Ast.BindVar AstParsed) where
+    sp = \case
+        Ast.BindVar _ _ x -> x
+        Ast.UnivBindVar _ _ x -> x
+
 instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
     sp l = sconcat do l <&> \s -> sp s
 
@@ -178,6 +183,10 @@ type instance Ast.XExprRecord AstParsed = Spanned.Span
 type instance Ast.XExprAnn AstParsed = Spanned.Span
 type instance Ast.XInterpStringLit AstParsed = Spanned.Span
 type instance Ast.XInterpStringExpr AstParsed = Spanned.Span
+type instance Ast.XDeclAppType AstParsed = Spanned.Span
+type instance Ast.XDeclInfixType AstParsed = Spanned.Span
+type instance Ast.XImplAppType AstParsed = Spanned.Span
+type instance Ast.XImplInfixType AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed
