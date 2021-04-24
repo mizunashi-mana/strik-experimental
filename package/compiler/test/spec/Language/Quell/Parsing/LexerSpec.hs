@@ -11,7 +11,7 @@ import qualified Conduit
 import qualified Data.Conduit.List                     as ConduitList
 import qualified Language.Quell.Data.Bag               as Bag
 import qualified Language.Quell.Data.Monad.MonadST     as MonadST
-import qualified Language.Quell.Data.TextId            as TextId
+import qualified Language.Quell.Type.TextId            as TextId
 import qualified Language.Quell.Parsing.Lexer.Encoding as Encoding
 import qualified Language.Quell.Parsing.Lexer.Error    as Error
 
