@@ -165,40 +165,41 @@ conSymP = chP ':' <> Tlex.manyP do
 
 reservedIdRules :: ScannerBuilder ()
 reservedIdRules = do
-    initialRule (stringP "as")        [||WithToken do Token.KwAs||]
-    initialRule (stringP "case")      [||WithToken do Token.KwCase||]
-    initialRule (stringP "data")      [||WithToken do Token.KwData||]
-    initialRule (stringP "derive")    [||WithToken do Token.KwDerive||]
-    initialRule (stringP "do")        [||WithToken do Token.KwDo||]
-    initialRule (stringP "export")    [||WithToken do Token.KwExport||]
-    initialRule (stringP "family")    [||WithToken do Token.KwFamily||]
-    initialRule (stringP "foreign")   [||WithToken do Token.KwForeign||]
-    initialRule (stringP "impl")      [||WithToken do Token.KwImpl||]
-    initialRule (stringP "infix")     [||WithToken do Token.KwInfix||]
-    initialRule (stringP "in")        [||WithToken do Token.KwIn||]
-    initialRule (stringP "letrec")    [||WithToken do Token.KwLetrec||]
-    initialRule (stringP "let")       [||WithToken do Token.KwLet||]
-    initialRule (stringP "module")    [||WithToken do Token.KwModule||]
-    initialRule (stringP "newtype")   [||WithToken do Token.KwNewtype||]
-    initialRule (stringP "of")        [||WithToken do Token.KwOf||]
-    initialRule (stringP "pattern")   [||WithToken do Token.KwPattern||]
-    initialRule (stringP "record")    [||WithToken do Token.KwRecord||]
-    initialRule (stringP "rec")       [||WithToken do Token.KwRec||]
-    initialRule (stringP "role")      [||WithToken do Token.KwRole||]
-    initialRule (stringP "signature") [||WithToken do Token.KwSignature||]
-    initialRule (stringP "static")    [||WithToken do Token.KwStatic||]
-    initialRule (stringP "trait")     [||WithToken do Token.KwTrait||]
-    initialRule (stringP "type")      [||WithToken do Token.KwType||]
-    initialRule (stringP "use")       [||WithToken do Token.KwUse||]
-    initialRule (stringP "when")      [||WithToken do Token.KwWhen||]
-    initialRule (stringP "where")     [||WithToken do Token.KwWhere||]
-    initialRule (stringP "_")         [||WithToken do Token.KwUnderscore||]
+    initialRule (stringP "#as")         [||WithToken do Token.KwAs||]
+    initialRule (stringP "#case")       [||WithToken do Token.KwCase||]
+    initialRule (stringP "#data")       [||WithToken do Token.KwData||]
+    initialRule (stringP "#derive")     [||WithToken do Token.KwDerive||]
+    initialRule (stringP "#do")         [||WithToken do Token.KwDo||]
+    initialRule (stringP "#export")     [||WithToken do Token.KwExport||]
+    initialRule (stringP "#family")     [||WithToken do Token.KwFamily||]
+    initialRule (stringP "#foreign")    [||WithToken do Token.KwForeign||]
+    initialRule (stringP "#impl")       [||WithToken do Token.KwImpl||]
+    initialRule (stringP "#infix")      [||WithToken do Token.KwInfix||]
+    initialRule (stringP "#in")         [||WithToken do Token.KwIn||]
+    initialRule (stringP "#letrec")     [||WithToken do Token.KwLetrec||]
+    initialRule (stringP "#let")        [||WithToken do Token.KwLet||]
+    initialRule (stringP "#mod")        [||WithToken do Token.KwModule||]
+    initialRule (stringP "#newtype")    [||WithToken do Token.KwNewtype||]
+    initialRule (stringP "#of")         [||WithToken do Token.KwOf||]
+    initialRule (stringP "#pattern")    [||WithToken do Token.KwPattern||]
+    initialRule (stringP "#record")     [||WithToken do Token.KwRecord||]
+    initialRule (stringP "#rec")        [||WithToken do Token.KwRec||]
+    initialRule (stringP "#role")       [||WithToken do Token.KwRole||]
+    initialRule (stringP "#sig")        [||WithToken do Token.KwSignature||]
+    initialRule (stringP "#static")     [||WithToken do Token.KwStatic||]
+    initialRule (stringP "#trait")      [||WithToken do Token.KwTrait||]
+    initialRule (stringP "#type")       [||WithToken do Token.KwType||]
+    initialRule (stringP "#use")        [||WithToken do Token.KwUse||]
+    initialRule (stringP "#when")       [||WithToken do Token.KwWhen||]
+    initialRule (stringP "#where")      [||WithToken do Token.KwWhere||]
+    initialRule (stringP "#yield")      [||WithToken do Token.KwYield||]
 
-    initialRule (stringP "Default")   [||WithToken do Token.LKwDefault||]
-    initialRule (stringP "Self")      [||WithToken do Token.LKwSelf||]
+    initialRule (stringP "#Default")    [||WithToken do Token.LKwDefault||]
+    initialRule (stringP "#Self")       [||WithToken do Token.LKwSelf||]
 
 reservedOpRules :: ScannerBuilder ()
 reservedOpRules = do
+    initialRule (stringP "_")           [||WithToken do Token.SymUnderscore||]
     initialRule (stringP "!")           [||WithToken do Token.SymBang||]
     initialRule (stringsP ["->", "→"])  [||WithToken do Token.SymArrow||]
     initialRule (stringsP ["..", "…"])  [||WithToken do Token.SymDots||]
@@ -223,6 +224,7 @@ specialRules = do
     initialRule (stringP "]")   [||WithToken do Token.SpBrackClose||]
     initialRule (stringP "`")   [||WithToken do Token.SpBackquote||]
     initialRule (stringP ";")   [||WithToken do Token.SpSemi||]
+    initialRule (stringP "#@")  [||WithToken do Token.SpBlock||]
 
 specialCs = charsCs ['(', ')', ',', '[', ']', '`', ';']
 
@@ -301,15 +303,13 @@ hexitCs = mconcat
     ]
 
 
-byteStringOpenP = splitOpenP <> chP 'r' <> strSepP
+byteStringOpenP = stringP "#r" <> strSepP
 
 stringOpenP = strSepP
 
-byteCharOpenP = splitOpenP <> chP 'r' <> charSepP
+byteCharOpenP = stringP "#r" <> charSepP
 
 charOpenP = charSepP
-
-splitOpenP = chP '#'
 
 strSepP = charSetP strSepCs
 strSepCs = charsCs ['"']
@@ -437,7 +437,7 @@ interpStringPartRules = do
     initialRule interpStringStartP      [||LexInterpStringStart||]
     initialRule interpStringContinueP   [||LexInterpStringContinue||]
 
-interpStringStartP = splitOpenP <> chP 's' <> strSepP
+interpStringStartP = stringP "#s" <> strSepP
 
 interpStringContinueP = stringsP ["#}", "⦄"]
 

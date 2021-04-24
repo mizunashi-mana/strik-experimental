@@ -16,20 +16,18 @@ import           Language.Quell.Parsing.Parser.AstParsed
 %expect 0
 
 %token
-    'case'          { S Token.KwCase }
-    'data'          { S Token.KwData }
-    'do'            { S Token.KwDo }
-    'in'            { S Token.KwIn }
-    'let'           { S Token.KwLet }
-    'letrec'        { S Token.KwLetrec }
-    'newtype'       { S Token.KwNewtype }
-    'of'            { S Token.KwOf }
-    'rec'           { S Token.KwRec }
-    'use'           { S Token.KwUse }
-    'type'          { S Token.KwType }
-    'when'          { S Token.KwWhen }
-    'where'         { S Token.KwWhere }
-    '_'             { S Token.KwUnderscore }
+    '#case'         { S Token.KwCase }
+    '#data'         { S Token.KwData }
+    '#do'           { S Token.KwDo }
+    '#in'           { S Token.KwIn }
+    '#let'          { S Token.KwLet }
+    '#letrec'       { S Token.KwLetrec }
+    '#newtype'      { S Token.KwNewtype }
+    '#of'           { S Token.KwOf }
+    '#type'         { S Token.KwType }
+    '#when'         { S Token.KwWhen }
+    '#where'        { S Token.KwWhere }
+    '#yield'        { S Token.KwYield }
 
     '->'        { S Token.SymArrow }
     '@'         { S Token.SymAt }
@@ -40,8 +38,10 @@ import           Language.Quell.Parsing.Parser.AstParsed
     '\\'        { S Token.SymLambda }
     '<-'        { S Token.SymLeftArrow }
     '|'         { S Token.SymOr }
+    '_'         { S Token.SymUnderscore }
 
     '`'         { S Token.SpBackquote }
+    '#@'        { S Token.SpBlock }
     '['         { S Token.SpBrackOpen }
     ']'         { S Token.SpBrackClose }
     ','         { S Token.SpComma }
@@ -112,7 +112,7 @@ decl_item :: { Ast.Decl C }
 
 
 typesig_decl :: { Ast.TypeSigDecl C }
-    : 'type' declcon ':' type
+    : '#type' declcon ':' type
     { spAnn ($1, $2, $3, $4) do Ast.TypeSigDecl (unS $2) $4 }
 
 valsig_decl :: { Ast.ValSigDecl C }
@@ -125,10 +125,10 @@ consig_decl :: { Ast.ConSigDecl C }
 
 
 type_decl :: { () }
-    : 'type' decltype '=' type type_decl_where    { () }
+    : '#type' decltype '=' type type_decl_where    { () }
 
 type_decl_where :: { () }
-    : 'where' type_decl_where_body  { () }
+    : '#where' type_decl_where_body  { () }
     | {- empty -}                   { () }
 
 type_decl_where_body :: { () }
@@ -148,13 +148,13 @@ type_decl_where_item :: { () }
 
 
 data_decl :: { () }
-    : 'data' declcon ':' type data_decl_where                   { () }
-    | 'data' declcon data_decl_where                            { () }
-    | 'data' decltype '=' alg_data_type type_decl_where         { () }
-    | 'newtype' decltype '=' type type_decl_where               { () }
+    : '#data' declcon ':' type data_decl_where                   { () }
+    | '#data' declcon data_decl_where                            { () }
+    | '#data' decltype '=' alg_data_type type_decl_where         { () }
+    | '#newtype' decltype '=' type type_decl_where               { () }
 
 data_decl_where :: { () }
-    : 'where' data_decl_body    { () }
+    : '#where' data_decl_body    { () }
     | {- empty -}               { () }
 
 data_decl_body :: { () }
@@ -192,7 +192,7 @@ val_bind :: { () }
     : pat '=' expr val_decl_where       { () }
 
 val_decl_where :: { () }
-    : 'where' val_decl_where_body   { () }
+    : '#where' val_decl_where_body   { () }
     | {- empty -}                   { () }
 
 val_decl_where_body :: { () }
@@ -263,8 +263,8 @@ type_unit :: { Ast.TypeExpr C }
     : type_infix %shift         { $1 }
 
 type_infix :: { Ast.TypeExpr C }
-    : type_infix type_op type_apps %shift   { spAnn ($1, $2, $3) do Ast.TypeInfix $1 $2 $3 }
-    | type_apps %shift                      { $1 }
+    : type_infix type_op type_apps  { spAnn ($1, $2, $3) do Ast.TypeInfix $1 $2 $3 }
+    | type_apps %shift              { $1 }
 
 type_op :: { Ast.TypeExpr C }
     : consym                        { spAnn $1 do Ast.TypeCon do unS $1 }
@@ -371,8 +371,8 @@ expr_unit :: { Ast.Expr C }
     : expr_infix %shift         { $1 }
 
 expr_infix :: { Ast.Expr C }
-    : expr_infix expr_op expr_apps %shift   { spAnn ($1, $2, $3) do Ast.ExprInfix $1 $2 $3 }
-    | expr_apps %shift                      { $1 }
+    : expr_infix expr_op expr_apps  { spAnn ($1, $2, $3) do Ast.ExprInfix $1 $2 $3 }
+    | expr_apps                     { $1 }
 
 expr_op :: { Ast.Expr C }
     : consym                        { spAnn $1 do Ast.ExprCon do unS $1 }
@@ -407,13 +407,13 @@ expr_qualified :: { Ast.Expr C }
     : expr_block                { $1 }
 
 expr_block :: { Ast.Expr C }
-    : '\\' 'case' case_alt_body             { undefined }
-    | '\\' 'when' guarded_alt_body          { undefined }
+    : '\\' '#case' case_alt_body            { undefined }
     | '\\' lambda_body                      { undefined } -- conflict with expr
-    | 'let' let_body                        { undefined } -- conflict with expr
-    | 'letrec' let_body                     { undefined } -- conflict with expr
-    | 'case' case_body                      { undefined }
-    | 'do' do_body                          { undefined }
+    | '#let' let_body                       { undefined } -- conflict with expr
+    | '#letrec' let_body                    { undefined } -- conflict with expr
+    | '#case' case_body                     { undefined }
+    | '#do' do_body                         { undefined }
+    | '#@' layout_block_body                { undefined }
     | expr_atomic                           { $1 }
 
 expr_atomic :: { Ast.Expr C }
@@ -611,7 +611,7 @@ pat_simplrecord_item :: { () }
 
 
 lambda_body :: { () }
-    : lambda_pat_args '->' expr     { () }
+    : lambda_pat_args guarded_alt   { () }
 
 lambda_pat_args :: { () }
     : lambda_pat_args pat_atomic    { () }
@@ -619,7 +619,7 @@ lambda_pat_args :: { () }
 
 
 let_body :: { () }
-    : let_binds 'in' expr           { () }
+    : let_binds '#in' expr           { () }
 
 let_binds :: { () }
     : lopen let_bind_items lclose   { () }
@@ -640,7 +640,7 @@ let_bind_item :: { () }
 
 
 case_body :: { () }
-    : case_exprs 'of' case_alt_body     { () }
+    : case_exprs '#of' case_alt_body     { () }
 
 case_exprs :: { () }
     : case_exprs_commas expr    { () }
@@ -674,7 +674,7 @@ case_pats_commas :: { () }
 
 guarded_alt :: { () }
     : '->' expr                 { () }
-    | 'when' guarded_alt_body   { () }
+    | '#when' guarded_alt_body   { () }
 
 guarded_alt_body :: { () }
     : lopen guarded_alt_items lclose    { () }
@@ -698,36 +698,28 @@ do_body :: { () }
     : lopen do_stmt_items lclose        { () }
 
 do_stmt_items :: { () }
-    : do_stmt_items_semis do_stmt_item lsemis   { () } -- do_stmt_items_semis expr lsemis
-    | do_stmt_items_semis expr                  { () }
+    : do_stmt_items_semis do_yield_item lsemis   { () }
+    | do_stmt_items_semis do_yield_item          { () }
 
 do_stmt_items_semis :: { () }
     : do_stmt_items_semis do_stmt_item lsemis   { () }
     | {- empty -}                               { () }
 
 do_stmt_item :: { () }
-    : expr                                      { () }
-    | var_id_ext ':' type '<-' expr             { () }
-    | var_id_ext '<-' expr                      { () }
-    | var_id_ext ':' type '=' expr              { () }
-    | var_id_ext '=' expr                       { () }
-    | 'use' do_binds                            { () }
-    | 'rec' let_binds                           { () }
+    : pat '<-' expr             { () }
+    | pat '=' expr              { () }
+    | '#letrec' let_binds       { () }
 
-do_binds :: { () }
-    : lopen do_bind_items lclose    { () }
+do_yield_item :: { () }
+    : '#yield' expr     { () }
 
-do_bind_items :: { () }
-    : do_bind_items_semis do_bind_item  { () }
-    | do_bind_items_semis               { () }
 
-do_bind_items_semis :: { () }
-    : do_bind_items_semis do_bind_item lsemis   { () }
-    | {- empty -}                               { () }
+layout_block_body :: { () }
+    : lopen layout_block_item lclose        { () }
 
-do_bind_item :: { () }
-    : let_bind_item     { () }
-    | pat '<-' expr     { () }
+layout_block_item :: { () }
+    : expr lsemis   { () }
+    | expr          { () }
 
 
 bind_var :: { Ast.BindVar C }
@@ -752,8 +744,8 @@ conop :: { S Ast.Name }
     | '`' con_id_ext '`'    { spn ($1, $2, $3) do unS $2 }
 
 var :: { S Ast.Name }
-    : var_id_ext %shift         { $1 }
-    | '(' var_sym_ext ')'       { spn ($1, $2, $3) do unS $2 }
+    : var_id_ext            { $1 }
+    | '(' var_sym_ext ')'   { spn ($1, $2, $3) do unS $2 }
 
 op :: { S Ast.Name }
     : var_sym_ext               { $1 }

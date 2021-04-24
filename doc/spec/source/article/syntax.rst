@@ -55,42 +55,42 @@ Lexical Syntax
     con_sym: (":" (symbol | other)*)<reserved_sym>
 
 .. productionlist::
-    reserved_id : "as"
-                : "case"
-                : "data"
-                : "derive"
-                : "do"
-                : "export"
-                : "family"
-                : "foreign"
-                : "impl"
-                : "infix"
-                : "letrec"
-                : "let"
-                : "module"
-                : "newtype"
-                : "of"
-                : "pattern"
-                : "record"
-                : "rec"
-                : "role"
-                : "sig"
-                : "static"
-                : "trait"
-                : "type"
-                : "use"
-                : "when"
-                : "where"
-                : "_"
-                : "Default"
-                : "Self"
-    reserved_sym: "!"
-                : "->" | "→"
+    reserved_id : "#as"
+                : "#case"
+                : "#data"
+                : "#derive"
+                : "#do"
+                : "#export"
+                : "#family"
+                : "#foreign"
+                : "#impl"
+                : "#infix"
+                : "#letrec"
+                : "#let"
+                : "#mod"
+                : "#newtype"
+                : "#of"
+                : "#pattern"
+                : "#record"
+                : "#role"
+                : "#sig"
+                : "#static"
+                : "#trait"
+                : "#type"
+                : "#use"
+                : "#when"
+                : "#where"
+                : "#yield"
+                : "#Default"
+                : "#Self"
+    reserved_sym: "_"
+                : "!"
                 : ".." | "…"
                 : "."
+                : "->" | "→"
                 : "<-" | "←"
-                : "<=" | "⇐"
                 : "=>" | "⇒"
+                : "<=" | "⇐"
                 : "="
                 : "?"
                 : "@"
@@ -98,15 +98,15 @@ Lexical Syntax
                 : "\\" | "λ"
                 : "|"
                 : "~"
-                : "::"
                 : ":"
     special : "("
             : ")"
             : ","
             : "["
             : "]"
-            : "`"
+            : "`" -- ` for syntax highlighting issue
             : ";"
+            : "#@"
     brace   : "{{" | "}}" : "❴" | "❵"
             : "{" | "}"
 
@@ -138,11 +138,10 @@ Lexical Syntax
             : "a" | "b" | ... | "f"
 
 .. productionlist::
-    bytestring: split_open "r" str_sep bstr_graphic* str_sep
+    bytestring: "#r" str_sep bstr_graphic* str_sep
     string: str_sep (bstr_graphic | uni_escape)* str_sep
-    bytechar: split_open "r" char_sep bchar_graphic char_sep
+    bytechar: "#r" char_sep bchar_graphic char_sep
     char: char_sep (bchar_graphic | uni_escape) char_sep
-    split_open: "#"
     str_sep: "\""
     char_sep: "'"
     escape_open: "\\"
@@ -174,7 +173,7 @@ Lexical Syntax
                         : interp_string_start
                         : interp_string_cont
                         : interp_string_end
-    interp_str_open: split_open "s" str_sep
+    interp_str_open: "#s" str_sep
     interp_str_graphic  : bstr_graphic<"$" | str_sep | escape_open>
                         : uni_escape
     interp_open: "$" ( "{#" | "⦃" )
@@ -279,9 +278,9 @@ These nonterminals must be disjoint:
 These expressions must be empty:
 
 * ``((lexeme | whitespace)*)<ANY*>``
-* ``reserved_id<(small | large) (small | large | digit | other)*>``
-* ``reserved_sym<symbol (symbol | other)*>``
-* ``(brace)<other_special*>``
+* ``reserved_id<'#' (small | large) (small | large | digit | other)*>``
+* ``reserved_sym<'_' | (symbol (symbol | other)*)>``
+* ``brace<other_special*>``
 * ``literal<("+" | "-" | digit | "'" | other_special) ANY*>``
 * ``(multiline_comment | doc_comment | pragma_comment | nested_comment)<comment_open ANY* comment_close>``
 * ``(multiline_comment | doc_comment | pragma_comment)<doc_comment | nested_comment>``
@@ -318,12 +317,12 @@ Grammar
                 : val_decl
 
 .. productionlist::
-    typesig_decl: "type" con ":" type
+    typesig_decl: "#type" con ":" type
     valsig_decl: var ":" type
     consig_decl: con ":" type
 
 .. productionlist::
-    type_decl: "type" decltype "=" type ("where" type_decl_where_body)?
+    type_decl: "#type" decltype "=" type ("where" type_decl_where_body)?
     type_decl_where_body: "{" type_decl_where_items "}"
                         : "{{" type_decl_where_items "}}"
                         : '{' type_decl_where_items '}'
@@ -332,9 +331,9 @@ Grammar
                         : type_decl
 
 .. productionlist::
-    data_decl   : "data" declcon (":" type)? ("where" data_decl_body)?
-                : "data" decltype "=" alg_data_type ("where" type_decl_where_body)?
-                : "newtype" decltype "=" type ("where" type_decl_where_body)?
+    data_decl   : "#data" declcon (":" type)? ("#where" data_decl_body)?
+                : "#data" decltype "=" alg_data_type ("#where" type_decl_where_body)?
+                : "#newtype" decltype "=" type ("#where" type_decl_where_body)?
     data_decl_body  : "{" data_decl_items "}"
                     : "{{" data_decl_items "}}"
                     : '{' data_decl_items '}'
@@ -347,8 +346,8 @@ Grammar
     alg_data_type_items : "|"* (impltype "|"+)* impltype "|"*
 
 .. productionlist::
-    val_decl: declvarexpr "=" expr ("where" val_decl_where_body)?
-    val_bind: pat "=" expr ("where" val_decl_where_body)?
+    val_decl: declvarexpr "=" expr ("#where" val_decl_where_body)?
+    val_bind: pat "=" expr ("#where" val_decl_where_body)?
     val_decl_where_body : "{" val_decl_where_items "}"
                         : "{{" val_decl_where_items "}}"
                         : '{' val_decl_where_items '}'
@@ -410,12 +409,13 @@ Grammar
     expr_app: expr_qualified
             : "@" type_qualified
     expr_qualified: expr_block
-    expr_block  : "\\" "case" case_alt_body
+    expr_block  : "\\" "#case" case_alt_body
                 : "\\" lambda_body
-                : "letrec" let_body
-                : "let" let_body
-                : "case" (expr ",")* expr? "of" case_alt_body
-                : "do" do_body
+                : "#letrec" let_body
+                : "#let" let_body
+                : "#case" (expr ",")* expr? "#of" case_alt_body
+                : "#do" do_body
+                : "#@" layout_block_body
                 : expr_atomic
     expr_atomic : "(" expr ")"
                 : con
@@ -473,7 +473,7 @@ Grammar
     case_alt_items: lsemis? (case_alt_item lsemis)* case_alt_item?
     case_alt_item: (pat ",")* pat? guarded_alt
     guarded_alt : "->" expr
-                : "when" guarded_alt_body
+                : "#when" guarded_alt_body
     guarded_alt_body: "{" guarded_alt_items "}"
                     : "{{" guarded_alt_items "}}"
                     : '{' guarded_alt_items '}'
@@ -488,18 +488,17 @@ Grammar
     do_body : "{" do_stmt_items "}"
             : "{{" do_stmt_items "}}"
             : '{' do_stmt_items '}'
-    do_stmt_items   : lsemis? (do_stmt_item lsemis)* expr lsemis?
-    do_stmt_item    : expr
-                    : var_id_ext (":" type)? "<-" expr
-                    : var_id_ext (":" type)? "=" expr
-                    : "use" do_binds
-                    : "rec" let_binds
-    do_binds    : "{" do_bind_items "}"
-                : "{{" do_bind_items "}}"
-                : '{' do_bind_items '}'
-    do_bind_items   : lsemis? (do_bind_item lsemis)* do_bind_item?
-    do_bind_item    : let_bind_item
-                    : pat "<-" expr
+    do_stmt_items   : lsemis? (do_stmt_item lsemis)* do_yield_item lsemis?
+    do_stmt_item    : pat "<-" expr
+                    : pat "=" expr
+                    : "#letrec" let_binds
+    do_yield_item   : "#yield" expr
+
+.. productionlist::
+    layout_block_body   : "{" layout_block_item "}"
+                        : "{{" layout_block_item "}}"
+                        : '{' layout_block_item '}'
+    layout_block_item   : lsemis? expr lsemis?
 
 .. productionlist::
     bind_var: "@" simple_bind_var
@@ -573,16 +572,17 @@ Layout
         t match whitespace
 
     isLayoutKeyword t = case t of
-        "let"       -> True
-        "letrec"    -> True
-        "of"        -> True
-        "when"      -> True
-        "where"     -> True
+        "#let"      -> True
+        "#letrec"   -> True
+        "#of"       -> True
+        "#when"     -> True
+        "#where"    -> True
+        "#@"        -> True
         _           -> False
 
     isLayoutKeywordLam t = case t of
-        "case"  -> True
-        _       -> isLayoutKeyword t
+        "#case"     -> True
+        _           -> isLayoutKeyword t
 
 .. code-block:: haskell
 

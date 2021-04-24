@@ -44,7 +44,7 @@ data Token
     | KwUse
     | KwWhen
     | KwWhere
-    | KwUnderscore
+    | KwYield
 
     | LKwDefault
     | LKwSelf
@@ -63,9 +63,11 @@ data Token
     | SymLeftArrow
     | SymOr
     | SymTilde
+    | SymUnderscore
     | SymUnknown
 
     | SpBackquote
+    | SpBlock
     | SpBrackOpen
     | SpBrackClose
     | SpComma
@@ -105,38 +107,38 @@ data Token
 instance Pretty Token where
     pretty = \case
         EndOfSource                     -> mempty
-        KwAs                            -> pretty "as"
-        KwCase                          -> pretty "case"
-        KwData                          -> pretty "data"
-        KwDefault                       -> pretty "default"
-        KwDerive                        -> pretty "derive"
-        KwDo                            -> pretty "do"
-        KwExport                        -> pretty "export"
-        KwFamily                        -> pretty "family"
-        KwForeign                       -> pretty "foreign"
-        KwImpl                          -> pretty "impl"
-        KwIn                            -> pretty "in"
-        KwInfix                         -> pretty "infix"
-        KwLet                           -> pretty "let"
-        KwLetrec                        -> pretty "letrec"
-        KwModule                        -> pretty "module"
-        KwNewtype                       -> pretty "newtype"
-        KwOf                            -> pretty "of"
-        KwPattern                       -> pretty "pattern"
-        KwRec                           -> pretty "rec"
-        KwRecord                        -> pretty "record"
-        KwRole                          -> pretty "role"
-        KwSelf                          -> pretty "self"
-        KwSignature                     -> pretty "signature"
-        KwStatic                        -> pretty "static"
-        KwTrait                         -> pretty "trait"
-        KwType                          -> pretty "type"
-        KwUnderscore                    -> pretty "_"
-        KwUse                           -> pretty "use"
-        KwWhen                          -> pretty "when"
-        KwWhere                         -> pretty "where"
-        LKwDefault                      -> pretty "Default"
-        LKwSelf                         -> pretty "Self"
+        KwAs                            -> pretty "#as"
+        KwCase                          -> pretty "#case"
+        KwData                          -> pretty "#data"
+        KwDefault                       -> pretty "#default"
+        KwDerive                        -> pretty "#derive"
+        KwDo                            -> pretty "#do"
+        KwExport                        -> pretty "#export"
+        KwFamily                        -> pretty "#family"
+        KwForeign                       -> pretty "#foreign"
+        KwImpl                          -> pretty "#impl"
+        KwIn                            -> pretty "#in"
+        KwInfix                         -> pretty "#infix"
+        KwLet                           -> pretty "#let"
+        KwLetrec                        -> pretty "#letrec"
+        KwModule                        -> pretty "#mod"
+        KwNewtype                       -> pretty "#newtype"
+        KwOf                            -> pretty "#of"
+        KwPattern                       -> pretty "#pattern"
+        KwRec                           -> pretty "#rec"
+        KwRecord                        -> pretty "#record"
+        KwRole                          -> pretty "#role"
+        KwSelf                          -> pretty "#self"
+        KwSignature                     -> pretty "#sig"
+        KwStatic                        -> pretty "#static"
+        KwTrait                         -> pretty "#trait"
+        KwType                          -> pretty "#type"
+        KwUse                           -> pretty "#use"
+        KwWhen                          -> pretty "#when"
+        KwWhere                         -> pretty "#where"
+        KwYield                         -> pretty "#yield"
+        LKwDefault                      -> pretty "#Default"
+        LKwSelf                         -> pretty "#Self"
         SymArrow                        -> pretty "->"
         SymAt                           -> pretty "@"
         SymBang                         -> pretty "!"
@@ -151,8 +153,10 @@ instance Pretty Token where
         SymLeftArrow                    -> pretty "<-"
         SymOr                           -> pretty "|"
         SymTilde                        -> pretty "~"
+        SymUnderscore                   -> pretty "_"
         SymUnknown                      -> pretty "?"
         SpBackquote                     -> pretty "`"
+        SpBlock                         -> pretty "#@"
         SpBrackOpen                     -> pretty "["
         SpBrackClose                    -> pretty "]"
         SpComma                         -> pretty ","
