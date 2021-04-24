@@ -1,5 +1,6 @@
 module Language.Quell.Parsing.Parser.AstParsed (
     SpannedBuilder (..),
+    MayOneSideSpan (..),
     AstParsed,
 ) where
 
@@ -124,6 +125,27 @@ instance (
             SpannedBuilder s5
         ) => SpannedBuilder (s1, s2, s3, s4, s5) where
     sp (s1, s2, s3, s4, s5) = sp s1 <> sp s2 <> sp s3 <> sp s4 <> sp s5
+
+data MayOneSideSpan a b
+    = a :> b
+    | b :< a
+    deriving (Eq, Show)
+
+instance (SpannedBuilder s1, SpannedBuilder s2)
+        => SpannedBuilder (MayOneSideSpan (Maybe s1) s2) where
+    sp = \case
+        Nothing :> s2       -> sp s2
+        s1      :< Nothing  -> sp s1
+        Just s1 :> s2       -> sp (s1, s2)
+        s1      :< Just s2  -> sp (s1, s2)
+
+instance (SpannedBuilder s1, SpannedBuilder s2)
+        => SpannedBuilder (MayOneSideSpan [s1] s2) where
+    sp = \case
+        []          :> s2           -> sp s2
+        s1          :< []           -> sp s1
+        (sx1:sxs1)  :> s2           -> sp (sx1 :| sxs1, s2)
+        s1          :< (sx2:sxs2)   -> sp (s1, sx2 :| sxs2)
 
 
 data AstParsed

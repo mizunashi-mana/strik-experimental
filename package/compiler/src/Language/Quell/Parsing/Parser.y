@@ -213,11 +213,8 @@ val_decl_where_item :: { () }
 decltype :: { Ast.DeclType C }
     : declcon bind_vars
     {
-        case otoList $2 of
-            [] ->
-                spAnn $1 do Ast.DeclAppType (unS $1) []
-            xs0@(x:xs) ->
-                spAnn ($1, x :| xs) do Ast.DeclAppType (unS $1) xs0
+        let vs = otoList $2
+        in spAnn ($1 :< vs) do Ast.DeclAppType (unS $1) vs
     }
     | simpl_bind_var_decl declconop simpl_bind_var_decl
     { spAnn ($1, $2, $3) do Ast.DeclInfixType $1 (unS $2) $3 }
@@ -225,11 +222,8 @@ decltype :: { Ast.DeclType C }
 impltype :: { Ast.ImplType C }
     : con type_apps_list
     {
-        case otoList $2 of
-            [] ->
-                spAnn $1 do Ast.ImplAppType (unS $1) []
-            xs0@(x:xs) ->
-                spAnn ($1, x :| xs) do Ast.ImplAppType (unS $1) xs0
+        let ts = otoList $2
+        in spAnn ($1 :< ts) do Ast.ImplAppType (unS $1) ts
     }
     | type_qualified conop type_qualified
     { spAnn ($1, $2, $3) do Ast.ImplInfixType $1 (unS $2) $3 }
@@ -312,18 +306,12 @@ type_atomic :: { Ast.TypeExpr C }
     | '[' type_array_items ']'
     {
         case $2 of
-            Nothing ->
-                spAnn ($1, $3) do Ast.TypeArray []
-            Just sts ->
-                spAnn ($1, sts, $3) do Ast.TypeArray do otoList do unS sts
+            (ms2, ts) -> spAnn ($1 :< ms2, $3) do Ast.TypeArray do otoList ts
     }
     | '{' type_simplrecord_items '}'
     {
         case $2 of
-            Nothing ->
-                spAnn ($1, $3) do Ast.TypeRecord []
-            Just sts ->
-                spAnn ($1, sts, $3) do Ast.TypeRecord do otoList do unS sts
+            (ms2, ts) -> spAnn ($1 :< ms2, $3) do Ast.TypeRecord do otoList ts
     }
 
 type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
@@ -335,24 +323,24 @@ type_tuple_items_commas :: { S (Bag.T (Ast.TypeExpr C)) }
     | type ','                          { spn ($1, $2) do pure $1 }
 
 type_array_items :: { MaySpBag (Ast.TypeExpr C) }
-    : type_array_items_commas type
-    { maySpBagAppend $1 $2 $2 }
-    | type_array_items_commas   { $1 }
+    : type_array_items_commas type      { maySpBagAppend $1 $2 $2 }
+    | type_array_items_commas           { $1 }
 
 type_array_items_commas :: { MaySpBag (Ast.TypeExpr C) }
-    : type_array_items_commas type ','
-    { maySpBagAppend $1 ($2, $3) $2 }
-    | {- empty -}               { Nothing }
+    : type_array_items_commas type ','  { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}                       { maySpBagEmpty }
 
 type_simplrecord_items :: { MaySpBag (Ast.Name, Ast.TypeExpr C) }
     : type_simplrecord_items_commas type_simplrecord_item
     { maySpBagAppend $1 $2 do unS $2 }
-    | type_simplrecord_items_commas         { $1 }
+    | type_simplrecord_items_commas
+    { $1 }
 
 type_simplrecord_items_commas :: { MaySpBag (Ast.Name, Ast.TypeExpr C) }
     : type_simplrecord_items_commas type_simplrecord_item ','
     { maySpBagAppend $1 ($2, $3) do unS $2 }
-    | {- empty -}       { Nothing }
+    | {- empty -}
+    { maySpBagEmpty }
 
 type_simplrecord_item :: { S (Ast.Name, Ast.TypeExpr C) }
     : var ':' type      { spn ($1, $2, $3) (unS $1, $3) }
@@ -413,7 +401,7 @@ expr_block :: { Ast.Expr C }
     | '#letrec' let_body                    { undefined } -- conflict with expr
     | '#case' case_body                     { undefined }
     | '#do' do_body                         { undefined }
-    | '#@' layout_block_body                { undefined }
+    | '#@' layout_block_body                { spAnn ($1, $2) do Ast.ExprAnn do unS $2 }
     | expr_atomic                           { $1 }
 
 expr_atomic :: { Ast.Expr C }
@@ -430,18 +418,12 @@ expr_literal :: { Ast.Expr C }
     | '[' expr_array_items ']'
     {
         case $2 of
-            Nothing ->
-                spAnn ($1, $3) do Ast.ExprArray []
-            Just ses ->
-                spAnn ($1, ses, $3) do Ast.ExprArray do otoList do unS ses
+            (ms2, es) -> spAnn ($1 :< ms2, $3) do Ast.ExprArray do otoList es
     }
     | '{' expr_simplrecord_items '}'
     {
         case $2 of
-            Nothing ->
-                spAnn ($1, $3) do Ast.ExprRecord []
-            Just ses ->
-                spAnn ($1, ses, $3) do Ast.ExprRecord do otoList do unS ses
+            (ms2, es) -> spAnn ($1 :< ms2, $3) do Ast.ExprRecord do otoList es
     }
 
 expr_interp_string :: { Ast.Expr C }
@@ -510,14 +492,12 @@ expr_tuple_items_commas :: { S (Bag.T (Ast.Expr C)) }
     | expr ','                          { spn ($1, $2) do pure $1 }
 
 expr_array_items :: { MaySpBag (Ast.Expr C) }
-    : expr_array_items_commas expr
-    { maySpBagAppend $1 $2 $2 }
-    | expr_array_items_commas       { $1 }
+    : expr_array_items_commas expr      { maySpBagAppend $1 $2 $2 }
+    | expr_array_items_commas           { $1 }
 
 expr_array_items_commas :: { MaySpBag (Ast.Expr C) }
-    : expr_array_items_commas expr ','
-    { maySpBagAppend $1 ($2, $3) $2 }
-    | {- empty -}                       { Nothing }
+    : expr_array_items_commas expr ','  { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}                       { maySpBagEmpty }
 
 expr_simplrecord_items :: { MaySpBag (Ast.Name, Ast.Expr C) }
     : expr_simplrecord_items_semis expr_simplrecord_item
@@ -528,7 +508,8 @@ expr_simplrecord_items :: { MaySpBag (Ast.Name, Ast.Expr C) }
 expr_simplrecord_items_semis :: { MaySpBag (Ast.Name, Ast.Expr C) }
     : expr_simplrecord_items_semis expr_simplrecord_item ','
     { maySpBagAppend $1 ($2, $3) do unS $2 }
-    | {- empty -}           { Nothing }
+    | {- empty -}
+    { maySpBagEmpty }
 
 expr_simplrecord_item :: { S (Ast.Name, Ast.Expr C) }
     : var '=' expr      { spn ($1, $2, $3) do (unS $1, $3) }
@@ -673,8 +654,8 @@ case_pats_commas :: { () }
     | {- empty -}                   { () }
 
 guarded_alt :: { () }
-    : '->' expr                 { () }
-    | '#when' guarded_alt_body   { () }
+    : '->' expr                     { () }
+    | '#when' guarded_alt_body      { () }
 
 guarded_alt_body :: { () }
     : lopen guarded_alt_items lclose    { () }
@@ -714,12 +695,12 @@ do_yield_item :: { () }
     : '#yield' expr     { () }
 
 
-layout_block_body :: { () }
-    : lopen layout_block_item lclose        { () }
+layout_block_body :: { S (Ast.Expr C) }
+    : lopen layout_block_item lclose        { spn ($1 :> $2 :< $3) do unS $2 }
 
-layout_block_item :: { () }
-    : expr lsemis   { () }
-    | expr          { () }
+layout_block_item :: { S (Ast.Expr C) }
+    : expr lsemis   { spn ($1 :< $2) $1 }
+    | expr          { spn $1 $1 }
 
 
 bind_var :: { Ast.BindVar C }
@@ -873,7 +854,7 @@ consym :: { S Ast.Name }
     : CONSYM
     {
         $1 <&> \case
-            Token.IdConSym n     -> n
+            Token.IdConSym n    -> n
             _                   -> error "unreachable"
     }
 
@@ -906,12 +887,13 @@ pattern S x <- Spanned.Spanned
 unS :: S a -> a
 unS sx = Spanned.unSpanned sx
 
-type MaySpBag a = Maybe (S (Bag.T a))
+type MaySpBag a = (Maybe Span, Bag.T a)
 
 maySpBagAppend :: SpannedBuilder s => MaySpBag a -> s -> a -> MaySpBag a
-maySpBagAppend m s x = case m of
-    Just sxs -> Just do spn (sxs, s) do snoc (unS sxs) x
-    Nothing  -> Just do spn s do pure x
+maySpBagAppend (ms1, m) s2 x = (Just do sp (ms1 :> s2), snoc m x)
+
+maySpBagEmpty :: MaySpBag a
+maySpBagEmpty = (Nothing, mempty)
 
 
 type C = AstParsed
