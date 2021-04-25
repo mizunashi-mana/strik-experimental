@@ -415,7 +415,7 @@ Grammar
                 : "#let" let_body
                 : "#case" (expr ",")* expr? "#of" case_alt_body
                 : "#do" do_body
-                : "#@" layout_block_body
+                : "#@" expr_block_body
                 : expr_atomic
     expr_atomic : "(" expr ")"
                 : con
@@ -426,6 +426,10 @@ Grammar
                 : "(" expr_tuple_items ")"
                 : "[" expr_array_items "]"
                 : "{" expr_simplrecord_items "}"
+    expr_block_body : "{" expr_block_item "}"
+                    : "{{" expr_block_item "}}"
+                    : '{' expr_block_item '}'
+    expr_block_item   : lsemis? expr lsemis?
     expr_interp_string  : interp_string_without_interp
                         : interp_string_start expr (interp_string_cont expr)* interp_string_end
     expr_tuple_items: (expr ",")+ expr ","?
@@ -443,7 +447,9 @@ Grammar
     pat_apps: con_qualified pat_app*
     pat_app : pat_qualified
             : "@" type_qualified
-    pat_qualified: pat_atomic
+    pat_qualified: pat_block
+    pat_block   : "#@" pat_block_body
+                : pat_atomic
     pat_atomic  : "(" pat ")"
                 : var
                 : pat_literal
@@ -451,6 +457,10 @@ Grammar
                 : "(" pat_tuple_items ")"
                 : "[" pat_array_items "]"
                 : "{" pat_simplrecord_items "}"
+    pat_block_body  : "{" pat_block_item "}"
+                    : "{{" pat_block_item "}}"
+                    : '{' pat_block_item '}'
+    pat_block_item  : lsemis? pat lsemis?
     pat_tuple_items: (pat ",")+ pat ","?
     pat_array_items: (pat ",")* pat?
     pat_simplrecord_items: (pat_simplrecord_item ",")* pat_simplrecord_item?
@@ -494,12 +504,6 @@ Grammar
                     : pat "=" expr
                     : "#letrec" let_binds
     do_yield_item   : "#yield" expr
-
-.. productionlist::
-    layout_block_body   : "{" layout_block_item "}"
-                        : "{{" layout_block_item "}}"
-                        : '{' layout_block_item '}'
-    layout_block_item   : lsemis? expr lsemis?
 
 .. productionlist::
     bind_var: "@" simple_bind_var

@@ -116,7 +116,7 @@ typesig_decl :: { Ast.Decl C }
     { spAnn ($1, $2, $3, $4) do Ast.DeclTypeSig (unS $2) $4 }
 
 valsig_decl :: { Ast.Decl C }
-    : var ':' type -- declvar ':' type
+    : declvar ':' type
     { spAnn ($1, $2, $3) do Ast.DeclValSig (unS $1) $3 }
 
 consig_decl :: { Ast.Decl C }
@@ -251,7 +251,8 @@ type :: { Ast.TypeExpr C }
         case spAnn $2 do Ast.TypeVar Ast.primNameArrow of
             t2 -> spAnn ($1, $2, $3) do Ast.TypeInfix $1 t2 $3
     }
-    | type_unit %shift              { $1 }
+    | type_unit %shift
+    { $1 }
 
 type_unit :: { Ast.TypeExpr C }
     : type_infix %shift         { $1 }
@@ -297,10 +298,14 @@ type_block :: { Ast.TypeExpr C }
 type_atomic :: { Ast.TypeExpr C }
     : '(' type ':' type ')'
     { spAnn ($1, $2, $3, $4, $5) do Ast.TypeSig $2 $4 }
-    | '(' type ')'                      { spAnn ($1, $2, $3) do Ast.TypeAnn $2 }
-    | con                               { spAnn $1 do Ast.TypeCon do unS $1 }
-    | var                               { spAnn $1 do Ast.TypeVar do unS $1 }
-    | literal                           { spAnn $1 do Ast.TypeLit $1 }
+    | '(' type ')'
+    { spAnn ($1, $2, $3) do Ast.TypeAnn $2 }
+    | con
+    { spAnn $1 do Ast.TypeCon do unS $1 }
+    | var
+    { spAnn $1 do Ast.TypeVar do unS $1 }
+    | literal
+    { spAnn $1 do Ast.TypeLit $1 }
     | '(' type_tuple_items ')'
     { spAnn ($1, $2, $3) do Ast.TypeTuple do otoList do unS $2 }
     | '[' type_array_items ']'
@@ -397,14 +402,33 @@ expr_qualified :: { Ast.Expr C }
     : expr_block                { $1 }
 
 expr_block :: { Ast.Expr C }
-    : '\\' '#case' case_alt_body            { undefined }
-    | '\\' lambda_body                      { undefined } -- conflict with expr
-    | '#let' let_body                       { undefined } -- conflict with expr
-    | '#letrec' let_body                    { undefined } -- conflict with expr
+    : '\\' '#case' case_alt_body
+    { undefined }
+    | '\\' lambda_body -- conflict with expr
+    { undefined }
+    | '#let' let_body -- conflict with expr
+    {
+        case unS $2 of { (ds, e) ->
+            spAnn ($1, $2) do Ast.ExprLet ds e
+        }
+    }
+    | '#letrec' let_body -- conflict with expr
+    {
+        case unS $2 of { (ds, e) ->
+            spAnn ($1, $2) do Ast.ExprLetrec ds e
+        }
+    }
     | '#case' case_body                     { undefined }
-    | '#do' do_body                         { undefined }
-    | '#@' layout_block_body                { spAnn ($1, $2) do Ast.ExprAnn do unS $2 }
-    | expr_atomic                           { $1 }
+    | '#do' do_body
+    {
+        case unS $2 of { (ss, e) ->
+            spAnn ($1, $2) do Ast.ExprDo ss e
+        }
+    }
+    | '#@' expr_block_body
+    { spAnn ($1, $2) do Ast.ExprAnn do unS $2 }
+    | expr_atomic
+    { $1 }
 
 expr_atomic :: { Ast.Expr C }
     : '(' expr ')'                  { spAnn ($1, $2, $3) do Ast.ExprAnn $2 }
@@ -413,8 +437,10 @@ expr_atomic :: { Ast.Expr C }
     | expr_literal                  { $1 }
 
 expr_literal :: { Ast.Expr C }
-    : literal                           { spAnn $1 do Ast.ExprLit $1 }
-    | expr_interp_string                { $1 }
+    : literal
+    { spAnn $1 do Ast.ExprLit $1 }
+    | expr_interp_string
+    { $1 }
     | '(' expr_tuple_items ')'
     { spAnn ($1, $2, $3) do Ast.ExprTuple do otoList do unS $2 }
     | '[' expr_array_items ']'
@@ -430,19 +456,29 @@ expr_literal :: { Ast.Expr C }
         }
     }
 
+expr_block_body :: { S (Ast.Expr C) }
+    : lopen expr_block_item lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
+
+expr_block_item :: { S (Ast.Expr C) }
+    : expr lsemis   { spn ($1 :< $2) $1 }
+    | expr          { spn $1 $1 }
+
 expr_interp_string :: { Ast.Expr C }
     : interp_string_without_interp
     { spAnn $1 do Ast.ExprInterpString [$1] }
     | interp_string_start interp_string_expr expr_interp_string_conts interp_string_end
     {
-        case otoList do cons $2 do snoc $3 $4 of
-            xs -> spAnn ($1 :| xs) do Ast.ExprInterpString do $1:xs
+        case otoList do cons $2 do snoc $3 $4 of { xs ->
+            spAnn ($1 :| xs) do Ast.ExprInterpString do $1:xs
+        }
     }
 
 expr_interp_string_conts :: { Bag.T (Ast.InterpStringPart C) }
     : expr_interp_string_conts interp_string_cont interp_string_expr
     { snoc (snoc $1 $2) $3 }
-    | {- empty -}   { mempty }
+    | {- empty -}
+    { mempty }
 
 interp_string_without_interp :: { Ast.InterpStringPart C }
     : INTERP_STRING_WITHOUT_INTERP
@@ -573,7 +609,13 @@ pat_app :: { Ast.AppPat C }
     | pat_qualified             { spAnn $1 do Ast.AppPat $1 }
 
 pat_qualified :: { Ast.Pat C }
-    : pat_atomic     { $1 }
+    : pat_block     { $1 }
+
+pat_block :: { Ast.Pat C }
+    : '#@' pat_block_body
+    { spAnn ($1, $2) do Ast.PatAnn do unS $2 }
+    | pat_atomic
+    { $1 }
 
 pat_atomic :: { Ast.Pat C }
     : '(' pat ')'           { spAnn ($1, $2, $3) do Ast.PatAnn $2 }
@@ -582,10 +624,30 @@ pat_atomic :: { Ast.Pat C }
     | pat_literal           { $1 }
 
 pat_literal :: { Ast.Pat C }
-    : literal                           { spAnn $1 do Ast.PatLit $1 }
-    | '(' pat_tuple_items ')'           { undefined }
-    | '[' pat_array_items ']'           { undefined }
-    | '{' pat_simplrecord_items '}'     { undefined }
+    : literal
+    { spAnn $1 do Ast.PatLit $1 }
+    | '(' pat_tuple_items ')'
+    { spAnn ($1, $2, $3) do Ast.PatTuple do otoList do unS $2 }
+    | '[' pat_array_items ']'
+    {
+        case $2 of { (ms2, ps) ->
+            spAnn ($1 :< ms2, $3) do Ast.PatArray do otoList ps
+        }
+    }
+    | '{' pat_simplrecord_items '}'
+    {
+        case $2 of { (ms2, ps) ->
+            spAnn ($1 :< ms2, $3) do Ast.PatRecord do otoList ps
+        }
+    }
+
+pat_block_body :: { S (Ast.Pat C) }
+    : lopen pat_block_item lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
+
+pat_block_item :: { S (Ast.Pat C) }
+    : pat lsemis    { spn ($1 :< $2) $1 }
+    | pat           { spn $1 $1 }
 
 pat_tuple_items :: { S (Bag.T (Ast.Pat C)) }
     : pat_tuple_items_commas pat ','    { spn ($1, $2, $3) do snoc (unS $1) $2 }
@@ -596,8 +658,8 @@ pat_tuple_items_commas :: { S (Bag.T (Ast.Pat C)) }
     | pat ','                           { spn ($1, $2) do pure $1 }
 
 pat_array_items :: { MaySpBag (Ast.Pat C) }
-    : pat_array_items_commas pat    { maySpBagAppend $1 $2 $2 }
-    | pat_array_items_commas        { $1 }
+    : pat_array_items_commas pat        { maySpBagAppend $1 $2 $2 }
+    | pat_array_items_commas            { $1 }
 
 pat_array_items_commas :: { MaySpBag (Ast.Pat C) }
     : pat_array_items_commas pat ','    { maySpBagAppend $1 ($2, $3) $2 }
@@ -627,25 +689,40 @@ lambda_pat_args :: { () }
     | {- empty -}                   { () }
 
 
-let_body :: { () }
-    : let_binds '#in' expr           { () }
+let_body :: { S ([Ast.Decl C], Ast.Expr C) }
+    : let_binds '#in' expr
+    {
+        case $1 of { (ms1, ds) ->
+            spn (ms1 :> $2, $3) (ds, $3)
+        }
+    }
 
-let_binds :: { () }
-    : lopen let_bind_items lclose   { () }
+let_binds :: { (Maybe Span, [Ast.Decl C]) }
+    : lopen let_bind_items lclose
+    {
+        case $2 of { (ms2, ds) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList ds)
+        }
+    }
 
-let_bind_items :: { () }
-    : let_bind_items_semis let_bind_item    { () }
-    | let_bind_items_semis                  { () }
+let_bind_items :: { MaySpBag (Ast.Decl C) }
+    : let_bind_items_semis let_bind_item
+    { maySpBagAppend $1 $2 $2 }
+    | let_bind_items_semis
+    { $1 }
 
-let_bind_items_semis :: { () }
-    : let_bind_items_semis let_bind_item lsemis     { () }
-    | {- empty -}                                   { () }
+let_bind_items_semis :: { MaySpBag (Ast.Decl C) }
+    : let_bind_items_semis let_bind_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-let_bind_item :: { () }
-    : sig_item                  { () }
-    | type_decl                 { () }
-    | data_decl                 { () }
-    | val_bind                  { () } -- conflict with valsig_decl
+let_bind_item :: { Ast.Decl C }
+    : sig_item                  { $1 }
+    | type_decl                 { undefined }
+    | data_decl                 { undefined }
+    | val_bind                  { undefined } -- conflict with valsig_decl
 
 
 case_body :: { () }
@@ -703,8 +780,8 @@ guard_qual :: { () }
     : expr_unit         { () }
 
 
-do_body :: { () }
-    : lopen do_stmt_items lclose        { () }
+do_body :: { S ([Ast.DoStmt C], Ast.Expr C) }
+    : lopen do_stmt_items lclose        { spn ($1 :> $2 :< $3) do unS $2 }
 
 do_stmt_items :: { S ([Ast.DoStmt C], Ast.Expr C) }
     : do_stmt_items_semis do_yield_item lsemis
@@ -727,21 +804,19 @@ do_stmt_items_semis :: { MaySpBag (Ast.DoStmt C) }
     { maySpBagEmpty }
 
 do_stmt_item :: { Ast.DoStmt C }
-    : pat '<-' expr             { spAnn ($1, $2, $3) do Ast.DoStmtMonBind $1 $3 }
-    | pat '=' expr              { spAnn ($1, $2, $3) do Ast.DoStmtBind $1 $3 }
-    | '#letrec' let_binds       { undefined }
+    : pat '<-' expr
+    { spAnn ($1, $2, $3) do Ast.DoStmtMonBind $1 $3 }
+    | pat '=' expr
+    { spAnn ($1, $2, $3) do Ast.DoStmtBind $1 $3 }
+    | '#letrec' let_binds
+    {
+        case $2 of { (ms2, ds) ->
+            spAnn ($1 :< ms2) do Ast.DoStmtLetrec ds
+        }
+    }
 
 do_yield_item :: { S (Ast.Expr C) }
     : '#yield' expr     { spn ($1, $2) $2 }
-
-
-layout_block_body :: { S (Ast.Expr C) }
-    : lopen layout_block_item lclose
-    { spn ($1 :> $2 :< $3) do unS $2 }
-
-layout_block_item :: { S (Ast.Expr C) }
-    : expr lsemis   { spn ($1 :< $2) $1 }
-    | expr          { spn $1 $1 }
 
 
 bind_var :: { Ast.BindVar C }

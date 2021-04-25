@@ -1,6 +1,7 @@
 module Language.Quell.Parsing.Parser.AstParsed (
     SpannedBuilder (..),
     MayOneSideSpan (..),
+    maySp,
     AstParsed,
 ) where
 
@@ -118,6 +119,16 @@ instance SpannedBuilder (Ast.AppPat AstParsed) where
         Ast.AppPat _ x -> x
         Ast.UnivAppPat _ x -> x
 
+instance SpannedBuilder (Ast.Decl AstParsed) where
+    sp = \case
+        Ast.DeclTypeSig _ _ x -> x
+        Ast.DeclValSig _ _ x -> x
+        Ast.DeclConSig _ _ x -> x
+        Ast.DeclType _ _ _ x -> x
+        Ast.DeclDataType _ x -> x
+        Ast.DeclVal _ _ _ x -> x
+        Ast.DeclValBind _ _ _ x -> x
+
 instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
     sp l = sconcat do l <&> \s -> sp s
 
@@ -161,6 +172,12 @@ instance (SpannedBuilder s1, SpannedBuilder s2)
         s1          :< []           -> sp s1
         (sx1:sxs1)  :> s2           -> sp (sx1 :| sxs1, s2)
         s1          :< (sx2:sxs2)   -> sp (s1, sx2 :| sxs2)
+
+maySp :: [Maybe Spanned.Span] -> Maybe Spanned.Span
+maySp mss = ofoldl'
+    do \ms1 ms2 -> ms1 <> ms2
+    Nothing
+    mss
 
 
 data AstParsed
