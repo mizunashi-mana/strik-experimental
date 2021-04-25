@@ -317,9 +317,9 @@ Grammar
                 : val_decl
 
 .. productionlist::
-    typesig_decl: "#type" con ":" type
-    valsig_decl: var ":" type
-    consig_decl: con ":" type
+    typesig_decl: "#type" declcon ":" type
+    valsig_decl: declvar ":" type
+    consig_decl: declcon ":" type
 
 .. productionlist::
     type_decl: "#type" decltype "=" type ("where" type_decl_where_body)?
@@ -357,7 +357,7 @@ Grammar
 .. productionlist::
     decltype    : declcon bind_var*
                 : bind_var declconop bind_var
-    impltype    : con type_qualified*
+    impltype    : con_qualified type_qualified*
                 : type_qualified conop type_qualified
     declvarexpr : declvar bind_var*
                 : bind_var declop bind_var
@@ -389,7 +389,7 @@ Grammar
     type_tuple_items: (type ",")+ type ","?
     type_array_items: (type ",")* type?
     type_simplrecord_items: (type_simplrecord_item ",")* type_simplrecord_item?
-    type_simplrecord_item: var ":" type
+    type_simplrecord_item: declvar ":" type
 
 .. productionlist::
     sig_item: typesig_decl
@@ -431,19 +431,20 @@ Grammar
     expr_tuple_items: (expr ",")+ expr ","?
     expr_array_items: (expr ",")* expr?
     expr_simplrecord_items: (expr_simplrecord_item ",")* expr_simplrecord_item?
-    expr_simplrecord_item: var "=" expr
+    expr_simplrecord_item: declvar "=" expr
 
 .. productionlist::
     pat : pat_unit ":" type
         : pat_unit
     pat_unit: pat_infix ("|" pat_infix)*
-    pat_infix: pat_apps (qual_conop  pat_apps)*
-    pat_apps: pat_qualified pat_app*
+    pat_infix: pat_univ_apps (conop_qualified pat_univ_apps)*
+    pat_univ_apps   : pat_univ_apps "@" type_qualified
+                    : pat_apps
+    pat_apps: con_qualified pat_app*
     pat_app : pat_qualified
-            : "@" pat_qualified
+            : "@" type_qualified
     pat_qualified: pat_atomic
     pat_atomic  : "(" pat ")"
-                : con
                 : var
                 : pat_literal
     pat_literal : literal
@@ -453,7 +454,7 @@ Grammar
     pat_tuple_items: (pat ",")+ pat ","?
     pat_array_items: (pat ",")* pat?
     pat_simplrecord_items: (pat_simplrecord_item ",")* pat_simplrecord_item?
-    pat_simplrecord_item: var "=" pat
+    pat_simplrecord_item: declvar "=" pat
 
 .. productionlist::
     let_body: let_binds "in" expr
@@ -505,6 +506,8 @@ Grammar
             : simple_bind_var
     simple_bind_var : var_id_ext
                     : "(" var_id_ext ":" type ")"
+    con_qualified : con
+    conop_qualified : conop
     con : con_id_ext
         : "(" con_sym_ext ")"
     conop   : con_sym_ext

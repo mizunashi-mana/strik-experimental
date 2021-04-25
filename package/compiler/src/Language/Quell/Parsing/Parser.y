@@ -111,17 +111,17 @@ decl_item :: { Ast.Decl C }
     | val_decl              { undefined }
 
 
-typesig_decl :: { Ast.TypeSigDecl C }
+typesig_decl :: { Ast.Decl C }
     : '#type' declcon ':' type
-    { spAnn ($1, $2, $3, $4) do Ast.TypeSigDecl (unS $2) $4 }
+    { spAnn ($1, $2, $3, $4) do Ast.DeclTypeSig (unS $2) $4 }
 
-valsig_decl :: { Ast.ValSigDecl C }
+valsig_decl :: { Ast.Decl C }
     : var ':' type -- declvar ':' type
-    { spAnn ($1, $2, $3) do Ast.ValSigDecl (unS $1) $3 }
+    { spAnn ($1, $2, $3) do Ast.DeclValSig (unS $1) $3 }
 
-consig_decl :: { Ast.ConSigDecl C }
+consig_decl :: { Ast.Decl C }
     : declcon ':' type
-    { spAnn ($1, $2, $3) do Ast.ConSigDecl (unS $1) $3 }
+    { spAnn ($1, $2, $3) do Ast.DeclConSig (unS $1) $3 }
 
 
 type_decl :: { () }
@@ -305,13 +305,15 @@ type_atomic :: { Ast.TypeExpr C }
     { spAnn ($1, $2, $3) do Ast.TypeTuple do otoList do unS $2 }
     | '[' type_array_items ']'
     {
-        case $2 of
-            (ms2, ts) -> spAnn ($1 :< ms2, $3) do Ast.TypeArray do otoList ts
+        case $2 of { (ms2, ts) ->
+            spAnn ($1 :< ms2, $3) do Ast.TypeArray do otoList ts
+        }
     }
     | '{' type_simplrecord_items '}'
     {
-        case $2 of
-            (ms2, ts) -> spAnn ($1 :< ms2, $3) do Ast.TypeRecord do otoList ts
+        case $2 of { (ms2, ts) ->
+            spAnn ($1 :< ms2, $3) do Ast.TypeRecord do otoList ts
+        }
     }
 
 type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
@@ -347,8 +349,8 @@ type_simplrecord_item :: { S (Ast.Name, Ast.TypeExpr C) }
 
 
 sig_item :: { Ast.Decl C }
-    : typesig_decl      { spAnn $1 do Ast.DeclTypeSig $1 }
-    | valsig_decl       { spAnn $1 do Ast.DeclValSig $1 }
+    : typesig_decl      { $1 }
+    | valsig_decl       { $1 }
 
 
 expr :: { Ast.Expr C }
@@ -375,12 +377,12 @@ expr_qualified_op :: { Ast.Expr C }
 expr_apps :: { Ast.Expr C }
     : expr_apps_list %shift
     {
-        case $1 of
-            (e, b) -> case otoList b of
-                [] ->
-                    e
-                xs0@(x:xs) ->
-                    spAnn (e, x :| xs) do Ast.ExprApp e xs0
+        case $1 of { (e, b) -> case otoList b of
+            [] ->
+                e
+            xs0@(x:xs) ->
+                spAnn (e, x :| xs) do Ast.ExprApp e xs0
+        }
     }
 
 expr_apps_list :: { (Ast.Expr C, Bag.T (Ast.AppExpr C)) }
@@ -417,13 +419,15 @@ expr_literal :: { Ast.Expr C }
     { spAnn ($1, $2, $3) do Ast.ExprTuple do otoList do unS $2 }
     | '[' expr_array_items ']'
     {
-        case $2 of
-            (ms2, es) -> spAnn ($1 :< ms2, $3) do Ast.ExprArray do otoList es
+        case $2 of { (ms2, es) ->
+            spAnn ($1 :< ms2, $3) do Ast.ExprArray do otoList es
+        }
     }
     | '{' expr_simplrecord_items '}'
     {
-        case $2 of
-            (ms2, es) -> spAnn ($1 :< ms2, $3) do Ast.ExprRecord do otoList es
+        case $2 of { (ms2, es) ->
+            spAnn ($1 :< ms2, $3) do Ast.ExprRecord do otoList es
+        }
     }
 
 expr_interp_string :: { Ast.Expr C }
@@ -515,53 +519,73 @@ expr_simplrecord_item :: { S (Ast.Name, Ast.Expr C) }
     : var '=' expr      { spn ($1, $2, $3) do (unS $1, $3) }
 
 
-pat :: { () }
-    : pat_unit ':' type     { () }
-    | pat_unit              { () }
+pat :: { Ast.Pat C }
+    : pat_unit ':' type     { spAnn ($1, $2, $3) do Ast.PatSig $1 $3 }
+    | pat_unit              { $1 }
 
-pat_unit :: { () }
-    : pat_unit '|' pat_infix        { () }
-    | pat_infix                     { () }
+pat_unit :: { Ast.Pat C }
+    : pat_unit_list
+    {
+        let ps = otoList do unS $1
+        in spAnn $1 do Ast.PatOr ps
+    }
 
-pat_infix :: { () }
-    : pat_infix pat_op pat_apps         { () }
-    | pat_apps                          { () }
+pat_unit_list :: { S (Bag.T (Ast.Pat C)) }
+    : pat_unit_list '|' pat_infix %shift
+    { spn ($1, $2, $3) do snoc (unS $1) $3 }
+    | pat_infix %shift
+    { spn $1 do pure $1 }
 
-pat_op :: { () }
-    : CONSYM                        { () }
-    | var_sym_ext                   { () }
-    | '`' pat_qualified_op '`'      { () }
+pat_infix :: { Ast.Pat C }
+    : pat_infix conop_qualified pat_univ_apps
+    { spAnn ($1, $2, $3) do Ast.PatInfix $1 (unS $2) $3 }
+    | pat_apps
+    { $1 }
 
-pat_qualified_op :: { () }
-    : con_sym_ext       { () }
-    | var_sym_ext       { () }
-    | pat_qualified     { () }
+pat_univ_apps :: { Ast.Pat C }
+    : pat_apps pat_univ_apps_args
+    {
+        case $2 of { (ms2, ts) ->
+            spAnn ($1 :< ms2) do Ast.PatUnivApp $1 do otoList ts
+        }
+    }
 
-pat_apps :: { () }
-    : pat_qualified pat_apps_args       { () }
+pat_univ_apps_args :: { MaySpBag (Ast.TypeExpr C) }
+    : pat_univ_apps_args '@' type_qualified
+    { maySpBagAppend $1 ($2, $3) $3 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-pat_apps_args :: { () }
-    : pat_apps_args pat_app             { () }
-    | {- empty -}                       { () }
+pat_apps :: { Ast.Pat C }
+    : con_qualified pat_apps_args %shift
+    {
+        case $2 of { (ms2, ps) ->
+            spAnn ($1 :< ms2) do Ast.PatApp (unS $1) do otoList ps
+        }
+    }
 
-pat_app :: { () }
-    : '@' pat_qualified         { () }
-    | pat_qualified             { () }
+pat_apps_args :: { MaySpBag (Ast.AppPat C) }
+    : pat_apps_args pat_app             { maySpBagAppend $1 $2 $2 }
+    | {- empty -}                       { maySpBagEmpty }
 
-pat_qualified :: { () }
-    : pat_atomic     { () }
+pat_app :: { Ast.AppPat C }
+    : '@' type_qualified        { spAnn ($1, $2) do Ast.UnivAppPat $2 }
+    | pat_qualified             { spAnn $1 do Ast.AppPat $1 }
 
-pat_atomic :: { () }
-    : '(' pat ')'                   { () }
-    | con                           { () }
-    | var %shift                    { () }
-    | pat_literal                   { () }
+pat_qualified :: { Ast.Pat C }
+    : pat_atomic     { $1 }
 
-pat_literal :: { () }
-    : literal                           { () }
-    | '(' pat_tuple_items ')'           { () }
-    | '[' pat_array_items ']'           { () }
-    | '{' pat_simplrecord_items '}'     { () }
+pat_atomic :: { Ast.Pat C }
+    : '(' pat ')'           { spAnn ($1, $2, $3) do Ast.PatAnn $2 }
+    | con                   { spAnn $1 do Ast.PatCon do unS $1 }
+    | var %shift            { spAnn $1 do Ast.PatVar do unS $1 }
+    | pat_literal           { $1 }
+
+pat_literal :: { Ast.Pat C }
+    : literal                           { spAnn $1 do Ast.PatLit $1 }
+    | '(' pat_tuple_items ')'           { undefined }
+    | '[' pat_array_items ']'           { undefined }
+    | '{' pat_simplrecord_items '}'     { undefined }
 
 pat_tuple_items :: { () }
     : pat_tuple_items_commas pat ','    { () }
@@ -678,25 +702,38 @@ guard_qual :: { () }
 do_body :: { () }
     : lopen do_stmt_items lclose        { () }
 
-do_stmt_items :: { () }
-    : do_stmt_items_semis do_yield_item lsemis   { () }
-    | do_stmt_items_semis do_yield_item          { () }
+do_stmt_items :: { S ([Ast.DoStmt C], Ast.Expr C) }
+    : do_stmt_items_semis do_yield_item lsemis
+    {
+        case $1 of { (ms1, ss) ->
+            spn (ms1 :> $2 :< $3) do (otoList ss, unS $2)
+        }
+    }
+    | do_stmt_items_semis do_yield_item
+    {
+        case $1 of { (ms1, ss) ->
+            spn (ms1 :> $2) do (otoList ss, unS $2)
+        }
+    }
 
-do_stmt_items_semis :: { () }
-    : do_stmt_items_semis do_stmt_item lsemis   { () }
-    | {- empty -}                               { () }
+do_stmt_items_semis :: { MaySpBag (Ast.DoStmt C) }
+    : do_stmt_items_semis do_stmt_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-do_stmt_item :: { () }
-    : pat '<-' expr             { () }
-    | pat '=' expr              { () }
-    | '#letrec' let_binds       { () }
+do_stmt_item :: { Ast.DoStmt C }
+    : pat '<-' expr             { undefined }
+    | pat '=' expr              { undefined }
+    | '#letrec' let_binds       { undefined }
 
-do_yield_item :: { () }
-    : '#yield' expr     { () }
+do_yield_item :: { S (Ast.Expr C) }
+    : '#yield' expr     { spn ($1, $2) $2 }
 
 
 layout_block_body :: { S (Ast.Expr C) }
-    : lopen layout_block_item lclose        { spn ($1 :> $2 :< $3) do unS $2 }
+    : lopen layout_block_item lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
 
 layout_block_item :: { S (Ast.Expr C) }
     : expr lsemis   { spn ($1 :< $2) $1 }
@@ -714,6 +751,12 @@ simple_bind_var :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
     { spn $1 (unS $1, Nothing) }
     | '(' var_id_ext ':' type ')'
     { spn ($1, $2, $3, $4, $5)  (unS $2, Just $4) }
+
+con_qualified :: { S Ast.Name }
+    : con       { $1 }
+
+conop_qualified :: { S Ast.Name }
+    : conop     { $1 }
 
 con :: { S Ast.Name }
     : con_id_ext            { $1 }

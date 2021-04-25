@@ -9,28 +9,8 @@ module Language.Quell.Type.Ast (
     XDeclDataType,
     XDeclVal,
     XDeclValBind,
-    XDeclMonBind,
-
-    TypeSigDecl (..),
-    XTypeSigDecl,
-
-    ValSigDecl (..),
-    XValSigDecl,
-
-    ConSigDecl (..),
-    XConSigDecl,
-
-    TypeDecl (..),
-    XTypeDecl,
 
     DataTypeDecl (..),
-    ValDecl (..),
-
-    ValBind (..),
-    XValBind,
-
-    MonBind (..),
-    XMonBind,
 
     DeclType (..),
     XDeclAppType,
@@ -85,6 +65,11 @@ module Language.Quell.Type.Ast (
     XAppExpr,
     XUnivAppExpr,
 
+    DoStmt (..),
+    XDoStmtMonBind,
+    XDoStmtBind,
+    XDoStmtLetrec,
+
     Lit (..),
     XLitRational,
     XLitInteger,
@@ -96,6 +81,25 @@ module Language.Quell.Type.Ast (
     BindVar (..),
     XBindVar,
     XUnivBindVar,
+
+    Pat (..),
+    XPatSig,
+    XPatOr,
+    XPatInfix,
+    XPatApp,
+    XPatUnivApp,
+    XPatVar,
+    XPatCon,
+    XPatLit,
+    XPatWildcard,
+    XPatTuple,
+    XPatArray,
+    XPatRecord,
+    XPatAnn,
+
+    AppPat (..),
+    XAppPat,
+    XUnivAppPat,
 
     Name,
     mkName,
@@ -122,14 +126,13 @@ deriving instance XShow c => Show (Program c)
 
 
 data Decl c
-    = DeclTypeSig (TypeSigDecl c) (XDeclTypeSig c)
-    | DeclValSig (ValSigDecl c) (XDeclValSig c)
-    | DeclConSig (ConSigDecl c) (XDeclConSig c)
-    | DeclType (TypeDecl c) (XDeclType c)
+    = DeclTypeSig Name (TypeExpr c) (XDeclTypeSig c)
+    | DeclValSig Name (TypeExpr c) (XDeclValSig c)
+    | DeclConSig Name (TypeExpr c) (XDeclConSig c)
+    | DeclType (DeclType c) (TypeExpr c) [Decl c] (XDeclType c)
     | DeclDataType (DataTypeDecl c) (XDeclDataType c)
-    | DeclVal (ValDecl c) (XDeclVal c)
-    | DeclValBind (ValBind c) (XDeclValBind c)
-    | DeclMonBind (MonBind c) (XDeclMonBind c)
+    | DeclVal (DeclExpr c) (Expr c) [Decl c] (XDeclVal c)
+    | DeclValBind (Pat c) (Expr c) [Decl c] (XDeclValBind c)
 
 type family XDeclTypeSig c :: Type
 type family XDeclValSig c :: Type
@@ -138,42 +141,21 @@ type family XDeclType c :: Type
 type family XDeclDataType c :: Type
 type family XDeclVal c :: Type
 type family XDeclValBind c :: Type
-type family XDeclMonBind c :: Type
+
+type XCDecl :: (Type -> Constraint) -> Type -> Constraint
+type XCDecl f c =
+    (
+        f (XDeclTypeSig c),
+        f (XDeclValSig c),
+        f (XDeclConSig c),
+        f (XDeclType c),
+        f (XDeclDataType c),
+        f (XDeclVal c),
+        f (XDeclValBind c)
+    )
 
 deriving instance XEq c => Eq (Decl c)
 deriving instance XShow c => Show (Decl c)
-
-
-data TypeSigDecl c = TypeSigDecl Name (TypeExpr c) (XTypeSigDecl c)
-
-type family XTypeSigDecl c :: Type
-
-deriving instance XEq c => Eq (TypeSigDecl c)
-deriving instance XShow c => Show (TypeSigDecl c)
-
-
-data ValSigDecl c = ValSigDecl Name (TypeExpr c) (XValSigDecl c)
-
-type family XValSigDecl c :: Type
-
-deriving instance XEq c => Eq (ValSigDecl c)
-deriving instance XShow c => Show (ValSigDecl c)
-
-
-data ConSigDecl c = ConSigDecl Name (TypeExpr c) (XConSigDecl c)
-
-type family XConSigDecl c :: Type
-
-deriving instance XEq c => Eq (ConSigDecl c)
-deriving instance XShow c => Show (ConSigDecl c)
-
-
-data TypeDecl c = TypeDecl (DeclType c) (TypeExpr c) [Decl c] (XTypeDecl c)
-
-type family XTypeDecl c :: Type
-
-deriving instance XEq c => Eq (TypeDecl c)
-deriving instance XShow c => Show (TypeDecl c)
 
 
 data DataTypeDecl c
@@ -184,7 +166,7 @@ data DataTypeDecl c
         -- ^ type sig
         [Decl c]
         -- ^ body
-    | AlgDataTypeDecl
+    | DataTypeDeclAlg
         (DeclType c)
         -- ^ decl type
         [ImplType c]
@@ -196,39 +178,19 @@ deriving instance XEq c => Eq (DataTypeDecl c)
 deriving instance XShow c => Show (DataTypeDecl c)
 
 
-data ValDecl c = ValDecl
-    {
-        valDeclVar :: DeclExpr c,
-        valDeclExpr :: Expr c,
-        valDeclAssumptions :: [Decl c]
-    }
-
-deriving instance XEq c => Eq (ValDecl c)
-deriving instance XShow c => Show (ValDecl c)
-
-
-data ValBind c = ValBind (Pat c) (Expr c) [Decl c] (XValBind c)
-
-type family XValBind c :: Type
-
-deriving instance XEq c => Eq (ValBind c)
-deriving instance XShow c => Show (ValBind c)
-
-
-data MonBind c = MonBind (Pat c) (Expr c) [Decl c] (XMonBind c)
-
-type family XMonBind c :: Type
-
-deriving instance XEq c => Eq (MonBind c)
-deriving instance XShow c => Show (MonBind c)
-
-
 data DeclType c
     = DeclAppType Name [BindVar c] (XDeclAppType c)
     | DeclInfixType (BindVar c) Name (BindVar c) (XDeclInfixType c)
 
 type family XDeclAppType c :: Type
 type family XDeclInfixType c :: Type
+
+type XCDeclType :: (Type -> Constraint) -> Type -> Constraint
+type XCDeclType f c =
+    (
+        f (XDeclAppType c),
+        f (XDeclInfixType c)
+    )
 
 deriving instance XEq c => Eq (DeclType c)
 deriving instance XShow c => Show (DeclType c)
@@ -240,6 +202,13 @@ data ImplType c
 
 type family XImplAppType c :: Type
 type family XImplInfixType c :: Type
+
+type XCImplType :: (Type -> Constraint) -> Type -> Constraint
+type XCImplType f c =
+    (
+        f (XImplAppType c),
+        f (XImplInfixType c)
+    )
 
 deriving instance XEq c => Eq (ImplType c)
 deriving instance XShow c => Show (ImplType c)
@@ -278,6 +247,22 @@ type family XTypeArray c :: Type
 type family XTypeRecord c :: Type
 type family XTypeAnn c :: Type
 
+type XCTypeExpr :: (Type -> Constraint) -> Type -> Constraint
+type XCTypeExpr f c =
+    (
+        f (XTypeForall c),
+        f (XTypeInfix c),
+        f (XTypeApp c),
+        f (XTypeSig c),
+        f (XTypeCon c),
+        f (XTypeVar c),
+        f (XTypeLit c),
+        f (XTypeTuple c),
+        f (XTypeArray c),
+        f (XTypeRecord c),
+        f (XTypeAnn c)
+    )
+
 deriving instance XEq c => Eq (TypeExpr c)
 deriving instance XShow c => Show (TypeExpr c)
 
@@ -288,6 +273,13 @@ data AppType c
 
 type family XAppType c :: Type
 type family XUnivAppType c :: Type
+
+type XCAppType :: (Type -> Constraint) -> Type -> Constraint
+type XCAppType f c =
+    (
+        f (XAppType c),
+        f (XUnivAppType c)
+    )
 
 deriving instance XEq c => Eq (AppType c)
 deriving instance XShow c => Show (AppType c)
@@ -328,6 +320,27 @@ type family XExprArray c :: Type
 type family XExprRecord c :: Type
 type family XExprAnn c :: Type
 
+type XCExpr :: (Type -> Constraint) -> Type -> Constraint
+type XCExpr f c =
+    (
+        f (XExprSig c),
+        f (XExprInfix c),
+        f (XExprApp c),
+        f (XExprLambda c),
+        f (XExprLetrec c),
+        f (XExprLet c),
+        f (XExprCase c),
+        f (XExprDo c),
+        f (XExprCon c),
+        f (XExprVar c),
+        f (XExprLit c),
+        f (XExprInterpString c),
+        f (XExprTuple c),
+        f (XExprArray c),
+        f (XExprRecord c),
+        f (XExprAnn c)
+    )
+
 deriving instance XEq c => Eq (Expr c)
 deriving instance XShow c => Show (Expr c)
 
@@ -338,6 +351,13 @@ data AppExpr c
 
 type family XAppExpr c :: Type
 type family XUnivAppExpr c :: Type
+
+type XCAppExpr :: (Type -> Constraint) -> Type -> Constraint
+type XCAppExpr f c =
+    (
+        f (XAppExpr c),
+        f (XUnivAppExpr c)
+    )
 
 deriving instance XEq c => Eq (AppExpr c)
 deriving instance XShow c => Show (AppExpr c)
@@ -364,35 +384,90 @@ deriving instance XShow c => Show (GuardedAlt c)
 
 
 data DoStmt c
-    = DoStmtExpr (Expr c)
-    | DoStmtBind (Pat c) (Expr c)
-    | DoStmtLet [Decl c]
-    | DoStmtLetrec [Decl c]
+    = DoStmtBind (Pat c) (Expr c) (XDoStmtBind c)
+    | DoStmtMonBind (Pat c) (Expr c) (XDoStmtMonBind c)
+    | DoStmtLetrec [Decl c] (XDoStmtLetrec c)
+
+type family XDoStmtBind c :: Type
+type family XDoStmtMonBind c :: Type
+type family XDoStmtLetrec c :: Type
+
+type XCDoStmt :: (Type -> Constraint) -> Type -> Constraint
+type XCDoStmt f c =
+    (
+        f (XDoStmtBind c),
+        f (XDoStmtMonBind c),
+        f (XDoStmtLetrec c)
+    )
 
 deriving instance XEq c => Eq (DoStmt c)
 deriving instance XShow c => Show (DoStmt c)
 
 
 data Pat c
-    = PatSig (Pat c) (TypeExpr c)
-    | PatOr [Pat c]
-    | PatInfix (Pat c) Name (Pat c)
-    | PatApp (Pat c) [AppPat c]
-    | PatCon Name
-    | PatVar Name
-    | PatWildcard Name
-    | PatLit (Lit c)
-    | PatTuple [Pat c]
-    | PatArray [Pat c]
-    | PatRecord [(Name, Pat c)]
+    = PatSig (Pat c) (TypeExpr c) (XPatSig c)
+    | PatOr [Pat c] (XPatOr c)
+    | PatInfix (Pat c) Name (Pat c) (XPatInfix c)
+    | PatApp Name [AppPat c] (XPatApp c)
+    | PatUnivApp (Pat c) [TypeExpr c] (XPatUnivApp c)
+    | PatCon Name (XPatCon c)
+    | PatVar Name (XPatVar c)
+    | PatWildcard Name (XPatWildcard c)
+    | PatLit (Lit c) (XPatLit c)
+    | PatTuple [Pat c] (XPatTuple c)
+    | PatArray [Pat c] (XPatArray c)
+    | PatRecord [(Name, Pat c)] (XPatRecord c)
+    | PatAnn (Pat c) (XPatAnn c)
+
+type family XPatSig c :: Type
+type family XPatOr c :: Type
+type family XPatInfix c :: Type
+type family XPatApp c :: Type
+type family XPatUnivApp c :: Type
+type family XPatCon c :: Type
+type family XPatVar c :: Type
+type family XPatWildcard c :: Type
+type family XPatLit c :: Type
+type family XPatTuple c :: Type
+type family XPatArray c :: Type
+type family XPatRecord c :: Type
+type family XPatAnn c :: Type
+
+type XCPat :: (Type -> Constraint) -> Type -> Constraint
+type XCPat f c =
+    (
+        f (XPatSig c),
+        f (XPatOr c),
+        f (XPatInfix c),
+        f (XPatApp c),
+        f (XPatUnivApp c),
+        f (XPatCon c),
+        f (XPatVar c),
+        f (XPatWildcard c),
+        f (XPatLit c),
+        f (XPatTuple c),
+        f (XPatArray c),
+        f (XPatRecord c),
+        f (XPatAnn c)
+    )
 
 deriving instance XEq c => Eq (Pat c)
 deriving instance XShow c => Show (Pat c)
 
 
 data AppPat c
-    = AppPat (Pat c)
-    | UnivAppPat (TypeExpr c)
+    = AppPat (Pat c) (XAppPat c)
+    | UnivAppPat (TypeExpr c) (XUnivAppPat c)
+
+type family XAppPat c :: Type
+type family XUnivAppPat c :: Type
+
+type XCAppPat :: (Type -> Constraint) -> Type -> Constraint
+type XCAppPat f c =
+    (
+        f (XAppPat c),
+        f (XUnivAppPat c)
+    )
 
 deriving instance XEq c => Eq (AppPat c)
 deriving instance XShow c => Show (AppPat c)
@@ -413,6 +488,17 @@ type family XLitString c :: Type
 type family XLitByteChar c :: Type
 type family XLitChar c :: Type
 
+type XCLit :: (Type -> Constraint) -> Type -> Constraint
+type XCLit f c =
+    (
+        f (XLitRational c),
+        f (XLitInteger c),
+        f (XLitByteString c),
+        f (XLitString c),
+        f (XLitByteChar c),
+        f (XLitChar c)
+    )
+
 deriving instance XEq c => Eq (Lit c)
 deriving instance XShow c => Show (Lit c)
 
@@ -424,6 +510,13 @@ data InterpStringPart c
 type family XInterpStringLit c :: Type
 type family XInterpStringExpr c :: Type
 
+type XCInterpStringPart :: (Type -> Constraint) -> Type -> Constraint
+type XCInterpStringPart f c =
+    (
+        f (XInterpStringLit c),
+        f (XInterpStringExpr c)
+    )
+
 deriving instance XEq c => Eq (InterpStringPart c)
 deriving instance XShow c => Show (InterpStringPart c)
 
@@ -434,6 +527,13 @@ data BindVar c
 
 type family XBindVar c :: Type
 type family XUnivBindVar c :: Type
+
+type XCBindVar :: (Type -> Constraint) -> Type -> Constraint
+type XCBindVar f c =
+    (
+        f (XBindVar c),
+        f (XUnivBindVar c)
+    )
 
 deriving instance XEq c => Eq (BindVar c)
 deriving instance XShow c => Show (BindVar c)
@@ -457,65 +557,19 @@ primNameWildcard = TextId.primTextId TextId.PrimTextWildcard
 type XC :: (Type -> Constraint) -> Type -> Constraint
 type XC f c =
     (
-        f (XAppExpr c),
-        f (XUnivAppExpr c),
-        f (XBindVar c),
-        f (XUnivBindVar c),
-        f (XLitRational c),
-        f (XLitInteger c),
-        f (XLitByteString c),
-        f (XLitString c),
-        f (XLitByteChar c),
-        f (XLitChar c),
-        f (XTypeForall c),
-        f (XTypeInfix c),
-        f (XTypeApp c),
-        f (XTypeSig c),
-        f (XTypeCon c),
-        f (XTypeVar c),
-        f (XTypeLit c),
-        f (XTypeTuple c),
-        f (XTypeArray c),
-        f (XTypeRecord c),
-        f (XTypeAnn c),
-        f (XAppType c),
-        f (XUnivAppType c),
-        f (XTypeSigDecl c),
-        f (XValSigDecl c),
-        f (XConSigDecl c),
-        f (XTypeDecl c),
-        f (XValBind c),
-        f (XMonBind c),
-        f (XDeclTypeSig c),
-        f (XDeclValSig c),
-        f (XDeclConSig c),
-        f (XDeclType c),
-        f (XDeclDataType c),
-        f (XDeclVal c),
-        f (XDeclValBind c),
-        f (XDeclMonBind c),
-        f (XExprSig c),
-        f (XExprInfix c),
-        f (XExprLambda c),
-        f (XExprApp c),
-        f (XExprLetrec c),
-        f (XExprLet c),
-        f (XExprCase c),
-        f (XExprDo c),
-        f (XExprCon c),
-        f (XExprVar c),
-        f (XExprLit c),
-        f (XExprInterpString c),
-        f (XExprTuple c),
-        f (XExprArray c),
-        f (XExprRecord c),
-        f (XExprAnn c),
-        f (XInterpStringLit c),
-        f (XInterpStringExpr c),
-        f (XDeclAppType c),
-        f (XDeclInfixType c),
-        f (XImplAppType c),
-        f (XImplInfixType c)
+        XCAppExpr f c,
+        XCBindVar f c,
+        XCLit f c,
+        XCTypeExpr f c,
+        XCDecl f c,
+        XCExpr f c,
+        XCInterpStringPart f c,
+        XCDeclType f c,
+        XCImplType f c,
+        XCDoStmt f c,
+        XCPat f c,
+        XCAppType f c,
+        XCAppPat f c
     )
 
 class XC Eq c => XEq c

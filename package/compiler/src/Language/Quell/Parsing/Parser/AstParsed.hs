@@ -29,18 +29,6 @@ instance SpannedBuilder Spanned.Span where
 instance SpannedBuilder (Spanned.Spanned a) where
     sp sx = Spanned.getSpan sx
 
-instance SpannedBuilder (Ast.TypeSigDecl AstParsed) where
-    sp = \case
-        Ast.TypeSigDecl _ _ x -> x
-
-instance SpannedBuilder (Ast.ValSigDecl AstParsed) where
-    sp = \case
-        Ast.ValSigDecl _ _ x -> x
-
-instance SpannedBuilder (Ast.ConSigDecl AstParsed) where
-    sp = \case
-        Ast.ConSigDecl _ _ x -> x
-
 instance SpannedBuilder (Ast.TypeExpr AstParsed) where
     sp = \case
         Ast.TypeForall _ _ x -> x
@@ -84,6 +72,28 @@ instance SpannedBuilder (Ast.AppExpr AstParsed) where
         Ast.AppExpr _ x -> x
         Ast.UnivAppExpr _ x -> x
 
+instance SpannedBuilder (Ast.DoStmt AstParsed) where
+    sp = \case
+        Ast.DoStmtBind _ _ x -> x
+        Ast.DoStmtMonBind _ _ x -> x
+        Ast.DoStmtLetrec _ x -> x
+
+instance SpannedBuilder (Ast.Pat AstParsed) where
+    sp = \case
+        Ast.PatSig _ _ x -> x
+        Ast.PatOr _ x -> x
+        Ast.PatInfix _ _ _ x -> x
+        Ast.PatApp _ _ x -> x
+        Ast.PatCon _ x -> x
+        Ast.PatVar _ x -> x
+        Ast.PatWildcard _ x -> x
+        Ast.PatLit _ x -> x
+        Ast.PatTuple _ x -> x
+        Ast.PatArray _ x -> x
+        Ast.PatRecord _ x -> x
+        Ast.PatUnivApp _ _ x -> x
+        Ast.PatAnn _ x -> x
+
 instance SpannedBuilder (Ast.Lit AstParsed) where
     sp = \case
         Ast.LitRational _ x -> x
@@ -102,6 +112,11 @@ instance SpannedBuilder (Ast.BindVar AstParsed) where
     sp = \case
         Ast.BindVar _ _ x -> x
         Ast.UnivBindVar _ _ x -> x
+
+instance SpannedBuilder (Ast.AppPat AstParsed) where
+    sp = \case
+        Ast.AppPat _ x -> x
+        Ast.UnivAppPat _ x -> x
 
 instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
     sp l = sconcat do l <&> \s -> sp s
@@ -173,12 +188,6 @@ type instance Ast.XTypeRecord AstParsed = Spanned.Span
 type instance Ast.XTypeAnn AstParsed = Spanned.Span
 type instance Ast.XAppType AstParsed = Spanned.Span
 type instance Ast.XUnivAppType AstParsed = Spanned.Span
-type instance Ast.XTypeSigDecl AstParsed = Spanned.Span
-type instance Ast.XValSigDecl AstParsed = Spanned.Span
-type instance Ast.XConSigDecl AstParsed = Spanned.Span
-type instance Ast.XTypeDecl AstParsed = Spanned.Span
-type instance Ast.XValBind AstParsed = Spanned.Span
-type instance Ast.XMonBind AstParsed = Spanned.Span
 type instance Ast.XDeclTypeSig AstParsed = Spanned.Span
 type instance Ast.XDeclValSig AstParsed = Spanned.Span
 type instance Ast.XDeclConSig AstParsed = Spanned.Span
@@ -186,7 +195,6 @@ type instance Ast.XDeclType AstParsed = Spanned.Span
 type instance Ast.XDeclDataType AstParsed = Spanned.Span
 type instance Ast.XDeclVal AstParsed = Spanned.Span
 type instance Ast.XDeclValBind AstParsed = Spanned.Span
-type instance Ast.XDeclMonBind AstParsed = Spanned.Span
 type instance Ast.XExprSig AstParsed = Spanned.Span
 type instance Ast.XExprInfix AstParsed = Spanned.Span
 type instance Ast.XExprLambda AstParsed = Spanned.Span
@@ -209,6 +217,24 @@ type instance Ast.XDeclAppType AstParsed = Spanned.Span
 type instance Ast.XDeclInfixType AstParsed = Spanned.Span
 type instance Ast.XImplAppType AstParsed = Spanned.Span
 type instance Ast.XImplInfixType AstParsed = Spanned.Span
+type instance Ast.XDoStmtBind AstParsed = Spanned.Span
+type instance Ast.XDoStmtMonBind AstParsed = Spanned.Span
+type instance Ast.XDoStmtLetrec AstParsed = Spanned.Span
+type instance Ast.XPatSig AstParsed = Spanned.Span
+type instance Ast.XPatOr AstParsed = Spanned.Span
+type instance Ast.XPatInfix AstParsed = Spanned.Span
+type instance Ast.XPatApp AstParsed = Spanned.Span
+type instance Ast.XPatUnivApp AstParsed = Spanned.Span
+type instance Ast.XPatCon AstParsed = Spanned.Span
+type instance Ast.XPatVar AstParsed = Spanned.Span
+type instance Ast.XPatWildcard AstParsed = Spanned.Span
+type instance Ast.XPatLit AstParsed = Spanned.Span
+type instance Ast.XPatTuple AstParsed = Spanned.Span
+type instance Ast.XPatArray AstParsed = Spanned.Span
+type instance Ast.XPatRecord AstParsed = Spanned.Span
+type instance Ast.XPatAnn AstParsed = Spanned.Span
+type instance Ast.XAppPat AstParsed = Spanned.Span
+type instance Ast.XUnivAppPat AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed
