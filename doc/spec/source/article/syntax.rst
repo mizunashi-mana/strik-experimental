@@ -356,11 +356,11 @@ Grammar
 
 .. productionlist::
     decltype    : declcon bind_var*
-                : bind_var declconop bind_var
+                : simple_bind_var declconop simple_bind_var
     impltype    : con_qualified type_qualified*
                 : type_qualified conop type_qualified
     declvarexpr : declvar bind_var*
-                : bind_var declop bind_var
+                : simple_bind_var declop simple_bind_var
 
 .. productionlist::
     type: "\\/" bind_var* "=>" type
@@ -500,8 +500,8 @@ Grammar
             : "{{" do_stmt_items "}}"
             : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* do_yield_item lsemis?
-    do_stmt_item    : pat "<-" expr
-                    : pat "=" expr
+    do_stmt_item    : pat "<-" expr ("#where" val_decl_where_body)?
+                    : pat "=" expr ("#where" val_decl_where_body)?
                     : "#letrec" let_binds
     do_yield_item   : "#yield" expr
 

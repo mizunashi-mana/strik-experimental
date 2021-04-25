@@ -21,6 +21,8 @@ module Language.Quell.Type.Ast (
     XImplInfixType,
 
     DeclExpr (..),
+    XDeclAppExpr,
+    XDeclInfixExpr,
 
     TypeExpr (..),
     XTypeForall,
@@ -215,8 +217,18 @@ deriving instance XShow c => Show (ImplType c)
 
 
 data DeclExpr c
-    = DeclAppExpr Name [BindVar c]
-    | DeclInfixExpr (BindVar c) Name (BindVar c)
+    = DeclAppExpr Name [BindVar c] (XDeclAppExpr c)
+    | DeclInfixExpr (BindVar c) Name (BindVar c) (XDeclInfixExpr c)
+
+type family XDeclAppExpr c :: Type
+type family XDeclInfixExpr c :: Type
+
+type XCDeclExpr :: (Type -> Constraint) -> Type -> Constraint
+type XCDeclExpr f c =
+    (
+        f (XDeclAppExpr c),
+        f (XDeclInfixExpr c)
+    )
 
 deriving instance XEq c => Eq (DeclExpr c)
 deriving instance XShow c => Show (DeclExpr c)
@@ -384,8 +396,8 @@ deriving instance XShow c => Show (GuardedAlt c)
 
 
 data DoStmt c
-    = DoStmtBind (Pat c) (Expr c) (XDoStmtBind c)
-    | DoStmtMonBind (Pat c) (Expr c) (XDoStmtMonBind c)
+    = DoStmtBind (Pat c) (Expr c) [Decl c] (XDoStmtBind c)
+    | DoStmtMonBind (Pat c) (Expr c) [Decl c] (XDoStmtMonBind c)
     | DoStmtLetrec [Decl c] (XDoStmtLetrec c)
 
 type family XDoStmtBind c :: Type
@@ -569,7 +581,8 @@ type XC f c =
         XCDoStmt f c,
         XCPat f c,
         XCAppType f c,
-        XCAppPat f c
+        XCAppPat f c,
+        XCDeclExpr f c
     )
 
 class XC Eq c => XEq c

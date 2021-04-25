@@ -73,10 +73,15 @@ instance SpannedBuilder (Ast.AppExpr AstParsed) where
         Ast.AppExpr _ x -> x
         Ast.UnivAppExpr _ x -> x
 
+instance SpannedBuilder (Ast.DeclExpr AstParsed) where
+    sp = \case
+        Ast.DeclAppExpr _ _ x -> x
+        Ast.DeclInfixExpr _ _ _ x -> x
+
 instance SpannedBuilder (Ast.DoStmt AstParsed) where
     sp = \case
-        Ast.DoStmtBind _ _ x -> x
-        Ast.DoStmtMonBind _ _ x -> x
+        Ast.DoStmtBind _ _ _ x -> x
+        Ast.DoStmtMonBind _ _ _ x -> x
         Ast.DoStmtLetrec _ x -> x
 
 instance SpannedBuilder (Ast.Pat AstParsed) where
@@ -128,6 +133,11 @@ instance SpannedBuilder (Ast.Decl AstParsed) where
         Ast.DeclDataType _ x -> x
         Ast.DeclVal _ _ _ x -> x
         Ast.DeclValBind _ _ _ x -> x
+
+instance SpannedBuilder (Ast.DeclType AstParsed) where
+    sp = \case
+        Ast.DeclAppType _ _ x -> x
+        Ast.DeclInfixType _ _ _ x -> x
 
 instance SpannedBuilder s => SpannedBuilder (NonEmpty s) where
     sp l = sconcat do l <&> \s -> sp s
@@ -252,6 +262,8 @@ type instance Ast.XPatRecord AstParsed = Spanned.Span
 type instance Ast.XPatAnn AstParsed = Spanned.Span
 type instance Ast.XAppPat AstParsed = Spanned.Span
 type instance Ast.XUnivAppPat AstParsed = Spanned.Span
+type instance Ast.XDeclAppExpr AstParsed = Spanned.Span
+type instance Ast.XDeclInfixExpr AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed

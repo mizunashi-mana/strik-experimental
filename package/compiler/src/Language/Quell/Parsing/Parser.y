@@ -106,9 +106,9 @@ decl_items_semis :: { Bag.T (Ast.Decl C) }
 
 decl_item :: { Ast.Decl C }
     : sig_item              { $1 }
-    | type_decl             { undefined }
+    | type_decl             { $1 }
     | data_decl             { undefined }
-    | val_decl              { undefined }
+    | val_decl              { $1 }
 
 
 typesig_decl :: { Ast.Decl C }
@@ -124,27 +124,48 @@ consig_decl :: { Ast.Decl C }
     { spAnn ($1, $2, $3) do Ast.DeclConSig (unS $1) $3 }
 
 
-type_decl :: { () }
-    : '#type' decltype '=' type type_decl_where    { () }
+type_decl :: { Ast.Decl C }
+    : '#type' decltype '=' type type_decl_where
+    {
+        case $5 of { (ms5, ds) ->
+            spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclType $2 $4 ds
+        }
+    }
 
-type_decl_where :: { () }
-    : '#where' type_decl_where_body  { () }
-    | {- empty -}                   { () }
+type_decl_where :: { (Maybe Span, [Ast.Decl C]) }
+    : '#where' type_decl_where_body
+    {
+        case $2 of { (ms2, ds) ->
+            (Just do sp do $1 :< ms2, ds)
+        }
+    }
+    | {- empty -}
+    { (Nothing, []) }
 
-type_decl_where_body :: { () }
-    : lopen type_decl_where_items lclose    { () }
+type_decl_where_body :: { (Maybe Span, [Ast.Decl C]) }
+    : lopen type_decl_where_items lclose
+    {
+        case $2 of { (ms2, ds) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList ds)
+        }
+    }
 
-type_decl_where_items :: { () }
-    : type_decl_where_items_semis type_decl_where_item  { () }
-    | type_decl_where_items_semis                       { () }
+type_decl_where_items :: { MaySpBag (Ast.Decl C) }
+    : type_decl_where_items_semis type_decl_where_item
+    { maySpBagAppend $1 $2 $2 }
+    | type_decl_where_items_semis
+    { $1 }
 
-type_decl_where_items_semis :: { () }
-    : type_decl_where_items_semis type_decl_where_item lsemis   { () }
-    | {- empty -}                                               { () }
+type_decl_where_items_semis :: { MaySpBag (Ast.Decl C) }
+    : type_decl_where_items_semis type_decl_where_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-type_decl_where_item :: { () }
-    : typesig_decl      { () }
-    | type_decl         { () }
+type_decl_where_item :: { Ast.Decl C }
+    : typesig_decl      { $1 }
+    | type_decl         { $1 }
 
 
 data_decl :: { () }
@@ -185,15 +206,25 @@ alg_data_type_items_vbar :: { () }
     | {- empty -} %shift                        { () }
 
 
-val_decl :: { () }
-    : declvarexpr '=' expr val_decl_where     { () }
+val_decl :: { Ast.Decl C }
+    : declvarexpr '=' expr val_decl_where
+    {
+        case $4 of { (ms4, ds) ->
+            spAnn ($1, $2, $3 :< ms4) do Ast.DeclVal $1 $3 ds
+        }
+    }
 
-val_bind :: { () }
-    : pat '=' expr val_decl_where       { () }
+val_bind :: { Ast.Decl C }
+    : pat '=' expr val_decl_where
+    {
+        case $4 of { (ms4, ds) ->
+            spAnn ($1, $2, $3 :< ms4) do Ast.DeclValBind $1 $3 ds
+        }
+    }
 
-val_decl_where :: { () }
-    : '#where' val_decl_where_body   { () }
-    | {- empty -}                   { () }
+val_decl_where :: { (Maybe Span, [Ast.Decl C]) }
+    : '#where' val_decl_where_body  { undefined }
+    | {- empty -}                   { (Nothing, []) }
 
 val_decl_where_body :: { () }
     : lopen val_decl_where_items lclose { () }
@@ -213,10 +244,11 @@ val_decl_where_item :: { () }
 decltype :: { Ast.DeclType C }
     : declcon bind_vars
     {
-        let vs = otoList $2
-        in spAnn ($1 :< vs) do Ast.DeclAppType (unS $1) vs
+        case $2 of { (ms2, vs) ->
+            spAnn ($1 :< ms2) do Ast.DeclAppType (unS $1) vs
+        }
     }
-    | simpl_bind_var_decl declconop simpl_bind_var_decl
+    | simple_bind_var_decl declconop simple_bind_var_decl
     { spAnn ($1, $2, $3) do Ast.DeclInfixType $1 (unS $2) $3 }
 
 impltype :: { Ast.ImplType C }
@@ -228,11 +260,19 @@ impltype :: { Ast.ImplType C }
     | type_qualified conop type_qualified
     { spAnn ($1, $2, $3) do Ast.ImplInfixType $1 (unS $2) $3 }
 
-declvarexpr :: { () }
-    : declvar bind_vars                         { () }
-    | simple_bind_var declop simple_bind_var    { () }
+declvarexpr :: { Ast.DeclExpr C }
+    : declvar bind_vars
+    {
+        case $2 of { (ms2, vs) ->
+            spAnn ($1 :< ms2) do Ast.DeclAppExpr (unS $1) vs
+        }
+    }
+    | simple_bind_var_decl declop simple_bind_var_decl
+    {
+        spAnn ($1, $2, $3) do Ast.DeclInfixExpr $1 (unS $2) $3
+    }
 
-simpl_bind_var_decl :: { Ast.BindVar C }
+simple_bind_var_decl :: { Ast.BindVar C }
     : simple_bind_var
     { spAnn $1 case unS $1 of (n, mt) -> Ast.BindVar n mt }
 
@@ -240,11 +280,9 @@ simpl_bind_var_decl :: { Ast.BindVar C }
 type :: { Ast.TypeExpr C }
     : '\\/' bind_vars '=>' type
     {
-        case otoList $2 of
-            [] ->
-                spAnn ($1, $3, $4) do Ast.TypeForall [] $4
-            bvs0@(bv:bvs) ->
-                spAnn ($1, bv :| bvs, $3, $4) do Ast.TypeForall bvs0 $4
+        case $2 of { (ms2, vs) ->
+            spAnn ($1 :< ms2, $3, $4) do Ast.TypeForall vs $4
+        }
     }
     | type_unit '->' type
     {
@@ -418,7 +456,8 @@ expr_block :: { Ast.Expr C }
             spAnn ($1, $2) do Ast.ExprLetrec ds e
         }
     }
-    | '#case' case_body                     { undefined }
+    | '#case' case_body
+    { undefined }
     | '#do' do_body
     {
         case unS $2 of { (ss, e) ->
@@ -720,9 +759,9 @@ let_bind_items_semis :: { MaySpBag (Ast.Decl C) }
 
 let_bind_item :: { Ast.Decl C }
     : sig_item                  { $1 }
-    | type_decl                 { undefined }
+    | type_decl                 { $1 }
     | data_decl                 { undefined }
-    | val_bind                  { undefined } -- conflict with valsig_decl
+    | val_bind                  { $1 } -- conflict with valsig_decl
 
 
 case_body :: { () }
@@ -804,10 +843,18 @@ do_stmt_items_semis :: { MaySpBag (Ast.DoStmt C) }
     { maySpBagEmpty }
 
 do_stmt_item :: { Ast.DoStmt C }
-    : pat '<-' expr
-    { spAnn ($1, $2, $3) do Ast.DoStmtMonBind $1 $3 }
-    | pat '=' expr
-    { spAnn ($1, $2, $3) do Ast.DoStmtBind $1 $3 }
+    : pat '<-' expr val_decl_where
+    {
+        case $4 of { (ms4, ds) ->
+            spAnn ($1, $2, $3 :< ms4) do Ast.DoStmtMonBind $1 $3 ds
+        }
+    }
+    | pat '=' expr val_decl_where
+    {
+        case $4 of { (ms4, ds) ->
+            spAnn ($1, $2, $3 :< ms4) do Ast.DoStmtBind $1 $3 ds
+        }
+    }
     | '#letrec' let_binds
     {
         case $2 of { (ms2, ds) ->
@@ -959,9 +1006,17 @@ literal :: { Ast.Lit C }
             _                   -> error "unreachable"
     }
 
-bind_vars :: { Bag.T (Ast.BindVar C) }
-    : bind_vars bind_var    { snoc $1 $2 }
-    | {- empty -}           { mempty }
+bind_vars :: { (Maybe Span, [Ast.BindVar C]) }
+    : bind_vars_list
+    {
+        case $1 of { (ms, vs) ->
+            (ms, otoList vs)
+        }
+    }
+
+bind_vars_list :: { MaySpBag (Ast.BindVar C) }
+    : bind_vars_list bind_var   { maySpBagAppend $1 $2 $2 }
+    | {- empty -}               { maySpBagEmpty }
 
 
 conid :: { S Ast.Name }
