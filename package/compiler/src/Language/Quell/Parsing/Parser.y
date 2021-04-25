@@ -587,32 +587,36 @@ pat_literal :: { Ast.Pat C }
     | '[' pat_array_items ']'           { undefined }
     | '{' pat_simplrecord_items '}'     { undefined }
 
-pat_tuple_items :: { () }
-    : pat_tuple_items_commas pat ','    { () }
-    | pat_tuple_items_commas pat        { () }
+pat_tuple_items :: { S (Bag.T (Ast.Pat C)) }
+    : pat_tuple_items_commas pat ','    { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | pat_tuple_items_commas pat        { spn ($1, $2) do snoc (unS $1) $2 }
 
-pat_tuple_items_commas :: { () }
-    : pat_tuple_items_commas pat ','    { () }
-    | pat ','                           { () }
+pat_tuple_items_commas :: { S (Bag.T (Ast.Pat C)) }
+    : pat_tuple_items_commas pat ','    { spn ($1, $2, $3) do snoc (unS $1) $2 }
+    | pat ','                           { spn ($1, $2) do pure $1 }
 
-pat_array_items :: { () }
-    : pat_array_items_commas pat    { () }
-    | pat_array_items_commas        { () }
+pat_array_items :: { MaySpBag (Ast.Pat C) }
+    : pat_array_items_commas pat    { maySpBagAppend $1 $2 $2 }
+    | pat_array_items_commas        { $1 }
 
-pat_array_items_commas :: { () }
-    : pat_array_items_commas pat ','    { () }
-    | {- empty -}                       { () }
+pat_array_items_commas :: { MaySpBag (Ast.Pat C) }
+    : pat_array_items_commas pat ','    { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}                       { maySpBagEmpty }
 
-pat_simplrecord_items :: { () }
-    : pat_simplrecord_items_semis pat_simplrecord_item      { () }
-    | pat_simplrecord_items_semis                           { () }
+pat_simplrecord_items :: { MaySpBag (Ast.Name, Ast.Pat C) }
+    : pat_simplrecord_items_semis pat_simplrecord_item
+    { maySpBagAppend $1 $2 do unS $2 }
+    | pat_simplrecord_items_semis
+    { $1 }
 
-pat_simplrecord_items_semis :: { () }
-    : pat_simplrecord_items_semis pat_simplrecord_item ','      { () }
-    | {- empty -}                                               { () }
+pat_simplrecord_items_semis :: { MaySpBag (Ast.Name, Ast.Pat C) }
+    : pat_simplrecord_items_semis pat_simplrecord_item ','
+    { maySpBagAppend $1 ($2, $3) do unS $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-pat_simplrecord_item :: { () }
-    : var '=' pat       { () }
+pat_simplrecord_item :: { S (Ast.Name, Ast.Pat C) }
+    : var '=' pat       { spn ($1, $2, $3) (unS $1, $3) }
 
 
 lambda_body :: { () }
@@ -723,8 +727,8 @@ do_stmt_items_semis :: { MaySpBag (Ast.DoStmt C) }
     { maySpBagEmpty }
 
 do_stmt_item :: { Ast.DoStmt C }
-    : pat '<-' expr             { undefined }
-    | pat '=' expr              { undefined }
+    : pat '<-' expr             { spAnn ($1, $2, $3) do Ast.DoStmtMonBind $1 $3 }
+    | pat '=' expr              { spAnn ($1, $2, $3) do Ast.DoStmtBind $1 $3 }
     | '#letrec' let_binds       { undefined }
 
 do_yield_item :: { S (Ast.Expr C) }
