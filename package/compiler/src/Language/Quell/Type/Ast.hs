@@ -7,10 +7,10 @@ module Language.Quell.Type.Ast (
     XDeclConSig,
     XDeclType,
     XDeclDataType,
+    XDeclAlgDataType,
+    XDeclNewType,
     XDeclVal,
     XDeclValBind,
-
-    DataTypeDecl (..),
 
     DeclType (..),
     XDeclAppType,
@@ -66,6 +66,12 @@ module Language.Quell.Type.Ast (
     AppExpr (..),
     XAppExpr,
     XUnivAppExpr,
+
+    CaseAlt (..),
+    XCaseAlt,
+
+    GuardedAlt (..),
+    XGuardedAlt,
 
     DoStmt (..),
     XDoStmtMonBind,
@@ -132,7 +138,9 @@ data Decl c
     | DeclValSig Name (TypeExpr c) (XDeclValSig c)
     | DeclConSig Name (TypeExpr c) (XDeclConSig c)
     | DeclType (DeclType c) (TypeExpr c) [Decl c] (XDeclType c)
-    | DeclDataType (DataTypeDecl c) (XDeclDataType c)
+    | DeclDataType Name (Maybe (TypeExpr c)) [Decl c] (XDeclDataType c)
+    | DeclAlgDataType (DeclType c) [ImplType c] [Decl c] (XDeclAlgDataType c)
+    | DeclNewType (DeclType c) (TypeExpr c) [Decl c] (XDeclNewType c)
     | DeclVal (DeclExpr c) (Expr c) [Decl c] (XDeclVal c)
     | DeclValBind (Pat c) (Expr c) [Decl c] (XDeclValBind c)
 
@@ -141,6 +149,8 @@ type family XDeclValSig c :: Type
 type family XDeclConSig c :: Type
 type family XDeclType c :: Type
 type family XDeclDataType c :: Type
+type family XDeclAlgDataType c :: Type
+type family XDeclNewType c :: Type
 type family XDeclVal c :: Type
 type family XDeclValBind c :: Type
 
@@ -152,32 +162,14 @@ type XCDecl f c =
         f (XDeclConSig c),
         f (XDeclType c),
         f (XDeclDataType c),
+        f (XDeclAlgDataType c),
+        f (XDeclNewType c),
         f (XDeclVal c),
         f (XDeclValBind c)
     )
 
 deriving instance XEq c => Eq (Decl c)
 deriving instance XShow c => Show (Decl c)
-
-
-data DataTypeDecl c
-    = DataTypeDecl
-        Name
-        -- ^ con
-        (Maybe (TypeExpr c))
-        -- ^ type sig
-        [Decl c]
-        -- ^ body
-    | DataTypeDeclAlg
-        (DeclType c)
-        -- ^ decl type
-        [ImplType c]
-        -- ^ body
-        [Decl c]
-        -- ^ assumptions
-
-deriving instance XEq c => Eq (DataTypeDecl c)
-deriving instance XShow c => Show (DataTypeDecl c)
 
 
 data DeclType c
@@ -375,21 +367,27 @@ deriving instance XEq c => Eq (AppExpr c)
 deriving instance XShow c => Show (AppExpr c)
 
 
-data CaseAlt c = CaseAlt
-    {
-        caseAltPats :: [Pat c],
-        caseAltGuardedAlts :: [GuardedAlt c]
-    }
+data CaseAlt c = CaseAlt [Pat c] [GuardedAlt c] (XCaseAlt c)
+
+type family XCaseAlt c :: Type
+
+type XCCaseAlt f c =
+    (
+        f (XCaseAlt c)
+    )
 
 deriving instance XEq c => Eq (CaseAlt c)
 deriving instance XShow c => Show (CaseAlt c)
 
 
-data GuardedAlt c = GuardedAlt
-    {
-        guardedAltGuard :: Maybe (Expr c),
-        guardedAltExpr :: Expr c
-    }
+data GuardedAlt c = GuardedAlt (Maybe (Expr c)) (Expr c) (XGuardedAlt c)
+
+type family XGuardedAlt c :: Type
+
+type XCGuardedAlt f c =
+    (
+        f (XGuardedAlt c)
+    )
 
 deriving instance XEq c => Eq (GuardedAlt c)
 deriving instance XShow c => Show (GuardedAlt c)
@@ -582,7 +580,9 @@ type XC f c =
         XCPat f c,
         XCAppType f c,
         XCAppPat f c,
-        XCDeclExpr f c
+        XCDeclExpr f c,
+        XCGuardedAlt f c,
+        XCCaseAlt f c
     )
 
 class XC Eq c => XEq c

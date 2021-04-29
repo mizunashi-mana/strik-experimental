@@ -107,7 +107,7 @@ decl_items_semis :: { Bag.T (Ast.Decl C) }
 decl_item :: { Ast.Decl C }
     : sig_item              { $1 }
     | type_decl             { $1 }
-    | data_decl             { undefined }
+    | data_decl             { $1 }
     | val_decl              { $1 }
 
 
@@ -168,15 +168,31 @@ type_decl_where_item :: { Ast.Decl C }
     | type_decl         { $1 }
 
 
-data_decl :: { () }
-    : '#data' declcon ':' type data_decl_where                   { () }
-    | '#data' declcon data_decl_where                            { () }
-    | '#data' decltype '=' alg_data_type type_decl_where         { () }
-    | '#newtype' decltype '=' type type_decl_where               { () }
+data_decl :: { Ast.Decl C }
+    : '#data' declcon ':' type data_decl_where
+    {
+        case $5 of { (ms5, ds) ->
+            spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclDataType (unS $2) (Just $4) ds
+        }
+    }
+    | '#data' declcon data_decl_where
+    {
+        case $3 of { (ms3, ds) ->
+            spAnn ($1, $2 :< ms3) do Ast.DeclDataType (unS $2) Nothing ds
+        }
+    }
+    | '#data' decltype '=' alg_data_type type_decl_where
+    { undefined }
+    | '#newtype' decltype '=' type type_decl_where
+    {
+        case $5 of { (ms5, ds) ->
+            spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclNewType $2 $4 ds
+        }
+    }
 
-data_decl_where :: { () }
-    : '#where' data_decl_body    { () }
-    | {- empty -}               { () }
+data_decl_where :: { (Maybe Span, [Ast.Decl C]) }
+    : '#where' data_decl_body   { undefined }
+    | {- empty -}               { (Nothing, []) }
 
 data_decl_body :: { () }
     : lopen data_decl_items lclose  { () }
@@ -189,8 +205,8 @@ data_decl_items_semis :: { () }
     : data_decl_items_semis data_decl_item lsemis   { () }
     | {- empty -}                                   { () }
 
-data_decl_item :: { () }
-    : consig_decl       { () }
+data_decl_item :: { Ast.Decl C }
+    : consig_decl       { $1 }
 
 alg_data_type :: { () }
     : '(' alg_data_type_items ')'   { () }
@@ -237,8 +253,8 @@ val_decl_where_items_semis :: { () }
     : val_decl_where_items_semis val_decl_where_item lsemis { () }
     | {- empty -}                                           { () }
 
-val_decl_where_item :: { () }
-    : let_bind_item     { () }
+val_decl_where_item :: { Ast.Decl C }
+    : let_bind_item     { $1 }
 
 
 decltype :: { Ast.DeclType C }
@@ -441,9 +457,13 @@ expr_qualified :: { Ast.Expr C }
 
 expr_block :: { Ast.Expr C }
     : '\\' '#case' case_alt_body
-    { undefined }
+    {
+        case $3 of { (ms3, alts) ->
+            spAnn ($1, $2 :< ms3) do Ast.ExprLambda alts
+        }
+    }
     | '\\' lambda_body -- conflict with expr
-    { undefined }
+    { spAnn ($1, $2) do Ast.ExprLambda [$2] }
     | '#let' let_body -- conflict with expr
     {
         case unS $2 of { (ds, e) ->
@@ -457,7 +477,11 @@ expr_block :: { Ast.Expr C }
         }
     }
     | '#case' case_body
-    { undefined }
+    {
+        case unS $2 of { (es, alts) ->
+            spAnn ($1, $2) do Ast.ExprCase es alts
+        }
+    }
     | '#do' do_body
     {
         case unS $2 of { (ss, e) ->
@@ -720,12 +744,17 @@ pat_simplrecord_item :: { S (Ast.Name, Ast.Pat C) }
     : var '=' pat       { spn ($1, $2, $3) (unS $1, $3) }
 
 
-lambda_body :: { () }
-    : lambda_pat_args guarded_alt   { () }
+lambda_body :: { Ast.CaseAlt C }
+    : lambda_pat_args guarded_alts
+    {
+        case $1 of { (ms1, ps) ->
+            spAnn (ms1 :> $2) do Ast.CaseAlt (otoList ps) (unS $2)
+        }
+    }
 
-lambda_pat_args :: { () }
-    : lambda_pat_args pat_atomic    { () }
-    | {- empty -}                   { () }
+lambda_pat_args :: { MaySpBag (Ast.Pat C) }
+    : lambda_pat_args pat_atomic    { maySpBagAppend $1 $2 $2 }
+    | {- empty -}                   { maySpBagEmpty }
 
 
 let_body :: { S ([Ast.Decl C], Ast.Expr C) }
@@ -760,63 +789,103 @@ let_bind_items_semis :: { MaySpBag (Ast.Decl C) }
 let_bind_item :: { Ast.Decl C }
     : sig_item                  { $1 }
     | type_decl                 { $1 }
-    | data_decl                 { undefined }
+    | data_decl                 { $1 }
     | val_bind                  { $1 } -- conflict with valsig_decl
 
 
-case_body :: { () }
-    : case_exprs '#of' case_alt_body     { () }
+case_body :: { S ([Ast.Expr C], [Ast.CaseAlt C]) }
+    : case_exprs '#of' case_alt_body
+    {
+        case $1 of { (ms1, es) -> case $3 of { (ms3, alts) ->
+            spn (ms1 :> $2 :< ms3) (otoList es, alts)
+        } }
+    }
 
-case_exprs :: { () }
-    : case_exprs_commas expr    { () }
-    | case_exprs_commas         { () }
+case_exprs :: { MaySpBag (Ast.Expr C) }
+    : case_exprs_commas expr    { maySpBagAppend $1 $2 $2 }
+    | case_exprs_commas         { $1 }
 
-case_exprs_commas :: { () }
-    : case_exprs_commas expr ','    { () }
-    | {- empty -}                   { () }
+case_exprs_commas :: { MaySpBag (Ast.Expr C) }
+    : case_exprs_commas expr ','
+    { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-case_alt_body :: { () }
-    : lopen case_alt_items lclose       { () }
+case_alt_body :: { (Maybe Span, [Ast.CaseAlt C]) }
+    : lopen case_alt_items lclose
+    {
+        case $2 of { (ms2, alts) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList alts)
+        }
+    }
 
-case_alt_items :: { () }
-    : case_alt_items_semis case_alt_item    { () }
-    | case_alt_items_semis                  { () }
+case_alt_items :: { MaySpBag (Ast.CaseAlt C) }
+    : case_alt_items_semis case_alt_item    { maySpBagAppend $1 $2 $2 }
+    | case_alt_items_semis                  { $1 }
 
-case_alt_items_semis :: { () }
-    : case_alt_items_semis case_alt_item lsemis     { () }
-    | {- empty -}                                   { () }
+case_alt_items_semis :: { MaySpBag (Ast.CaseAlt C) }
+    : case_alt_items_semis case_alt_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-case_alt_item :: { () }
-    : case_pats guarded_alt     { () }
+case_alt_item :: { Ast.CaseAlt C }
+    : case_pats guarded_alts
+    {
+        case $1 of { (ms1, ps) ->
+            spAnn (ms1 :> $2) do Ast.CaseAlt (otoList ps) (unS $2)
+        }
+    }
 
-case_pats :: { () }
-    : case_pats_commas pat_unit     { () }
-    | case_pats_commas              { () }
+case_pats :: { MaySpBag (Ast.Pat C) }
+    : case_pats_commas pat_unit     { maySpBagAppend $1 $2 $2 }
+    | case_pats_commas              { $1 }
 
-case_pats_commas :: { () }
-    : case_pats_commas pat ','      { () }
-    | {- empty -}                   { () }
+case_pats_commas :: { MaySpBag (Ast.Pat C) }
+    : case_pats_commas pat ','      { maySpBagAppend $1 ($2, $3) $2 }
+    | {- empty -}                   { maySpBagEmpty }
 
-guarded_alt :: { () }
-    : '->' expr                     { () }
-    | '#when' guarded_alt_body      { () }
+guarded_alts :: { S [Ast.GuardedAlt C] }
+    : '->' expr
+    {
+        let alt = spAnn $2 do Ast.GuardedAlt Nothing $2
+        in spn ($1, alt) [alt]
+    }
+    | '#when' guarded_alt_body
+    {
+        case $2 of { (ms2, alts) ->
+            spn ($1 :< ms2) alts
+        }
+    }
 
-guarded_alt_body :: { () }
-    : lopen guarded_alt_items lclose    { () }
+guarded_alt_body :: { (Maybe Span, [Ast.GuardedAlt C]) }
+    : lopen guarded_alt_items lclose
+    {
+        case $2 of { (ms2, alts) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList alts)
+        }
+    }
 
-guarded_alt_items :: { () }
-    : guarded_alt_items_semis guarded_alt_item  { () }
-    | guarded_alt_items_semis                   { () }
+guarded_alt_items :: { MaySpBag (Ast.GuardedAlt C) }
+    : guarded_alt_items_semis guarded_alt_item
+    { maySpBagAppend $1 $2 $2 }
+    | guarded_alt_items_semis
+    { $1 }
 
-guarded_alt_items_semis :: { () }
-    : guarded_alt_items_semis guarded_alt_item lsemis   { () }
-    | {- empty -}                                       { () }
+guarded_alt_items_semis :: { MaySpBag (Ast.GuardedAlt C) }
+    : guarded_alt_items_semis guarded_alt_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
-guarded_alt_item :: { () }
-    : guard_qual '->' expr      { () }
+guarded_alt_item :: { Ast.GuardedAlt C }
+    : guard_qual '->' expr
+    { spAnn ($1 :> $2, $3) do Ast.GuardedAlt $1 $3 }
 
-guard_qual :: { () }
-    : expr_unit         { () }
+guard_qual :: { Maybe (Ast.Expr C) }
+    : expr_unit         { Just $1 }
 
 
 do_body :: { S ([Ast.DoStmt C], Ast.Expr C) }
@@ -960,7 +1029,7 @@ lclose :: { Maybe Span }
     | error         { Nothing }
 
 lsemis :: { Maybe Span }
-    : lsemis semi   { $1 <:> $2 }
+    : lsemis semi   { $1 <> $2 }
     | semi          { $1 }
 
 semi :: { Maybe Span }
@@ -1075,12 +1144,6 @@ maySpBagEmpty = (Nothing, mempty)
 
 type C = AstParsed
 
-
-(<:>) :: Maybe Span -> Maybe Span -> Maybe Span
-Nothing  <:> Nothing  = Nothing
-msp1     <:> Nothing  = msp1
-Nothing  <:> msp2     = msp2
-Just sp1 <:> Just sp2 = Just do sp1 <> sp2
 
 mkName :: StringLit -> Ast.Name
 mkName s = Ast.mkName do text s

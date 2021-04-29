@@ -482,8 +482,8 @@ Grammar
                     : "{{" case_alt_items "}}"
                     : '{' case_alt_items '}'
     case_alt_items: lsemis? (case_alt_item lsemis)* case_alt_item?
-    case_alt_item: (pat ",")* pat? guarded_alt
-    guarded_alt : "->" expr
+    case_alt_item: (pat ",")* pat? guarded_alts
+    guarded_alts: "->" expr
                 : "#when" guarded_alt_body
     guarded_alt_body: "{" guarded_alt_items "}"
                     : "{{" guarded_alt_items "}}"
@@ -493,7 +493,7 @@ Grammar
     guard_qual: expr
 
 .. productionlist::
-    lambda_body : pat_atomic* guarded_alt
+    lambda_body : pat_atomic* guarded_alts
 
 .. productionlist::
     do_body : "{" do_stmt_items "}"
