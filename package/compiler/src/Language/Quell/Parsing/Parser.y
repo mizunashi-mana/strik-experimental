@@ -379,13 +379,15 @@ type_apps_list :: { Bag.T (Ast.AppType C) }
 
 type_app :: { Ast.AppType C }
     : '@' type_qualified    { spAnn ($1, $2) do Ast.UnivAppType $2 }
+    | '#@' type_block_body  { spAnn ($1, $2) do Ast.UnivAppType do unS $2 }
     | type_qualified        { spAnn $1 do Ast.AppType $1 }
 
 type_qualified :: { Ast.TypeExpr C }
     : type_block            { $1 }
 
 type_block :: { Ast.TypeExpr C }
-    : type_atomic           { $1 }
+    : '##' type_block_body  { spAnn ($1, $2) do Ast.TypeAnn do unS $2 }
+    | type_atomic           { $1 }
 
 type_atomic :: { Ast.TypeExpr C }
     : '(' type ':' type ')'
@@ -396,7 +398,11 @@ type_atomic :: { Ast.TypeExpr C }
     { spAnn $1 do Ast.TypeCon do unS $1 }
     | var
     { spAnn $1 do Ast.TypeVar do unS $1 }
-    | literal
+    | type_literal
+    { $1 }
+
+type_literal :: { Ast.TypeExpr C }
+    : literal
     { spAnn $1 do Ast.TypeLit $1 }
     | '(' type_tuple_items ')'
     { spAnn ($1, $2, $3) do Ast.TypeTuple do otoList do unS $2 }
@@ -412,6 +418,14 @@ type_atomic :: { Ast.TypeExpr C }
             spAnn ($1 :< ms2, $3) do Ast.TypeRecord do otoList ts
         }
     }
+
+type_block_body :: { S (Ast.TypeExpr C) }
+    : lopen type_block_item lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
+
+type_block_item :: { S (Ast.TypeExpr C) }
+    : type lsemis   { spn ($1 :< $2) $1 }
+    | type          { spn $1 $1 }
 
 type_tuple_items :: { S (Bag.T (Ast.TypeExpr C)) }
     : type_tuple_items_commas type ','  { spn ($1, $2, $3) do snoc (unS $1) $2 }
@@ -488,6 +502,7 @@ expr_apps_list :: { (Ast.Expr C, Bag.T (Ast.AppExpr C)) }
 
 expr_app :: { Ast.AppExpr C }
     : '@' type_qualified        { spAnn ($1, $2) do Ast.UnivAppExpr $2 }
+    | '#@' type_block_body      { spAnn ($1, $2) do Ast.UnivAppExpr do unS $2 }
     | expr_qualified            { spAnn $1 do Ast.AppExpr $1 }
 
 expr_qualified :: { Ast.Expr C }
@@ -526,7 +541,7 @@ expr_block :: { Ast.Expr C }
             spAnn ($1, $2) do Ast.ExprDo ss e
         }
     }
-    | '#@' expr_block_body
+    | '##' expr_block_body
     { spAnn ($1, $2) do Ast.ExprAnn do unS $2 }
     | expr_atomic
     { $1 }
@@ -707,13 +722,14 @@ pat_apps_args :: { MaySpBag (Ast.AppPat C) }
 
 pat_app :: { Ast.AppPat C }
     : '@' type_qualified        { spAnn ($1, $2) do Ast.UnivAppPat $2 }
+    | '#@' type_block_body      { spAnn ($1, $2) do Ast.UnivAppPat do unS $2 }
     | pat_qualified             { spAnn $1 do Ast.AppPat $1 }
 
 pat_qualified :: { Ast.Pat C }
     : pat_block     { $1 }
 
 pat_block :: { Ast.Pat C }
-    : '#@' pat_block_body
+    : '##' pat_block_body
     { spAnn ($1, $2) do Ast.PatAnn do unS $2 }
     | pat_atomic
     { $1 }
@@ -976,14 +992,32 @@ do_yield_item :: { S (Ast.Expr C) }
 bind_var :: { Ast.BindVar C }
     : '@' simple_bind_var
     { spAnn ($1, $2) case unS $2 of (name, mayTy) -> Ast.UnivBindVar name mayTy }
+    | '#@' block_bind_var
+    { spAnn ($1, $2) case unS $2 of (name, mayTy) -> Ast.UnivBindVar name mayTy }
     | simple_bind_var
     { spAnn $1 case unS $1 of (name, mayTy) -> Ast.BindVar name mayTy }
+    | '##' block_bind_var
+    { spAnn ($1, $2) case unS $2 of (name, mayTy) -> Ast.BindVar name mayTy }
 
 simple_bind_var :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
     : var_id_ext
     { spn $1 (unS $1, Nothing) }
     | '(' var_id_ext ':' type ')'
     { spn ($1, $2, $3, $4, $5)  (unS $2, Just $4) }
+
+block_bind_var :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
+    : lopen block_bind_var_items lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
+
+block_bind_var_items :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
+    : block_bind_var_item lsemis
+    { spn ($1 :< $2) do unS $1 }
+
+block_bind_var_item :: { S (Ast.Name, Maybe (Ast.TypeExpr C)) }
+    : var_id_ext
+    { spn $1 (unS $1, Nothing) }
+    | var_id_ext ':' type
+    { spn ($1, $2, $3)  (unS $1, Just $3) }
 
 con_qualified :: { S Ast.Name }
     : con       { $1 }

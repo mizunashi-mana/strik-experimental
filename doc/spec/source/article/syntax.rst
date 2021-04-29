@@ -524,8 +524,12 @@ Grammar
             : "##" block_bind_var
     simple_bind_var : var_id_ext
                     : "(" var_id_ext ":" type ")"
-    block_bind_var  : var_id_ext
-                    : var_id_ext ":" type
+    block_bind_var  : "{" block_bind_var_items "}"
+                    : "{{" block_bind_var_items "}}"
+                    : '{' block_bind_var_items '}'
+    block_bind_var_items: lsemis? block_bind_var_item lsemis?
+    block_bind_var_item : var_id_ext
+                        : var_id_ext ":" type
     con_qualified : con
     conop_qualified : conop
     con : con_id_ext
