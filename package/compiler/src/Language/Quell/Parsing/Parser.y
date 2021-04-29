@@ -41,7 +41,8 @@ import           Language.Quell.Parsing.Parser.AstParsed
     '_'         { S Token.SymUnderscore }
 
     '`'         { S Token.SpBackquote }
-    '#@'        { S Token.SpBlock }
+    '##'        { S Token.SpBlock }
+    '#@'        { S Token.SpTypeBlock }
     '['         { S Token.SpBrackOpen }
     ']'         { S Token.SpBrackClose }
     ','         { S Token.SpComma }

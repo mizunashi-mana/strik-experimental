@@ -189,6 +189,7 @@ data CodeUnit
     | LcU2775 -- '❵'
     | LcU2983 -- '⦃'
     | LcU2984 -- '⦄'
+    | LcUFE5F -- '﹟'
 
     -- https://www.compart.com/en/unicode/category
     | LcOtherCatCf -- Format
@@ -472,6 +473,7 @@ fromChar c = case fromEnum c of
     0x2775 -> LcU2775
     0x2983 -> LcU2983
     0x2984 -> LcU2984
+    0xFE5F -> LcUFE5F
     _      -> case Char.generalCategory c of
         Char.Format               -> LcOtherCatCf
         Char.LowercaseLetter      -> LcOtherCatLl
@@ -614,7 +616,7 @@ catOtherPunctuation = EnumSet.fromList
     [
         LcU0021, LcU0022, LcU0023, LcU0026, LcU0027,
         LcU002C, LcU002E, LcU002F, LcU003A, LcU003B,
-        LcU003F, LcU0040, LcU005C, LcU2026,
+        LcU003F, LcU0040, LcU005C, LcU2026, LcUFE5F,
         LcOtherCatPo
     ]
 

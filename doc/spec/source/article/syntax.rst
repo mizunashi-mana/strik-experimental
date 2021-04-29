@@ -239,7 +239,7 @@ Lexical Syntax
             : "\p{General_Category=Other_Number}"
             : "\p{General_Category=Format}"<whitechar>
             : "'"
-    other_special: "#" | "﹟" | "\"" | "{" | "}" | "⦃" | "⦄" | "❴" | "❵"
+    other_special: "#" | "\"" | "{" | "}" | "⦃" | "⦄" | "❴" | "❵"
     other_graphic: other_graphic_char<symbolchar | special | other_special>
     other_graphic_char: "\p{General_Category=Punctuation}"
 

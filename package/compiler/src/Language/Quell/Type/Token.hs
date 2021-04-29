@@ -78,6 +78,7 @@ data Token
     | SpParenOpen
     | SpParenClose
     | SpSemi
+    | SpTypeBlock
     | SpVBraceOpen
     | SpVBraceClose
     | SpVSemi

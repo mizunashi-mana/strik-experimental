@@ -224,9 +224,11 @@ specialRules = do
     initialRule (stringP "]")   [||WithToken do Token.SpBrackClose||]
     initialRule (stringP "`")   [||WithToken do Token.SpBackquote||]
     initialRule (stringP ";")   [||WithToken do Token.SpSemi||]
-    initialRule (stringP "#@")  [||WithToken do Token.SpBlock||]
+    initialRule (stringP "##")  [||WithToken do Token.SpBlock||]
+    initialRule (stringP "﹟")  [||WithToken do Token.SpBlock||]
+    initialRule (stringP "#@")  [||WithToken do Token.SpTypeBlock||]
 
-specialCs = charsCs ['(', ')', ',', '[', ']', '`', ';']
+specialCs = charsCs ['(', ')', ',', '[', ']', '`', ';', '﹟']
 
 braceRules :: ScannerBuilder ()
 braceRules = do
