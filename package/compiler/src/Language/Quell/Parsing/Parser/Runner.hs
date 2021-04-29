@@ -4,7 +4,7 @@ module Language.Quell.Parsing.Parser.Runner (
     RunnerContext (..),
     runRunner,
     lexer,
-    errorRecover,
+    reportParseError,
 ) where
 
 import Language.Quell.Prelude
@@ -47,7 +47,8 @@ data RunnerContext m = RunnerContext
         withLCont :: forall a. RunnerCont m a -> Runner m a,
         lastSpan :: Spanned.Span,
         tokenStack :: [Layout.TokenWithL],
-        parseErrors :: Bag.T Error.T
+        parseErrors :: Bag.T Error.T,
+        haltedToParse :: Bool
     }
 
 initialContext :: Monad m => RunnerContext m
@@ -60,7 +61,8 @@ initialContext = RunnerContext
                 Spanned.endLoc = lastLoc
             },
         tokenStack = [],
-        parseErrors = mempty
+        parseErrors = mempty,
+        haltedToParse = False
     }
     where
         lastLoc = Spanned.Loc
@@ -91,8 +93,8 @@ withL p0 expB ms = consumeToken >>= \case
         Layout.ExpectBrace ->
             withL p0 True ms
 
-errorRecover :: Runner m a
-errorRecover = undefined
+reportParseError :: Maybe Error.T -> Runner m a
+reportParseError = undefined
 
 resolveToken :: Monad m => RunnerCont m a
     -> Spanned.T Token.T -> Bool -> [Layout.T] -> Runner m a

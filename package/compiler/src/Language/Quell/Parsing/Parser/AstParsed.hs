@@ -141,6 +141,11 @@ instance SpannedBuilder (Ast.DeclType AstParsed) where
         Ast.DeclAppType _ _ x -> x
         Ast.DeclInfixType _ _ _ x -> x
 
+instance SpannedBuilder (Ast.ImplType AstParsed) where
+    sp = \case
+        Ast.ImplAppType _ _ x -> x
+        Ast.ImplInfixType _ _ _ x -> x
+
 instance SpannedBuilder (Ast.CaseAlt AstParsed) where
     sp = \case
         Ast.CaseAlt _ _ x -> x

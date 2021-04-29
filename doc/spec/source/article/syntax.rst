@@ -106,6 +106,7 @@ Lexical Syntax
             : "]"
             : "`" -- ` for syntax highlighting issue
             : ";"
+            : "##" | "﹟"
             : "#@"
     brace   : "{{" | "}}" : "❴" | "❵"
             : "{" | "}"
@@ -238,7 +239,7 @@ Lexical Syntax
             : "\p{General_Category=Other_Number}"
             : "\p{General_Category=Format}"<whitechar>
             : "'"
-    other_special: "#" | "\"" | "{" | "}" | "⦃" | "⦄" | "❴" | "❵"
+    other_special: "#" | "﹟" | "\"" | "{" | "}" | "⦃" | "⦄" | "❴" | "❵"
     other_graphic: other_graphic_char<symbolchar | special | other_special>
     other_graphic_char: "\p{General_Category=Punctuation}"
 
@@ -299,6 +300,7 @@ Aliases
     "\\"    : "\\" | "λ"
     "{{"    : "{{" | "❴"
     "}}"    : "}}" | "❵"
+    "##"    : "##" | "﹟"
 
 Grammar
 -------
@@ -342,11 +344,12 @@ Grammar
                     : consig_decl
                     : type_decl
     alg_data_type   : "(" alg_data_type_items ")"
+                    : "(" "|"* ")"
                     : alg_data_type_items
     alg_data_type_items : "|"* (impltype "|"+)* impltype "|"*
 
 .. productionlist::
-    val_decl: declvarexpr "=" expr ("#where" val_decl_where_body)?
+    val_decl: declvarexpr (":" type)? "=" expr ("#where" val_decl_where_body)?
     val_bind: pat "=" expr ("#where" val_decl_where_body)?
     val_decl_where_body : "{" val_decl_where_items "}"
                         : "{{" val_decl_where_items "}}"
@@ -376,8 +379,11 @@ Grammar
                         : type_qualified
     type_apps: type_qualified type_app*
     type_app: "@" type_qualified
+            : "#@" type_block_body
             : type_qualified
-    type_qualified: type_atomic
+    type_qualified: type_block
+    type_block  : "##" type_block_body
+                : type_atomic
     type_atomic : "(" type (":" type)? ")"
                 : con
                 : var
@@ -386,6 +392,10 @@ Grammar
                 : "(" type_tuple_items ")"
                 : "[" type_array_items "]"
                 : "{" type_simplrecord_items "}"
+    type_block_body : "{" type_block_item "}"
+                    : "{{" type_block_item "}}"
+                    : '{' type_block_item '}'
+    type_block_item   : lsemis? type lsemis?
     type_tuple_items: (type ",")+ type ","?
     type_array_items: (type ",")* type?
     type_simplrecord_items: (type_simplrecord_item ",")* type_simplrecord_item?
@@ -408,6 +418,7 @@ Grammar
     expr_apps: expr_qualified expr_app*
     expr_app: expr_qualified
             : "@" type_qualified
+            : "#@" type_block_body
     expr_qualified: expr_block
     expr_block  : "\\" "#case" case_alt_body
                 : "\\" lambda_body
@@ -415,7 +426,7 @@ Grammar
                 : "#let" let_body
                 : "#case" (expr ",")* expr? "#of" case_alt_body
                 : "#do" do_body
-                : "#@" expr_block_body
+                : "##" expr_block_body
                 : expr_atomic
     expr_atomic : "(" expr ")"
                 : con
@@ -442,13 +453,14 @@ Grammar
         : pat_unit
     pat_unit: pat_infix ("|" pat_infix)*
     pat_infix: pat_univ_apps (conop_qualified pat_univ_apps)*
-    pat_univ_apps   : pat_univ_apps "@" type_qualified
-                    : pat_apps
+    pat_univ_apps   : pat_apps pat_univ_app*
     pat_apps: con_qualified pat_app*
+    pat_univ_app    : "@" type_qualified
+                    : "#@" type_block_body
     pat_app : pat_qualified
-            : "@" type_qualified
+            : pat_univ_app
     pat_qualified: pat_block
-    pat_block   : "#@" pat_block_body
+    pat_block   : "##" pat_block_body
                 : pat_atomic
     pat_atomic  : "(" pat ")"
                 : var
@@ -507,9 +519,13 @@ Grammar
 
 .. productionlist::
     bind_var: "@" simple_bind_var
+            : "#@" block_bind_var
             : simple_bind_var
+            : "##" block_bind_var
     simple_bind_var : var_id_ext
                     : "(" var_id_ext ":" type ")"
+    block_bind_var  : var_id_ext
+                    : var_id_ext ":" type
     con_qualified : con
     conop_qualified : conop
     con : con_id_ext
@@ -584,6 +600,7 @@ Layout
         "#of"       -> True
         "#when"     -> True
         "#where"    -> True
+        "##"        -> True
         "#@"        -> True
         _           -> False
 

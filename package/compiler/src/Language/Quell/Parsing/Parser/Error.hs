@@ -9,5 +9,9 @@ import           Language.Quell.Prelude
 type T = Error
 
 data Error
-    = ParseError
+    = UnexpectedExtConInDecl
+    | UnexpectedExtConopInDecl
+    | UnexpectedExtVarInDecl
+    | UnexpectedExtOpInDecl
+    | ParseError -- FIXME
     deriving (Eq, Show)

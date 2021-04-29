@@ -182,7 +182,11 @@ data_decl :: { Ast.Decl C }
         }
     }
     | '#data' decltype '=' alg_data_type type_decl_where
-    { undefined }
+    {
+        case $5 of { (ms5, ds) ->
+            spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclAlgDataType $2 (unS $4) ds
+        }
+    }
     | '#newtype' decltype '=' type type_decl_where
     {
         case $5 of { (ms5, ds) ->
@@ -191,35 +195,52 @@ data_decl :: { Ast.Decl C }
     }
 
 data_decl_where :: { (Maybe Span, [Ast.Decl C]) }
-    : '#where' data_decl_body   { undefined }
-    | {- empty -}               { (Nothing, []) }
+    : '#where' data_decl_body
+    {
+        case $2 of { (ms2, ds) ->
+            (Just do sp do $1 :< ms2, ds)
+        }
+    }
+    | {- empty -}
+    { (Nothing, []) }
 
-data_decl_body :: { () }
-    : lopen data_decl_items lclose  { () }
+data_decl_body :: { (Maybe Span, [Ast.Decl C]) }
+    : lopen data_decl_items lclose
+    {
+        case $2 of { (ms2, ds) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList ds)
+        }
+    }
 
-data_decl_items :: { () }
-    : data_decl_items_semis data_decl_item  { () }
-    | data_decl_items_semis                 { () }
+data_decl_items :: { MaySpBag (Ast.Decl C) }
+    : data_decl_items_semis data_decl_item  { maySpBagAppend $1 $2 $2 }
+    | data_decl_items_semis                 { maySpBagEmpty }
 
-data_decl_items_semis :: { () }
-    : data_decl_items_semis data_decl_item lsemis   { () }
-    | {- empty -}                                   { () }
+data_decl_items_semis :: { MaySpBag (Ast.Decl C) }
+    : data_decl_items_semis data_decl_item lsemis   { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}                                   { maySpBagEmpty }
 
 data_decl_item :: { Ast.Decl C }
     : consig_decl       { $1 }
 
-alg_data_type :: { () }
-    : '(' alg_data_type_items ')'   { () }
-    | alg_data_type_items           { () }
+alg_data_type :: { S [Ast.ImplType C] }
+    : '(' alg_data_type_items ')'   { spn ($1, $2, $3) do unS $2 }
+    | '(' vbars ')'                 { spn ($1 :< $2, $3) [] }
+    | alg_data_type_items           { $1 }
 
-alg_data_type_items :: { () }
-    : alg_data_type_items_vbar impltype '|'     { () }
-    | alg_data_type_items_vbar impltype         { () }
+alg_data_type_items :: { S [Ast.ImplType C] }
+    : alg_data_type_items_vbar impltype vbars
+    {
+        case $1 of { (ms1, ts1) ->
+            let ts = otoList do snoc ts $2
+            in spn (ms1 :> $2 :< $3) ts
+        }
+    }
 
-alg_data_type_items_vbar :: { () }
-    : alg_data_type_items_vbar impltype '|'     { () }
-    | '|'                                       { () }
-    | {- empty -} %shift                        { () }
+alg_data_type_items_vbar :: { MaySpBag (Ast.ImplType C) }
+    : alg_data_type_items_vbar impltype vbars1  { maySpBagAppend $1 ($2, $3) $2 }
+    | vbars                                     { maySpBagEmptyWithSpan $1 }
 
 
 val_decl :: { Ast.Decl C }
@@ -239,19 +260,35 @@ val_bind :: { Ast.Decl C }
     }
 
 val_decl_where :: { (Maybe Span, [Ast.Decl C]) }
-    : '#where' val_decl_where_body  { undefined }
-    | {- empty -}                   { (Nothing, []) }
+    : '#where' val_decl_where_body
+    {
+        case $2 of { (ms2, ds) ->
+            (Just do sp do $1 :< ms2, ds)
+        }
+    }
+    | {- empty -}
+    { (Nothing, []) }
 
-val_decl_where_body :: { () }
-    : lopen val_decl_where_items lclose { () }
+val_decl_where_body :: { (Maybe Span, [Ast.Decl C]) }
+    : lopen val_decl_where_items lclose
+    {
+        case $2 of { (ms2, ds) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList ds)
+        }
+    }
 
-val_decl_where_items :: { () }
-    : val_decl_where_items_semis val_decl_where_item    { () }
-    | val_decl_where_items_semis                        { () }
+val_decl_where_items :: { MaySpBag (Ast.Decl C) }
+    : val_decl_where_items_semis val_decl_where_item
+    { maySpBagAppend $1 $2 $2 }
+    | val_decl_where_items_semis
+    { $1 }
 
-val_decl_where_items_semis :: { () }
-    : val_decl_where_items_semis val_decl_where_item lsemis { () }
-    | {- empty -}                                           { () }
+val_decl_where_items_semis :: { MaySpBag (Ast.Decl C) }
+    : val_decl_where_items_semis val_decl_where_item lsemis
+    { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}
+    { maySpBagEmpty }
 
 val_decl_where_item :: { Ast.Decl C }
     : let_bind_item     { $1 }
@@ -1036,6 +1073,16 @@ semi :: { Maybe Span }
     : ';'           { Just do sp $1 }
     | VSEMI         { Nothing }
 
+vbars1 :: { Span }
+    : vbars vbar    { sp do $1 :> $2 }
+
+vbars :: { Maybe Span }
+    : vbars vbar            { $1 <> Just $2 }
+    | {- empty -} %shift    { Nothing }
+
+vbar :: { Span }
+    : '|'   { sp $1 }
+
 
 literal :: { Ast.Lit C }
     : BYTECHAR
@@ -1141,6 +1188,9 @@ maySpBagAppend (ms1, m) s2 x = (Just do sp (ms1 :> s2), snoc m x)
 maySpBagEmpty :: MaySpBag a
 maySpBagEmpty = (Nothing, mempty)
 
+maySpBagEmptyWithSpan :: Maybe Span -> MaySpBag a
+maySpBagEmptyWithSpan ms = (ms, mempty)
+
 
 type C = AstParsed
 
@@ -1156,8 +1206,9 @@ isExtName n = any (== n)
         Ast.primNameWildcard
     ]
 
-
+lexer :: (S Token.T -> Runner.T a) -> Runner.T a
 lexer = undefined
 
+happyError :: Runner.T a
 happyError = undefined
 }
