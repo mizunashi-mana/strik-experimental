@@ -1,6 +1,7 @@
 module Language.Quell.Parsing.Parser.Runner (
     T,
     Runner,
+    RunnerResult (..),
     RunnerContext (..),
     runRunner,
     lexer,

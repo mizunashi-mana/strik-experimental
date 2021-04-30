@@ -3,6 +3,7 @@ module Language.Quell.Parsing.Parser.AstParsed (
     MayOneSideSpan (..),
     maySp,
     AstParsed,
+    T,
 ) where
 
 import Language.Quell.Prelude
@@ -206,6 +207,8 @@ maySp mss = ofoldl'
 
 
 data AstParsed
+
+type T = AstParsed
 
 type instance Ast.XAppExpr AstParsed = Spanned.Span
 type instance Ast.XUnivAppExpr AstParsed = Spanned.Span

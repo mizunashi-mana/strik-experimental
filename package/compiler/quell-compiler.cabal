@@ -185,6 +185,7 @@ library
         Language.Quell.Parsing.Parser.Runner
         Language.Quell.Parsing.Parser.Error
         Language.Quell.Parsing.Parser.AstParsed
+        Language.Quell.Pipeline.Source2Ast
     other-modules:
         Language.Quell.Prelude.Core
         Language.Quell.Prelude.Literal

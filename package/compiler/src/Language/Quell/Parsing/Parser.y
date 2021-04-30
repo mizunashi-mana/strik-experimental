@@ -1,5 +1,11 @@
 {
-module Language.Quell.Parsing.Parser where
+module Language.Quell.Parsing.Parser (
+    parseProgram,
+    parseType,
+    parseExpr,
+    parsePat,
+    parseLiteral,
+) where
 
 import Language.Quell.Prelude
 
