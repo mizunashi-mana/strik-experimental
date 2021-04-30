@@ -104,7 +104,7 @@ lexerRules = do
     -- be before varIdRule / conIdRule to avoid conflicting
     reservedIdRules
     -- be before varSymRule / conSymRule to avoid conflicting
-    reservedOpRules
+    reservedSymRules
 
     varIdRule
     varSymRule
@@ -197,16 +197,16 @@ reservedIdRules = do
     initialRule (stringP "#Default")    [||WithToken do Token.LKwDefault||]
     initialRule (stringP "#Self")       [||WithToken do Token.LKwSelf||]
 
-reservedOpRules :: ScannerBuilder ()
-reservedOpRules = do
+reservedSymRules :: ScannerBuilder ()
+reservedSymRules = do
     initialRule (stringP "_")           [||WithToken do Token.SymUnderscore||]
     initialRule (stringP "!")           [||WithToken do Token.SymBang||]
-    initialRule (stringsP ["->", "→"])  [||WithToken do Token.SymArrow||]
     initialRule (stringsP ["..", "…"])  [||WithToken do Token.SymDots||]
     initialRule (stringP ".")           [||WithToken do Token.SymDot||]
+    initialRule (stringsP ["->", "→"])  [||WithToken do Token.SymArrow||]
     initialRule (stringsP ["<-", "←"])  [||WithToken do Token.SymLeftArrow||]
-    initialRule (stringsP ["<=", "⇐"])  [||WithToken do Token.SymDLeftArrow||]
     initialRule (stringsP ["=>", "⇒"])  [||WithToken do Token.SymDArrow||]
+    initialRule (stringsP ["<=", "⇐"])  [||WithToken do Token.SymDLeftArrow||]
     initialRule (stringP "=")           [||WithToken do Token.SymEqual||]
     initialRule (stringP "?")           [||WithToken do Token.SymUnknown||]
     initialRule (stringP "@")           [||WithToken do Token.SymAt||]
@@ -214,6 +214,7 @@ reservedOpRules = do
     initialRule (stringsP ["\\", "λ"])  [||WithToken do Token.SymLambda||]
     initialRule (stringP "|")           [||WithToken do Token.SymOr||]
     initialRule (stringP "~")           [||WithToken do Token.SymTilde||]
+    initialRule (stringP ":")           [||WithToken do Token.SymColon||]
 
 specialRules :: ScannerBuilder ()
 specialRules = do

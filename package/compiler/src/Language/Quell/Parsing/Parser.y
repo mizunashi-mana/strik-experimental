@@ -1,4 +1,7 @@
 {
+{-# LANGUAGE NoStrict #-}
+{-# LANGUAGE NoStrictData #-}
+
 module Language.Quell.Parsing.Parser (
     parseProgram,
     parseType,
@@ -381,7 +384,7 @@ type_apps :: { Ast.TypeExpr C }
 
 type_apps_list :: { Bag.T (Ast.AppType C) }
     : type_apps_list type_app   { snoc $1 $2 }
-    | type_qualified            { mempty }
+    | {- empty -}               { mempty }
 
 type_app :: { Ast.AppType C }
     : '@' type_qualified    { spAnn ($1, $2) do Ast.UnivAppType $2 }
@@ -697,7 +700,7 @@ pat_unit_list :: { S (Bag.T (Ast.Pat C)) }
 pat_infix :: { Ast.Pat C }
     : pat_infix conop_qualified pat_univ_apps
     { spAnn ($1, $2, $3) do Ast.PatInfix $1 (unS $2) $3 }
-    | pat_apps
+    | pat_univ_apps
     { $1 }
 
 pat_univ_apps :: { Ast.Pat C }
@@ -709,27 +712,32 @@ pat_univ_apps :: { Ast.Pat C }
     }
 
 pat_univ_apps_args :: { MaySpBag (Ast.TypeExpr C) }
-    : pat_univ_apps_args '@' type_qualified
-    { maySpBagAppend $1 ($2, $3) $3 }
+    : pat_univ_apps_args pat_univ_app
+    { maySpBagAppend $1 $2 do unS $2 }
     | {- empty -}
     { maySpBagEmpty }
 
+pat_univ_app :: { S (Ast.TypeExpr C) }
+    : '@' type_qualified        { spn ($1, $2) $2 }
+    | '#@' type_block_body      { spAnn ($1, $2) do unS $2 }
+
 pat_apps :: { Ast.Pat C }
-    : con_qualified pat_apps_args %shift
+    : pat_qualified pat_apps_args %shift
     {
         case $2 of { (ms2, ps) ->
             spAnn ($1 :< ms2) do Ast.PatApp (unS $1) do otoList ps
         }
     }
+    | pat_qualified
+    { $1 }
 
 pat_apps_args :: { MaySpBag (Ast.AppPat C) }
     : pat_apps_args pat_app             { maySpBagAppend $1 $2 $2 }
     | {- empty -}                       { maySpBagEmpty }
 
 pat_app :: { Ast.AppPat C }
-    : '@' type_qualified        { spAnn ($1, $2) do Ast.UnivAppPat $2 }
-    | '#@' type_block_body      { spAnn ($1, $2) do Ast.UnivAppPat do unS $2 }
-    | pat_qualified             { spAnn $1 do Ast.AppPat $1 }
+    : pat_qualified     { spAnn $1 do Ast.AppPat $1 }
+    | pat_univ_app      { spAnn $1 do Ast.UnivAppPat do unS $1 }
 
 pat_qualified :: { Ast.Pat C }
     : pat_block     { $1 }

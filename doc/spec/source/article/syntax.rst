@@ -361,7 +361,7 @@ Grammar
     decltype    : declcon bind_var*
                 : simple_bind_var declconop simple_bind_var
     impltype    : con_qualified type_qualified*
-                : type_qualified conop type_qualified
+                : type_qualified conop_qualified type_qualified
     declvarexpr : declvar bind_var*
                 : simple_bind_var declop simple_bind_var
 
@@ -452,9 +452,9 @@ Grammar
     pat : pat_unit ":" type
         : pat_unit
     pat_unit: pat_infix ("|" pat_infix)*
-    pat_infix: pat_univ_apps (conop_qualified pat_univ_apps)*
-    pat_univ_apps   : pat_apps pat_univ_app*
+    pat_infix: pat_apps (conop_qualified pat_apps)*
     pat_apps: con_qualified pat_app*
+            : pat_qualified pat_univ_app*
     pat_univ_app    : "@" type_qualified
                     : "#@" type_block_body
     pat_app : pat_qualified
@@ -479,7 +479,7 @@ Grammar
     pat_simplrecord_item: declvar "=" pat
 
 .. productionlist::
-    let_body: let_binds "in" expr
+    let_body: let_binds "#in" expr
     let_binds   : "{" let_bind_items "}"
                 : "{{" let_bind_items "}}"
                 : '{' let_bind_items '}'

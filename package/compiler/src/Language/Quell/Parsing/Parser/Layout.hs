@@ -3,6 +3,7 @@ module Language.Quell.Parsing.Parser.Layout (
     Layout (..),
 
     TokenWithL (..),
+    preParseForProgram,
     preParse,
 
     isLayoutKeyword,
@@ -34,6 +35,11 @@ data TokenWithL
     deriving (Eq, Show)
 
 type WithLConduit = Conduit.ConduitT (Spanned.T Token.T) TokenWithL
+
+preParseForProgram :: Monad m => WithLConduit m ()
+preParseForProgram = do
+    Conduit.yield ExpectBrace
+    preParse
 
 preParse :: Monad m => WithLConduit m ()
 preParse = go 0 isLayoutKeyword where

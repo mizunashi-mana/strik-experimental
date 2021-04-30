@@ -43,7 +43,7 @@ import           Prelude                          hiding (String, break, drop,
                                                    replicate, reverse, span,
                                                    splitAt, tail, take,
                                                    takeWhile, unlines, unwords,
-                                                   words, ($))
+                                                   words, ($), lex)
 
 import           Control.Applicative
 import           Control.Monad                    hiding (filterM, replicateM)

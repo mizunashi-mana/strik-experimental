@@ -86,7 +86,7 @@ initialContext = RunnerContext
 lexer :: Monad m => RunnerCont m a -> Runner m a
 lexer p0 = do
     ctx0 <- runnerGet
-    withLCont ctx0 p0
+    withLCont ctx0 \spt -> debugTrace ("parsing: " <> show spt) do p0 spt
 
 withL :: Monad m => RunnerCont m a -> Bool -> [Layout.T] -> Runner m a
 withL p0 expB ms = consumeToken >>= \case
@@ -124,7 +124,10 @@ reportParseError p0 err sp = do
 
 -- FIXME: Try to analysis error and recover
 parseError :: Monad m => Runner m a
-parseError = Runner do lift do throwE ()
+parseError = do
+    ctx <- runnerGet
+    debugTraceShow (lastSpan ctx, tokenStack ctx)
+        do Runner do lift do throwE ()
 
 resolveToken :: Monad m => RunnerCont m a
     -> Spanned.T Token.T -> Bool -> [Layout.T] -> Runner m a
@@ -259,9 +262,9 @@ tryEnd = \p0 ms0 -> do
                     error "unreachable: must be ended parsing with EOS."
             m:ms1 -> case m of
                 Layout.VirtualBrace _ -> do
-                    let vbOp = Spanned.spannedFromLoc lc
-                            Token.SpVBraceOpen
-                    runParserL p0 vbOp \p1 ->
+                    let vbCl = Spanned.spannedFromLoc lc
+                            Token.SpVBraceClose
+                    runParserL p0 vbCl \p1 ->
                         go lc p1 ms1
                 Layout.ExplicitBrace{} ->
                     reportParseError p0
