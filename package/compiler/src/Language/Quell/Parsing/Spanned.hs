@@ -6,6 +6,7 @@ module Language.Quell.Parsing.Spanned (
     prependSpan,
 
     Span (..),
+    spanFromLoc,
     BytesSpan (..),
 
     Loc (..),
@@ -34,11 +35,7 @@ instance Semigroup a => Semigroup (Spanned a) where
 spannedFromLoc :: Loc -> a -> Spanned a
 spannedFromLoc l x = Spanned
     {
-        getSpan = Span
-            {
-                beginLoc = l,
-                endLoc = l
-            },
+        getSpan = spanFromLoc l,
         unSpanned = x
     }
 
@@ -62,6 +59,13 @@ data Span = Span
         endLoc   :: Loc
     }
     deriving (Eq, Show)
+
+spanFromLoc :: Loc -> Span
+spanFromLoc lc = Span
+    {
+        beginLoc = lc,
+        endLoc = lc
+    }
 
 instance Semigroup Span where
     sp1 <> sp2 = Span

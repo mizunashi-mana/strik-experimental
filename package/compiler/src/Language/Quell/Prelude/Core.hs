@@ -5,6 +5,8 @@ module Language.Quell.Prelude.Core (
     module Control.Monad,
     module Control.Monad.IO.Class,
     module Control.Monad.ST,
+    module Control.Monad.Trans.Class,
+    module Control.Monad.Trans.Except,
     module Control.Monad.Trans.Reader,
     module Control.Monad.Trans.State.Strict,
     module Data.ByteString,
@@ -47,8 +49,10 @@ import           Control.Applicative
 import           Control.Monad                    hiding (filterM, replicateM)
 import           Control.Monad.IO.Class
 import           Control.Monad.ST
+import           Control.Monad.Trans.Class        (lift)
+import           Control.Monad.Trans.Except       hiding (liftCallCC, liftListen, liftPass)
 import           Control.Monad.Trans.Reader       hiding (liftCallCC, liftCatch)
-import           Control.Monad.Trans.State.Strict hiding (liftCallCC, liftCatch,
+import           Control.Monad.Trans.State.Strict hiding (liftCallCC, liftCatch, liftListen, liftPass,
                                                    modify)
 import           Data.ByteString                  (ByteString)
 import           Data.Coerce

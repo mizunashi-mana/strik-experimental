@@ -22,7 +22,7 @@ import qualified Language.Quell.Parsing.Spanned as Spanned
 type T = Layout
 
 data Layout
-    = NoLayout
+    = NoLayout Token.T
     | ExplicitBrace
     | ExplicitDBrace Int
     | VirtualBrace Int
@@ -68,12 +68,14 @@ resolveNewline pl cont = Conduit.await >>= \case
 
 isLayoutKeyword :: Token.T -> Bool
 isLayoutKeyword = \case
-    Token.KwLet     -> True
-    Token.KwLetrec  -> True
-    Token.KwOf      -> True
-    Token.KwWhen    -> True
-    Token.KwWhere   -> True
-    _               -> False
+    Token.KwLet         -> True
+    Token.KwLetrec      -> True
+    Token.KwOf          -> True
+    Token.KwWhen        -> True
+    Token.KwWhere       -> True
+    Token.SpBlock       -> True
+    Token.SpTypeBlock   -> True
+    _                   -> False
 
 isLayoutKeywordLam :: Token.T -> Bool
 isLayoutKeywordLam = \case

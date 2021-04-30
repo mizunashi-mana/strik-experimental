@@ -173,7 +173,6 @@ library
         Language.Quell.Type.TextId
         Language.Quell.Type.Token
         Language.Quell.Parsing.Spanned
-        Language.Quell.Parsing.Runner
         Language.Quell.Parsing.Lexer
         Language.Quell.Parsing.Lexer.Rules
         Language.Quell.Parsing.Lexer.CodeUnit

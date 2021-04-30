@@ -9,7 +9,7 @@ import qualified Language.Quell.Type.Token                      as Token
 import qualified Language.Quell.Parsing.Parser.Layout           as Layout
 import qualified Language.Quell.Data.Bag                        as Bag
 import qualified Language.Quell.Parsing.Spanned                 as Spanned
-import qualified Language.Quell.Parsing.Runner                  as Runner
+import qualified Language.Quell.Parsing.Parser.Runner           as Runner
 import           Language.Quell.Parsing.Parser.AstParsed
 }
 
@@ -74,7 +74,7 @@ import           Language.Quell.Parsing.Parser.AstParsed
     INTERP_STRING_CONTINUE          { S (Token.LitInterpStringContinue _) }
     INTERP_STRING_END               { S (Token.LitInterpStringEnd _) }
 
-%monad { Runner.T }{ >>= }{ return }
+%monad { Monad m }{ Runner.T m }{ >>= }{ return }
 %lexer { lexer }{ S Token.EndOfSource }
 %tokentype { Spanned.T Token.T }
 
@@ -1202,6 +1202,12 @@ varsym :: { S Ast.Name }
             _                   -> error "unreachable"
     }
 {
+parseProgram :: Monad m => Runner.T m (Ast.Program C)
+parseType :: Monad m => Runner.T m (Ast.TypeExpr C)
+parseExpr :: Monad m => Runner.T m (Ast.Expr C)
+parsePat :: Monad m => Runner.T m (Ast.Pat C)
+parseLiteral :: Monad m => Runner.T m (Ast.Lit C)
+
 type Span = Spanned.Span
 type S = Spanned.T
 
@@ -1241,9 +1247,9 @@ isExtName n = any (== n)
         Ast.primNameWildcard
     ]
 
-lexer :: (S Token.T -> Runner.T a) -> Runner.T a
-lexer = undefined
+lexer :: Monad m => (S Token.T -> Runner.T m a) -> Runner.T m a
+lexer = Runner.lexer
 
-happyError :: Runner.T a
-happyError = undefined
+happyError :: Monad m => Runner.T m a
+happyError = Runner.parseError
 }

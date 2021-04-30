@@ -97,7 +97,7 @@ instance SemiSequence (Bag a) where
                 | cond x    -> Just x
                 | otherwise -> goAll bs
             ListBag xs      -> case find cond xs of
-                r@(Just x)  -> r
+                r@Just{}    -> r
                 Nothing     -> goAll bs
             BagCons x b
                 | cond x    -> Just x
