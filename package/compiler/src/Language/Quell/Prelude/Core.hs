@@ -50,10 +50,11 @@ import           Control.Monad                    hiding (filterM, replicateM)
 import           Control.Monad.IO.Class
 import           Control.Monad.ST
 import           Control.Monad.Trans.Class        (lift)
-import           Control.Monad.Trans.Except       hiding (liftCallCC, liftListen, liftPass)
+import           Control.Monad.Trans.Except       hiding (liftCallCC,
+                                                   liftListen, liftPass)
 import           Control.Monad.Trans.Reader       hiding (liftCallCC, liftCatch)
-import           Control.Monad.Trans.State.Strict hiding (liftCallCC, liftCatch, liftListen, liftPass,
-                                                   modify)
+import           Control.Monad.Trans.State.Strict hiding (liftCallCC, liftCatch,
+                                                   liftListen, liftPass, modify)
 import           Data.ByteString                  (ByteString)
 import           Data.Coerce
 import           Data.Constraint                  (Dict (..), withDict)

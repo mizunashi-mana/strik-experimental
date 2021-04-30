@@ -9,14 +9,14 @@ module Language.Quell.Parsing.Parser.Runner (
     parseError
 ) where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
 import qualified Conduit
-import qualified Language.Quell.Type.Token as Token
-import qualified Language.Quell.Data.Bag as Bag
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Parsing.Parser.Error as Error
+import qualified Language.Quell.Data.Bag              as Bag
+import qualified Language.Quell.Parsing.Parser.Error  as Error
 import qualified Language.Quell.Parsing.Parser.Layout as Layout
+import qualified Language.Quell.Parsing.Spanned       as Spanned
+import qualified Language.Quell.Type.Token            as Token
 
 
 type T = Runner
@@ -57,9 +57,9 @@ type RunnerCont m a = Spanned.T Token.T -> Runner m a
 
 data RunnerContext m = RunnerContext
     {
-        withLCont :: forall a. RunnerCont m a -> Runner m a,
-        lastSpan :: Spanned.Span,
-        tokenStack :: [Layout.TokenWithL],
+        withLCont   :: forall a. RunnerCont m a -> Runner m a,
+        lastSpan    :: Spanned.Span,
+        tokenStack  :: [Layout.TokenWithL],
         parseErrors :: Bag.T (Spanned.T Error.T)
     }
 

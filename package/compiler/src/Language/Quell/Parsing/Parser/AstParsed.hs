@@ -6,10 +6,10 @@ module Language.Quell.Parsing.Parser.AstParsed (
     T,
 ) where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Spanned         as Spanned
-import qualified Language.Quell.Type.Ast                as Ast
+import qualified Language.Quell.Parsing.Spanned as Spanned
+import qualified Language.Quell.Type.Ast        as Ast
 
 
 class SpannedBuilder s where
@@ -33,118 +33,118 @@ instance SpannedBuilder (Spanned.Spanned a) where
 
 instance SpannedBuilder (Ast.TypeExpr AstParsed) where
     sp = \case
-        Ast.TypeForall _ _ x -> x
+        Ast.TypeForall _ _ x  -> x
         Ast.TypeInfix _ _ _ x -> x
-        Ast.TypeApp _ _ x -> x
-        Ast.TypeSig _ _ x -> x
-        Ast.TypeCon _ x -> x
-        Ast.TypeVar _ x -> x
-        Ast.TypeLit _ x -> x
-        Ast.TypeTuple _ x -> x
-        Ast.TypeArray _ x -> x
-        Ast.TypeRecord _ x -> x
-        Ast.TypeAnn _ x -> x
+        Ast.TypeApp _ _ x     -> x
+        Ast.TypeSig _ _ x     -> x
+        Ast.TypeCon _ x       -> x
+        Ast.TypeVar _ x       -> x
+        Ast.TypeLit _ x       -> x
+        Ast.TypeTuple _ x     -> x
+        Ast.TypeArray _ x     -> x
+        Ast.TypeRecord _ x    -> x
+        Ast.TypeAnn _ x       -> x
 
 instance SpannedBuilder (Ast.AppType AstParsed) where
     sp = \case
-        Ast.AppType _ x -> x
+        Ast.AppType _ x     -> x
         Ast.UnivAppType _ x -> x
 
 instance SpannedBuilder (Ast.Expr AstParsed) where
     sp = \case
-        Ast.ExprSig _ _ x -> x
-        Ast.ExprInfix _ _ _ x -> x
-        Ast.ExprApp _ _ x -> x
-        Ast.ExprLambda _ x -> x
-        Ast.ExprCase _ _ x -> x
-        Ast.ExprLetrec _ _ x -> x
-        Ast.ExprLet _ _ x -> x
-        Ast.ExprDo _ _ x -> x
-        Ast.ExprCon _ x -> x
-        Ast.ExprVar _ x -> x
-        Ast.ExprLit _ x -> x
+        Ast.ExprSig _ _ x        -> x
+        Ast.ExprInfix _ _ _ x    -> x
+        Ast.ExprApp _ _ x        -> x
+        Ast.ExprLambda _ x       -> x
+        Ast.ExprCase _ _ x       -> x
+        Ast.ExprLetrec _ _ x     -> x
+        Ast.ExprLet _ _ x        -> x
+        Ast.ExprDo _ _ x         -> x
+        Ast.ExprCon _ x          -> x
+        Ast.ExprVar _ x          -> x
+        Ast.ExprLit _ x          -> x
         Ast.ExprInterpString _ x -> x
-        Ast.ExprTuple _ x -> x
-        Ast.ExprArray _ x -> x
-        Ast.ExprRecord _ x -> x
-        Ast.ExprAnn _ x -> x
+        Ast.ExprTuple _ x        -> x
+        Ast.ExprArray _ x        -> x
+        Ast.ExprRecord _ x       -> x
+        Ast.ExprAnn _ x          -> x
 
 instance SpannedBuilder (Ast.AppExpr AstParsed) where
     sp = \case
-        Ast.AppExpr _ x -> x
+        Ast.AppExpr _ x     -> x
         Ast.UnivAppExpr _ x -> x
 
 instance SpannedBuilder (Ast.DeclExpr AstParsed) where
     sp = \case
-        Ast.DeclAppExpr _ _ x -> x
+        Ast.DeclAppExpr _ _ x     -> x
         Ast.DeclInfixExpr _ _ _ x -> x
 
 instance SpannedBuilder (Ast.DoStmt AstParsed) where
     sp = \case
-        Ast.DoStmtBind _ _ _ x -> x
+        Ast.DoStmtBind _ _ _ x    -> x
         Ast.DoStmtMonBind _ _ _ x -> x
-        Ast.DoStmtLetrec _ x -> x
+        Ast.DoStmtLetrec _ x      -> x
 
 instance SpannedBuilder (Ast.Pat AstParsed) where
     sp = \case
-        Ast.PatSig _ _ x -> x
-        Ast.PatOr _ x -> x
+        Ast.PatSig _ _ x     -> x
+        Ast.PatOr _ x        -> x
         Ast.PatInfix _ _ _ x -> x
-        Ast.PatApp _ _ x -> x
-        Ast.PatCon _ x -> x
-        Ast.PatVar _ x -> x
-        Ast.PatWildcard _ x -> x
-        Ast.PatLit _ x -> x
-        Ast.PatTuple _ x -> x
-        Ast.PatArray _ x -> x
-        Ast.PatRecord _ x -> x
+        Ast.PatApp _ _ x     -> x
+        Ast.PatCon _ x       -> x
+        Ast.PatVar _ x       -> x
+        Ast.PatWildcard _ x  -> x
+        Ast.PatLit _ x       -> x
+        Ast.PatTuple _ x     -> x
+        Ast.PatArray _ x     -> x
+        Ast.PatRecord _ x    -> x
         Ast.PatUnivApp _ _ x -> x
-        Ast.PatAnn _ x -> x
+        Ast.PatAnn _ x       -> x
 
 instance SpannedBuilder (Ast.Lit AstParsed) where
     sp = \case
-        Ast.LitRational _ x -> x
-        Ast.LitInteger _ x -> x
+        Ast.LitRational _ x   -> x
+        Ast.LitInteger _ x    -> x
         Ast.LitByteString _ x -> x
-        Ast.LitString _ x -> x
-        Ast.LitByteChar _ x -> x
-        Ast.LitChar _ x -> x
+        Ast.LitString _ x     -> x
+        Ast.LitByteChar _ x   -> x
+        Ast.LitChar _ x       -> x
 
 instance SpannedBuilder (Ast.InterpStringPart AstParsed) where
     sp = \case
-        Ast.InterpStringLit _ x -> x
+        Ast.InterpStringLit _ x  -> x
         Ast.InterpStringExpr _ x -> x
 
 instance SpannedBuilder (Ast.BindVar AstParsed) where
     sp = \case
-        Ast.BindVar _ _ x -> x
+        Ast.BindVar _ _ x     -> x
         Ast.UnivBindVar _ _ x -> x
 
 instance SpannedBuilder (Ast.AppPat AstParsed) where
     sp = \case
-        Ast.AppPat _ x -> x
+        Ast.AppPat _ x     -> x
         Ast.UnivAppPat _ x -> x
 
 instance SpannedBuilder (Ast.Decl AstParsed) where
     sp = \case
-        Ast.DeclTypeSig _ _ x -> x
-        Ast.DeclValSig _ _ x -> x
-        Ast.DeclConSig _ _ x -> x
-        Ast.DeclType _ _ _ x -> x
-        Ast.DeclDataType _ _ _ x -> x
+        Ast.DeclTypeSig _ _ x       -> x
+        Ast.DeclValSig _ _ x        -> x
+        Ast.DeclConSig _ _ x        -> x
+        Ast.DeclType _ _ _ x        -> x
+        Ast.DeclDataType _ _ _ x    -> x
         Ast.DeclAlgDataType _ _ _ x -> x
-        Ast.DeclNewType _ _ _ x -> x
-        Ast.DeclVal _ _ _ x -> x
-        Ast.DeclValBind _ _ _ x -> x
+        Ast.DeclNewType _ _ _ x     -> x
+        Ast.DeclVal _ _ _ x         -> x
+        Ast.DeclValBind _ _ _ x     -> x
 
 instance SpannedBuilder (Ast.DeclType AstParsed) where
     sp = \case
-        Ast.DeclAppType _ _ x -> x
+        Ast.DeclAppType _ _ x     -> x
         Ast.DeclInfixType _ _ _ x -> x
 
 instance SpannedBuilder (Ast.ImplType AstParsed) where
     sp = \case
-        Ast.ImplAppType _ _ x -> x
+        Ast.ImplAppType _ _ x     -> x
         Ast.ImplInfixType _ _ _ x -> x
 
 instance SpannedBuilder (Ast.CaseAlt AstParsed) where
@@ -186,18 +186,18 @@ data MayOneSideSpan a b
 instance (SpannedBuilder s1, SpannedBuilder s2)
         => SpannedBuilder (MayOneSideSpan (Maybe s1) s2) where
     sp = \case
-        Nothing :> s2       -> sp s2
-        s1      :< Nothing  -> sp s1
-        Just s1 :> s2       -> sp (s1, s2)
-        s1      :< Just s2  -> sp (s1, s2)
+        Nothing :> s2      -> sp s2
+        s1      :< Nothing -> sp s1
+        Just s1 :> s2      -> sp (s1, s2)
+        s1      :< Just s2 -> sp (s1, s2)
 
 instance (SpannedBuilder s1, SpannedBuilder s2)
         => SpannedBuilder (MayOneSideSpan [s1] s2) where
     sp = \case
-        []          :> s2           -> sp s2
-        s1          :< []           -> sp s1
-        (sx1:sxs1)  :> s2           -> sp (sx1 :| sxs1, s2)
-        s1          :< (sx2:sxs2)   -> sp (s1, sx2 :| sxs2)
+        []          :> s2         -> sp s2
+        s1          :< []         -> sp s1
+        (sx1:sxs1)  :> s2         -> sp (sx1 :| sxs1, s2)
+        s1          :< (sx2:sxs2) -> sp (s1, sx2 :| sxs2)
 
 maySp :: [Maybe Spanned.Span] -> Maybe Spanned.Span
 maySp mss = ofoldl'

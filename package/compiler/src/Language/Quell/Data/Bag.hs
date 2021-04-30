@@ -5,7 +5,8 @@ module Language.Quell.Data.Bag (
 ) where
 
 import           Language.Quell.Prelude
-import qualified Data.Foldable as Foldable
+
+import qualified Data.Foldable          as Foldable
 
 
 type T = Bag
@@ -40,12 +41,12 @@ instance Eq a => Eq (Bag a) where
     b1 == b2 = otoList b1 == otoList b2
 
 instance Semigroup (Bag a) where
-    EmptyBag        <> b2               = b2
-    b1              <> EmptyBag         = b1
-    UnitBag x1      <> ListBag xs2      = ListBag do x1:xs2
-    UnitBag x1      <> b2               = BagCons x1 b2
-    b1              <> UnitBag x2       = BagSnoc b1 x2
-    b1              <> b2               = TwoBags b1 b2
+    EmptyBag        <> b2          = b2
+    b1              <> EmptyBag    = b1
+    UnitBag x1      <> ListBag xs2 = ListBag do x1:xs2
+    UnitBag x1      <> b2          = BagCons x1 b2
+    b1              <> UnitBag x2  = BagSnoc b1 x2
+    b1              <> b2          = TwoBags b1 b2
 
 instance Monoid (Bag a) where
     mempty = EmptyBag
@@ -53,14 +54,14 @@ instance Monoid (Bag a) where
 instance Applicative Bag where
     pure x = BagCons x EmptyBag
 
-    EmptyBag        <*> _           = mempty
-    _               <*> EmptyBag    = mempty
-    UnitBag f       <*> mx          = fmap f mx
-    mf              <*> UnitBag x   = fmap (\f -> f x) mf
-    ListBag fs      <*> mx          = ofoldMap (\f -> fmap f mx) fs
-    BagCons f mf1   <*> mx          = fmap f mx <> (mf1 <*> mx)
-    BagSnoc mf1 f   <*> mx          = (mf1 <*> mx) <> fmap f mx
-    TwoBags mf1 mf2 <*> mx          = (mf1 <*> mx) <> (mf2 <*> mx)
+    EmptyBag        <*> _         = mempty
+    _               <*> EmptyBag  = mempty
+    UnitBag f       <*> mx        = fmap f mx
+    mf              <*> UnitBag x = fmap (\f -> f x) mf
+    ListBag fs      <*> mx        = ofoldMap (\f -> fmap f mx) fs
+    BagCons f mf1   <*> mx        = fmap f mx <> (mf1 <*> mx)
+    BagSnoc mf1 f   <*> mx        = (mf1 <*> mx) <> fmap f mx
+    TwoBags mf1 mf2 <*> mx        = (mf1 <*> mx) <> (mf2 <*> mx)
 
 instance Monad Bag where
     mx >>= f = case mx of
@@ -78,15 +79,15 @@ instance SemiSequence (Bag a) where
 
     intersperse sep b0 = ofoldr
         do \x -> \case
-            EmptyBag    -> UnitBag x
-            b           -> BagCons sep do BagCons x b
+            EmptyBag -> UnitBag x
+            b        -> BagCons sep do BagCons x b
         do EmptyBag
         do otoList b0
 
     reverse b0 = ofoldl'
         do \b x -> case b of
-            EmptyBag    -> UnitBag x
-            _           -> BagCons x b
+            EmptyBag -> UnitBag x
+            _        -> BagCons x b
         do EmptyBag
         do otoList b0
 
@@ -97,8 +98,8 @@ instance SemiSequence (Bag a) where
                 | cond x    -> Just x
                 | otherwise -> goAll bs
             ListBag xs      -> case find cond xs of
-                r@Just{}    -> r
-                Nothing     -> goAll bs
+                r@Just{} -> r
+                Nothing  -> goAll bs
             BagCons x b
                 | cond x    -> Just x
                 | otherwise -> go bs b
@@ -106,12 +107,12 @@ instance SemiSequence (Bag a) where
             TwoBags b1 b2   -> go (b2:bs) b1
 
         goAll = \case
-            []      -> Nothing
-            b:bs    -> go bs b
+            []   -> Nothing
+            b:bs -> go bs b
 
         addB x = \case
-            []      -> [UnitBag x]
-            b:bs    -> BagCons x b:bs
+            []   -> [UnitBag x]
+            b:bs -> BagCons x b:bs
 
     sortBy cmp xs = fromList do sortBy cmp do otoList xs
 

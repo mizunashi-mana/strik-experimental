@@ -11,12 +11,12 @@ import qualified Language.Lexer.Tlex                         as Tlex
 import qualified Language.Lexer.Tlex.Data.EnumSet            as EnumSet
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Data.STBuffer                as STBuffer
-import qualified Language.Quell.Type.TextId                  as TextId
 import qualified Language.Quell.Parsing.Lexer.CodeUnit       as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Error          as Error
 import qualified Language.Quell.Parsing.Lexer.Lexing.CharEsc as CharEscLex
 import qualified Language.Quell.Parsing.Lexer.Rules          as Rules
 import qualified Language.Quell.Parsing.Spanned              as Spanned
+import qualified Language.Quell.Type.TextId                  as TextId
 import qualified Language.Quell.Type.Token                   as Token
 
 
@@ -1596,7 +1596,7 @@ lexAndYieldCommentMultilineWithContent = do
                 let (c, u) = Spanned.unSpanned item
                     sp1 = sp0 <> Spanned.getSpan item
                     t1 = case b of
-                        True -> t0 <> textBuilderFromChar '-'
+                        True  -> t0 <> textBuilderFromChar '-'
                         False -> t0
                 case u of
                     CodeUnit.LcUSymBraceOpen ->

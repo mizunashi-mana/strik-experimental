@@ -27,9 +27,9 @@ data PrimTextId
 
 primTextId :: PrimTextId -> TextId
 primTextId = \case
-    PrimTextUnit        -> stringLit "()"
-    PrimTextArrow       -> stringLit "->"
-    PrimTextWildcard    -> stringLit "_"
+    PrimTextUnit     -> stringLit "()"
+    PrimTextArrow    -> stringLit "->"
+    PrimTextWildcard -> stringLit "_"
 
 textId :: Text -> TextId
 textId txt = UnsafeTextId do txt

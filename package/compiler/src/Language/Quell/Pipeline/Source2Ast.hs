@@ -5,16 +5,16 @@ module Language.Quell.Pipeline.Source2Ast (
     source2ParseResult,
 ) where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
-import qualified Language.Quell.Parsing.Parser.Runner as Runner
-import qualified Language.Quell.Parsing.Parser.Layout as Layout
-import qualified Language.Quell.Parsing.Lexer.Encoding as Encoding
-import qualified Language.Quell.Parsing.Lexer as Lexer
-import qualified Language.Quell.Parsing.Parser as Parser
-import qualified Language.Quell.Type.Ast as Ast
 import qualified Conduit
+import qualified Language.Quell.Parsing.Lexer            as Lexer
+import qualified Language.Quell.Parsing.Lexer.Encoding   as Encoding
+import qualified Language.Quell.Parsing.Parser           as Parser
+import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
+import qualified Language.Quell.Parsing.Parser.Layout    as Layout
+import qualified Language.Quell.Parsing.Parser.Runner    as Runner
+import qualified Language.Quell.Type.Ast                 as Ast
 
 
 type ParseResult f = Runner.RunnerResult (f AstParsed.T)
@@ -22,7 +22,7 @@ type ParseConduit i m f = Conduit.ConduitT i Conduit.Void m (ParseResult f)
 
 data Source m = Source
     {
-        sourceConduit :: forall i. Conduit.ConduitT i ByteString m (),
+        sourceConduit  :: forall i. Conduit.ConduitT i ByteString m (),
         sourceEncoding :: Encoding.T
     }
 
