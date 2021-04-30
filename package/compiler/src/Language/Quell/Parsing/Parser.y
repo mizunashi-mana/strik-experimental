@@ -1160,7 +1160,7 @@ literal :: { Ast.Lit C }
     {
         spAnn $1 case unS $1 of
             Token.LitRational r -> Ast.LitRational r
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected rational literal"
     }
 
 bind_vars :: { (Maybe Span, [Ast.BindVar C]) }

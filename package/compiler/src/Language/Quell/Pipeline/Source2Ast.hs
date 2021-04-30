@@ -20,23 +20,23 @@ import qualified Language.Quell.Type.Ast                 as Ast
 type ParseResult f = Runner.RunnerResult (f AstParsed.T)
 type ParseConduit i m f = Conduit.ConduitT i Conduit.Void m (ParseResult f)
 
-data Source m = Source
+data Source i m = Source
     {
-        sourceConduit  :: forall i. Conduit.ConduitT i ByteString m (),
+        sourceConduit  :: Conduit.ConduitT i ByteString m (),
         sourceEncoding :: Encoding.T
     }
 
 
 source2Program :: Lexer.LexerMonad s m
-    => Source m -> ParseConduit i m Ast.Program
+    => Source i m -> ParseConduit i m Ast.Program
 source2Program = source2ParseResult Parser.parseProgram
 
 source2Expr :: Lexer.LexerMonad s m
-    => Source m -> ParseConduit i m Ast.Expr
+    => Source i m -> ParseConduit i m Ast.Expr
 source2Expr = source2ParseResult Parser.parseExpr
 
 source2ParseResult :: Lexer.LexerMonad s m
-    => Runner.Runner m a -> Source m
+    => Runner.Runner m a -> Source i m
     -> Conduit.ConduitT i Conduit.Void m (Runner.RunnerResult a)
 source2ParseResult r s
     =           sourceConduit s

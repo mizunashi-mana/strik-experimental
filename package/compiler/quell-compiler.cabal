@@ -127,8 +127,8 @@ common general
         transformers,
         vector,
 
-    build-tool-depends:
-        happy:happy,
+    -- build-tool-depends:
+    --    happy:happy,
 
     autogen-modules:
         Paths_quell_compiler
@@ -141,11 +141,11 @@ custom-setup
         Cabal,
         cabal-doctest,
 
-executable quellc
+executable quelli
     import:
         general
     main-is:
-        Main.hs
+        Interpreter.hs
     hs-source-dirs:
         app
     build-depends:
@@ -154,7 +154,7 @@ executable quellc
         -rtsopts
     ghc-prof-options:
         -rtsopts
-        -with-rtsopts="-xc -p"
+        "-with-rtsopts=-xc -p"
 
 library
     import:
