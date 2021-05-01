@@ -35,12 +35,12 @@ main = go where
                 True  -> pure ()
                 False -> go
             | otherwise -> do
-                ts <- lex line
+                ts1 <- lex line
                 IO.putStr "tokens: "
-                IO.print ts
-                ts <- lexWithPreParse line
+                IO.print ts1
+                ts2 <- lexWithPreParse line
                 IO.putStr "tokens for preParse: "
-                IO.print ts
+                IO.print ts2
                 r <- parse line
                 IO.putStr "parse result: "
                 IO.print r
