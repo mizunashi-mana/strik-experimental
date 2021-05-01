@@ -36,10 +36,13 @@ main = go where
                 False -> go
             | otherwise -> do
                 ts <- lex line
+                IO.putStr "tokens: "
                 IO.print ts
                 ts <- lexWithPreParse line
+                IO.putStr "tokens for preParse: "
                 IO.print ts
                 r <- parse line
+                IO.putStr "parse result: "
                 IO.print r
 
 lex :: ByteString -> IO [Spanned.T Token.T]
@@ -64,9 +67,9 @@ data ParseResult c
 
 parse :: ByteString -> IO (ParseResult AstParsed.T)
 parse line =
-    parseProg \esProg -> IO.print esProg >>
-    parseExpr \esExpr -> IO.print esExpr >>
-    parseType \esType -> IO.print esType >>
+    parseProg \esProg -> IO.putStr "esProg: " >> IO.print esProg >>
+    parseExpr \esExpr -> IO.putStr "esExpr: " >> IO.print esExpr >>
+    parseType \esType -> IO.putStr "esType: " >> IO.print esType >>
     let es = esType in pure do ParseFailed es
     where
         parseProg cont = do
