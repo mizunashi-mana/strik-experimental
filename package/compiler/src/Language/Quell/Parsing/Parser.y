@@ -19,10 +19,19 @@ import qualified Language.Quell.Parsing.Parser.Layout           as Layout
 import qualified Language.Quell.Data.Bag                        as Bag
 import qualified Language.Quell.Parsing.Spanned                 as Spanned
 import qualified Language.Quell.Parsing.Parser.Runner           as Runner
+import qualified Language.Quell.Parsing.Parser.Error            as Error
 import           Language.Quell.Parsing.Parser.AstParsed
 }
 
 %expect 0
+
+{-
+
+# Note: Value Signature / Binding Conflicts
+
+TODO
+
+-}
 
 %token
     '#case'         { S Token.KwCase }
@@ -126,8 +135,18 @@ typesig_decl :: { Ast.Decl C }
     { spAnn ($1, $2, $3, $4) do Ast.DeclTypeSig (unS $2) $4 }
 
 valsig_decl :: { Ast.Decl C }
-    : declvar ':' type
-    { spAnn ($1, $2, $3) do Ast.DeclValSig (unS $1) $3 }
+    : var ':' type
+    -- declvar ':' type
+    -- See [Note: Value / Signature Conflicts]
+    {%
+        case unS $1 of
+            n1 | isExtName n1 ->
+                Runner.reportParseError
+                    Error.UnexpectedExtVarInDecl
+                    do sp $1
+            n1 ->
+                pure do spAnn ($1, $2, $3) do Ast.DeclValSig n1 $3
+    }
 
 consig_decl :: { Ast.Decl C }
     : declcon ':' type
@@ -268,6 +287,23 @@ val_bind :: { Ast.Decl C }
             spAnn ($1, $2, $3 :< ms4) do Ast.DeclValBind $1 $3 ds
         }
     }
+    | var ':' type '=' expr val_decl_where
+    -- See [Note: Value / Signature Conflicts]
+    {
+        case $6 of { (ms6, ds) ->
+            let p0 = spAnn $1 do Ast.PatVar do unS $1
+                p1 = spAnn (p0, $2, $3) do Ast.PatSig p0 $3
+            in spAnn (p1, $4, $5 :< ms6) do Ast.DeclValBind p1 $5 ds
+        }
+    }
+    | var '=' expr val_decl_where
+    -- See [Note: Value / Signature Conflicts]
+    {
+        case $4 of { (ms4, ds) ->
+            let p = spAnn $1 do Ast.PatVar do unS $1
+            in spAnn (p, $2, $3 :< ms4) do Ast.DeclValBind p $3 ds
+        }
+    }
 
 val_decl_where :: { (Maybe Span, [Ast.Decl C]) }
     : '#where' val_decl_where_body
@@ -324,11 +360,18 @@ impltype :: { Ast.ImplType C }
     { spAnn ($1, $2, $3) do Ast.ImplInfixType $1 (unS $2) $3 }
 
 declvarexpr :: { Ast.DeclExpr C }
-    : declvar bind_vars
-    {
-        case $2 of { (ms2, vs) ->
-            spAnn ($1 :< ms2) do Ast.DeclAppExpr (unS $1) vs
-        }
+    : var bind_vars
+    -- declvar bind_vars
+    -- See [Note: Value / Signature Conflicts]
+    {%
+        case unS $1 of
+            n1 | isExtName n1 ->
+                Runner.reportParseError
+                    Error.UnexpectedExtOpInDecl
+                    do sp $1
+            n1 -> case $2 of { (ms2, vs) ->
+                pure do spAnn ($1 :< ms2) do Ast.DeclAppExpr n1 vs
+            }
     }
     | simple_bind_var_decl declop simple_bind_var_decl
     {
@@ -524,15 +567,15 @@ expr_block :: { Ast.Expr C }
             spAnn ($1, $2 :< ms3) do Ast.ExprLambda alts
         }
     }
-    | '\\' lambda_body -- conflict with expr
+    | '\\' lambda_body
     { spAnn ($1, $2) do Ast.ExprLambda [$2] }
-    | '#let' let_body -- conflict with expr
+    | '#let' let_body
     {
         case unS $2 of { (ds, e) ->
             spAnn ($1, $2) do Ast.ExprLet ds e
         }
     }
-    | '#letrec' let_body -- conflict with expr
+    | '#letrec' let_body
     {
         case unS $2 of { (ds, e) ->
             spAnn ($1, $2) do Ast.ExprLetrec ds e
@@ -751,6 +794,7 @@ pat_block :: { Ast.Pat C }
 
 pat_atomic :: { Ast.Pat C }
     : '(' pat ')'           { spAnn ($1, $2, $3) do Ast.PatAnn $2 }
+    -- See [Note: Value Signature / Binding Conflicts]
     | var %shift            { spAnn $1 do Ast.PatVar do unS $1 }
     | pat_literal           { $1 }
 
@@ -858,7 +902,7 @@ let_bind_item :: { Ast.Decl C }
     : sig_item                  { $1 }
     | type_decl                 { $1 }
     | data_decl                 { $1 }
-    | val_bind                  { $1 } -- conflict with valsig_decl
+    | val_bind                  { $1 }
 
 
 case_body :: { S ([Ast.Expr C], [Ast.CaseAlt C]) }
@@ -1075,30 +1119,35 @@ var_sym_ext :: { S Ast.Name }
 
 declcon :: { S Ast.Name }
     : con
-    { if
-        | isExtName do unS $1 -> undefined
-        | otherwise -> $1
+    {% if
+        | isExtName do unS $1 ->
+            Runner.reportParseError
+                Error.UnexpectedExtConInDecl
+                do sp $1
+        | otherwise ->
+            pure $1
     }
 
 declconop :: { S Ast.Name }
     : conop
-    { if
-        | isExtName do unS $1 -> undefined
-        | otherwise -> $1
-    }
-
-declvar :: { S Ast.Name }
-    : var
-    { if
-        | isExtName do unS $1 -> undefined
-        | otherwise -> $1
+    {% if
+        | isExtName do unS $1 ->
+            Runner.reportParseError
+                Error.UnexpectedExtConopInDecl
+                do sp $1
+        | otherwise ->
+            pure $1
     }
 
 declop :: { S Ast.Name }
     : op
-    { if
-        | isExtName do unS $1 -> undefined
-        | otherwise -> $1
+    {% if
+        | isExtName do unS $1 ->
+            Runner.reportParseError
+                Error.UnexpectedExtOpInDecl
+                do sp $1
+        | otherwise ->
+            pure $1
     }
 
 
@@ -1112,7 +1161,7 @@ lclose :: { Maybe Span }
     : '}'           { Just do sp $1 }
     | '}}'          { Just do sp $1 }
     | VCBRACE       { Nothing }
-    | error         { Nothing }
+    | error         {% Runner.errorRecover >> pure Nothing }
 
 lsemis :: { Maybe Span }
     : lsemis semi   { $1 <> $2 }
@@ -1138,37 +1187,37 @@ literal :: { Ast.Lit C }
     {
         spAnn $1 case unS $1 of
             Token.LitByteChar w -> Ast.LitByteChar w
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a bytechar token"
     }
     | BYTESTRING
     {
         spAnn $1 case unS $1 of
             Token.LitByteString s   -> Ast.LitByteString s
-            _                       -> error "unreachable"
+            _                       -> error "unreachable: expected a bytestring token"
     }
     | CHAR
     {
         spAnn $1 case unS $1 of
             Token.LitChar c -> Ast.LitChar c
-            _               -> error "unreachable"
+            _               -> error "unreachable: expected a char token"
     }
     | STRING
     {
         spAnn $1 case unS $1 of
             Token.LitString s   -> Ast.LitString s
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a string token"
     }
     | INTEGER
     {
         spAnn $1 case unS $1 of
             Token.LitInteger i  -> Ast.LitInteger i
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a integer token"
     }
     | RATIONAL
     {
         spAnn $1 case unS $1 of
             Token.LitRational r -> Ast.LitRational r
-            _                   -> error "unreachable: expected rational literal"
+            _                   -> error "unreachable: expected a rational token"
     }
 
 bind_vars :: { (Maybe Span, [Ast.BindVar C]) }
@@ -1189,7 +1238,7 @@ conid :: { S Ast.Name }
     {
         $1 <&> \case
             Token.IdConId n     -> n
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a conid token"
     }
 
 consym :: { S Ast.Name }
@@ -1197,7 +1246,7 @@ consym :: { S Ast.Name }
     {
         $1 <&> \case
             Token.IdConSym n    -> n
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a consym token"
     }
 
 varid :: { S Ast.Name }
@@ -1205,7 +1254,7 @@ varid :: { S Ast.Name }
     {
         $1 <&> \case
             Token.IdVarId n     -> n
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a varid token"
     }
 
 varsym :: { S Ast.Name }
@@ -1213,7 +1262,7 @@ varsym :: { S Ast.Name }
     {
         $1 <&> \case
             Token.IdVarSym n    -> n
-            _                   -> error "unreachable"
+            _                   -> error "unreachable: expected a varsym token"
     }
 {
 parseProgram :: Monad m => Runner.T m (Ast.Program C)

@@ -6,7 +6,8 @@ module Language.Quell.Parsing.Parser.Runner (
     runRunner,
     lexer,
     reportParseError,
-    parseError
+    parseError,
+    errorRecover
 ) where
 
 import           Language.Quell.Prelude
@@ -57,7 +58,9 @@ type RunnerCont m a = Spanned.T Token.T -> Runner m a
 
 data RunnerContext m = RunnerContext
     {
-        withLCont   :: forall a. RunnerCont m a -> Runner m a,
+        withLCont   :: forall a. RunnerCont m a -> [Layout.T] -> Runner m a,
+        nextLayoutStack :: [Layout.T],
+        enableErrorRecover :: Bool,
         lastSpan    :: Spanned.Span,
         tokenStack  :: [Layout.TokenWithL],
         parseErrors :: Bag.T (Spanned.T Error.T)
@@ -66,7 +69,9 @@ data RunnerContext m = RunnerContext
 initialContext :: Monad m => RunnerContext m
 initialContext = RunnerContext
     {
-        withLCont = \p -> withL p False [],
+        withLCont = \p ms -> withL p False ms,
+        nextLayoutStack = [],
+        enableErrorRecover = True,
         lastSpan = Spanned.Span
             {
                 Spanned.beginLoc = lastLoc,
@@ -86,7 +91,52 @@ initialContext = RunnerContext
 lexer :: Monad m => RunnerCont m a -> Runner m a
 lexer p0 = do
     ctx0 <- runnerGet
-    withLCont ctx0 \spt -> debugTrace ("parsing: " <> show spt) do p0 spt
+    withLCont ctx0
+        do \spt -> debugTrace ("parsing: " <> show spt) do p0 spt
+        do nextLayoutStack ctx0
+
+
+reportParseErrorWithCont :: Monad m => RunnerCont m a -> Error.T -> Spanned.Span -> Runner m a
+reportParseErrorWithCont p0 err sp = do
+    let spe = Spanned.Spanned
+            {
+                Spanned.getSpan = sp,
+                Spanned.unSpanned = err
+            }
+    ctx0 <- runnerGet
+    runnerPut do
+        ctx0
+            {
+                parseErrors = snoc (parseErrors ctx0) spe
+            }
+    let spt = Spanned.spannedFromLoc
+            do Spanned.endLoc do lastSpan ctx0
+            do Token.EndOfSource
+    p0 spt -- FIXME: Try to recover error
+
+reportParseError :: Monad m => Error.T -> Spanned.Span -> Runner m a
+reportParseError err sp = do
+    let spe = Spanned.Spanned
+            {
+                Spanned.getSpan = sp,
+                Spanned.unSpanned = err
+            }
+    ctx0 <- runnerGet
+    runnerPut do
+        ctx0
+            {
+                parseErrors = snoc (parseErrors ctx0) spe
+            }
+    Runner do lift do throwE ()
+
+-- FIXME: Try to analysis error and recover
+parseError :: Monad m => Runner m a
+parseError = do
+    ctx0 <- runnerGet
+    debugTraceShow (lastSpan ctx0, tokenStack ctx0)
+        do Runner do lift do throwE ()
+
+
 
 withL :: Monad m => RunnerCont m a -> Bool -> [Layout.T] -> Runner m a
 withL p0 expB ms = consumeToken >>= \case
@@ -104,59 +154,73 @@ withL p0 expB ms = consumeToken >>= \case
         Layout.ExpectBrace ->
             withL p0 True ms
 
-reportParseError :: Monad m => RunnerCont m a -> Error.T -> Spanned.Span -> Runner m a
-reportParseError p0 err sp = do
-    let spe = Spanned.Spanned
-            {
-                Spanned.getSpan = sp,
-                Spanned.unSpanned = err
-            }
-    ctx0 <- runnerGet
-    runnerPut do
-        ctx0
-            {
-                parseErrors = snoc (parseErrors ctx0) spe
-            }
-    let spt = Spanned.spannedFromLoc
-            do Spanned.endLoc do lastSpan ctx0
-            do Token.EndOfSource
-    p0 spt -- FIXME: Try to recover error
+runParserL :: Monad m
+    => RunnerCont m a -> Spanned.T Token.T -> [Layout.T]
+    -> (forall b. RunnerCont m b -> [Layout.T] -> Runner m b) -> Runner m a
+runParserL p spt ms cont = do
+    runnerModify' \ctx -> ctx
+        {
+            withLCont = cont,
+            nextLayoutStack = ms,
+            enableErrorRecover = True
+        }
+    p spt
 
--- FIXME: Try to analysis error and recover
-parseError :: Monad m => Runner m a
-parseError = do
-    ctx <- runnerGet
-    debugTraceShow (lastSpan ctx, tokenStack ctx)
-        do Runner do lift do throwE ()
+runSimpleParserL :: Monad m
+    => RunnerCont m a -> Spanned.T Token.T
+    -> (forall b. RunnerCont m b -> Runner m b) -> Runner m a
+runSimpleParserL p spt cont = do
+    runnerModify' \ctx -> ctx
+        {
+            withLCont = \p0 _ -> cont p0,
+            enableErrorRecover = False
+        }
+    p spt
+
+errorRecover :: Monad m => Runner m ()
+errorRecover = do
+    ctx0 <- runnerGet
+    case nextLayoutStack ctx0 of
+        _ | not do enableErrorRecover ctx0 ->
+            parseError
+        Layout.VirtualBrace{}:ms0 ->
+            runnerPut do
+                ctx0
+                    {
+                        nextLayoutStack = ms0
+                    }
+        _ ->
+            parseError
+
 
 resolveToken :: Monad m => RunnerCont m a
     -> Spanned.T Token.T -> Bool -> [Layout.T] -> Runner m a
-resolveToken p0 spt expB ms = do
+resolveToken p0 spt expB ms0 = do
     case Spanned.unSpanned spt of
         Token.SpBraceOpen | expB ->
-            runParserL p0 spt \p1 ->
-                withL p1 False do Layout.ExplicitBrace:ms
+            runParserL p0 spt ms0 \p1 ms1 ->
+                withL p1 False do Layout.ExplicitBrace:ms1
         Token.SpDBraceOpen | expB ->
-            runParserL p0 spt \p1 -> do
+            runParserL p0 spt ms0 \p1 ms1 -> do
                 m <- calcLayoutPos
-                withL p1 False do Layout.ExplicitDBrace m:ms
+                withL p1 False do Layout.ExplicitDBrace m:ms1
         _ | expB -> do
             let vbOp = Spanned.spannedFromLoc
                     do Spanned.beginLoc do Spanned.getSpan spt
                     do Token.SpVBraceOpen
-            runParserL p0 vbOp \p1 -> do
+            runParserL p0 vbOp ms0 \p1 ms1 -> do
                 m <- calcLayoutPos
-                resolveToken p1 spt False do Layout.VirtualBrace m:ms
+                resolveToken p1 spt False do Layout.VirtualBrace m:ms1
         t | Layout.isOpen t ->
-            runParserL p0 spt \p1 -> do
-                withL p1 False do Layout.NoLayout t:ms
+            runParserL p0 spt ms0 \p1 ms1 -> do
+                withL p1 False do Layout.NoLayout t:ms1
         t | Layout.isClose t ->
-            tryClose p0 spt ms
+            tryClose p0 spt ms0
         Token.LitInterpStringContinue{} ->
-            tryClose p0 spt ms
+            tryClose p0 spt ms0
         _ ->
-            runParserL p0 spt \p1 -> do
-                withL p1 False ms
+            runParserL p0 spt ms0 \p1 ms1 -> do
+                withL p1 False ms1
 
 resolveNewline :: Monad m
     => RunnerCont m a -> Spanned.T Token.T -> Bool -> [Layout.T] -> Runner m a
@@ -168,17 +232,17 @@ resolveNewline p0 spt expB ms0 = do
             | c < m -> case Spanned.unSpanned spt of
                 Token.SpDBraceClose ->
                     resolveEmptyBrace p0 expB bl \p1 ->
-                        runParserL p1 spt \p2 ->
-                            withL p2 False ms1
-                _ -> reportParseError p0
+                        runParserL p1 spt ms1 \p2 ms2 ->
+                            withL p2 False ms2
+                _ -> reportParseErrorWithCont p0
                     Error.ExpectedDBraceClose
                     do Spanned.getSpan spt
             | c == m ->
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vsemi = Spanned.spannedFromLoc bl
                             Token.SpVSemi
-                    runParserL p1 vsemi \p2 ->
-                        resolveToken p2 spt False ms0
+                    runParserL p1 vsemi ms0 \p2 ms1 ->
+                        resolveToken p2 spt False ms1
             | otherwise ->
                 resolveToken p0 spt False ms0
         Layout.VirtualBrace m:ms1
@@ -186,14 +250,14 @@ resolveNewline p0 spt expB ms0 = do
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vbCl = Spanned.spannedFromLoc bl
                             Token.SpVBraceClose
-                    runParserL p1 vbCl \p2 ->
-                        resolveNewline p2 spt False ms1
+                    runParserL p1 vbCl ms1 \p2 ms2 ->
+                        resolveNewline p2 spt False ms2
             | c == m ->
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vsemi = Spanned.spannedFromLoc bl
                             Token.SpVSemi
-                    runParserL p1 vsemi \p2 ->
-                        resolveToken p2 spt False ms0
+                    runParserL p1 vsemi ms0 \p2 ms1 ->
+                        resolveToken p2 spt False ms1
             | otherwise ->
                 resolveToken p0 spt expB ms0
         _ ->
@@ -208,10 +272,10 @@ resolveEmptyBrace p0 expB lc cont = case expB of
     True -> do
         let vbOp = Spanned.spannedFromLoc lc
                 Token.SpVBraceOpen
-        runParserL p0 vbOp \p1 -> do
+        runSimpleParserL p0 vbOp \p1 -> do
             let vbCl = Spanned.spannedFromLoc lc
                     Token.SpVBraceClose
-            runParserL p1 vbCl \p2 ->
+            runSimpleParserL p1 vbCl \p2 ->
                 cont p2
 
 tryClose :: Monad m
@@ -226,25 +290,25 @@ tryClose p0 spt ms0 = case ms0 of
             let lc = Spanned.beginLoc do Spanned.getSpan spt
                 vbCl = Spanned.spannedFromLoc lc
                     Token.SpVBraceClose
-            runParserL p0 vbCl \p1 ->
-                tryClose p1 spt ms1
+            runParserL p0 vbCl ms1 \p1 ms2 ->
+                tryClose p1 spt ms2
         Layout.ExplicitBrace{} -> case Spanned.unSpanned spt of
-            Token.SpBraceClose -> runParserL p0 spt \p1 ->
-                withL p1 False ms1
-            _ -> reportParseError p0
+            Token.SpBraceClose -> runParserL p0 spt ms1 \p1 ms2 ->
+                withL p1 False ms2
+            _ -> reportParseErrorWithCont p0
                 Error.ExpectedBraceClose
                 do Spanned.getSpan spt
         Layout.ExplicitDBrace{} -> case Spanned.unSpanned spt of
-            Token.SpDBraceClose -> runParserL p0 spt \p1 ->
-                withL p1 False ms1
-            _ -> reportParseError p0
+            Token.SpDBraceClose -> runParserL p0 spt ms1 \p1 ms2 ->
+                withL p1 False ms2
+            _ -> reportParseErrorWithCont p0
                 Error.ExpectedDBraceClose
                 do Spanned.getSpan spt
         Layout.NoLayout{} -> case Spanned.unSpanned spt of
-            t@Token.LitInterpStringContinue{} -> runParserL p0 spt \p1 ->
-                withL p1 False do Layout.NoLayout t:ms1
-            _ -> runParserL p0 spt \p1 ->
-                withL p1 False ms1
+            t@Token.LitInterpStringContinue{} -> runParserL p0 spt ms1 \p1 ms2 ->
+                withL p1 False do Layout.NoLayout t:ms2
+            _ -> runParserL p0 spt ms1 \p1 ms2 ->
+                withL p1 False ms2
 
 tryEnd :: Monad m => RunnerCont m a -> [Layout.T] -> Runner m a
 tryEnd = \p0 ms0 -> do
@@ -258,20 +322,20 @@ tryEnd = \p0 ms0 -> do
             [] -> do
                 let eos = Spanned.spannedFromLoc lc
                         Token.EndOfSource
-                runParserL p0 eos \_ ->
+                runParserL p0 eos ms0 \_ _ ->
                     error "unreachable: must be ended parsing with EOS."
             m:ms1 -> case m of
                 Layout.VirtualBrace _ -> do
                     let vbCl = Spanned.spannedFromLoc lc
                             Token.SpVBraceClose
-                    runParserL p0 vbCl \p1 ->
-                        go lc p1 ms1
+                    runParserL p0 vbCl ms1 \p1 ms2 ->
+                        go lc p1 ms2
                 Layout.ExplicitBrace{} ->
-                    reportParseError p0
+                    reportParseErrorWithCont p0
                         Error.ExpectedBraceClose
                         do Spanned.spanFromLoc lc
                 Layout.ExplicitDBrace{} ->
-                    reportParseError p0
+                    reportParseErrorWithCont p0
                         Error.ExpectedDBraceClose
                         do Spanned.spanFromLoc lc
                 Layout.NoLayout t ->
@@ -283,27 +347,27 @@ reportParseErrorNotOpened :: Monad m
     => RunnerCont m a -> Spanned.Span -> Token.T -> Runner m a
 reportParseErrorNotOpened p0 sp = \case
     Token.SpParenClose              ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedParenClose
             sp
     Token.SpBrackClose              ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedBrackClose
             sp
     Token.SpBraceClose              ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedBraceClose
             sp
     Token.SpDBraceClose             ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedDBraceClose
             sp
     Token.LitInterpStringEnd{}      ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedInterpStringClose
             sp
     Token.LitInterpStringContinue{} ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.NotOpenedInterpStringClose
             sp
     _ ->
@@ -313,42 +377,32 @@ reportParseErrorExpectedClose :: Monad m
     => RunnerCont m a -> Spanned.Span -> Token.T -> Runner m a
 reportParseErrorExpectedClose p0 sp = \case
     Token.SpParenOpen               ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedParenClose
             sp
     Token.SpBrackOpen               ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedBrackClose
             sp
     Token.SpBraceOpen               ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedBraceClose
             sp
     Token.SpDBraceOpen              ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedDBraceClose
             sp
     Token.LitInterpStringStart{}    ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedInterpStringClose
             sp
     Token.LitInterpStringContinue{} ->
-        reportParseError p0
+        reportParseErrorWithCont p0
             Error.ExpectedInterpStringClose
             sp
     _                               ->
         error "unreachable: the argument token must be an open token."
 
-
-runParserL :: Monad m
-    => RunnerCont m a -> Spanned.T Token.T
-    -> (forall b. RunnerCont m b -> Runner m b) -> Runner m a
-runParserL p spt cont = do
-    runnerModify' \ctx -> ctx
-        {
-            withLCont = cont
-        }
-    p spt
 
 calcLayoutPos :: forall m. Monad m => Runner m Int
 calcLayoutPos = do
