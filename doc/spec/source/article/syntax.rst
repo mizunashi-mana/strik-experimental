@@ -49,8 +49,8 @@ Lexical Syntax
             : con_sym
 
 .. productionlist::
-    var_id: (small (small | large | digit | other)*)<reserved_id>
-    con_id: (large (small | large | digit | other)*)<reserved_id>
+    var_id: (small (small | large | digit | other)*)
+    con_id: (large (small | large | digit | other)*)
     var_sym: (symbol<":"> (symbol | other)*)<reserved_sym>
     con_sym: (":" (symbol | other)*)<reserved_sym>
 
@@ -85,8 +85,6 @@ Lexical Syntax
                 : "#Self"
     reserved_sym: "_"
                 : "!"
-                : ".." | "…"
-                : "."
                 : "->" | "→"
                 : "<-" | "←"
                 : "=>" | "⇒"
@@ -108,6 +106,8 @@ Lexical Syntax
             : ";"
             : "##" | "﹟"
             : "#@"
+            : ".." | "…"
+            : "."
     brace   : "{{" | "}}" : "❴" | "❵"
             : "{" | "}"
 

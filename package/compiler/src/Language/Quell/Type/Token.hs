@@ -55,8 +55,6 @@ data Token
     | SymColon
     | SymDArrow
     | SymDLeftArrow
-    | SymDot
-    | SymDots
     | SymEqual
     | SymForall
     | SymLambda
@@ -75,6 +73,8 @@ data Token
     | SpBraceClose
     | SpDBraceOpen
     | SpDBraceClose
+    | SpDot
+    | SpDots
     | SpParenOpen
     | SpParenClose
     | SpSemi
@@ -146,8 +146,6 @@ instance Pretty Token where
         SymColon                        -> pretty ":"
         SymDArrow                       -> pretty "=>"
         SymDLeftArrow                   -> pretty "<="
-        SymDot                          -> pretty "."
-        SymDots                         -> pretty ".."
         SymEqual                        -> pretty "="
         SymForall                       -> pretty "\\/"
         SymLambda                       -> pretty "\\"
@@ -165,6 +163,8 @@ instance Pretty Token where
         SpBraceClose                    -> pretty "}"
         SpDBraceOpen                    -> pretty "{{"
         SpDBraceClose                   -> pretty "}}"
+        SpDot                           -> pretty "."
+        SpDots                          -> pretty ".."
         SpParenOpen                     -> pretty "("
         SpParenClose                    -> pretty ")"
         SpSemi                          -> pretty ";"

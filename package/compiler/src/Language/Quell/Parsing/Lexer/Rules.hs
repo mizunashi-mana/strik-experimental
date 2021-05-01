@@ -98,6 +98,7 @@ lexerRules = do
     -- be before varSymRule to avoid conflicting
     literalRules
 
+    -- be before varSymRule / conSymRule to avoid conflicting
     specialRules
     braceRules
 
@@ -201,8 +202,6 @@ reservedSymRules :: ScannerBuilder ()
 reservedSymRules = do
     initialRule (stringP "_")           [||WithToken do Token.SymUnderscore||]
     initialRule (stringP "!")           [||WithToken do Token.SymBang||]
-    initialRule (stringsP ["..", "…"])  [||WithToken do Token.SymDots||]
-    initialRule (stringP ".")           [||WithToken do Token.SymDot||]
     initialRule (stringsP ["->", "→"])  [||WithToken do Token.SymArrow||]
     initialRule (stringsP ["<-", "←"])  [||WithToken do Token.SymLeftArrow||]
     initialRule (stringsP ["=>", "⇒"])  [||WithToken do Token.SymDArrow||]
@@ -225,6 +224,9 @@ specialRules = do
     initialRule (stringP "]")   [||WithToken do Token.SpBrackClose||]
     initialRule (stringP "`")   [||WithToken do Token.SpBackquote||]
     initialRule (stringP ";")   [||WithToken do Token.SpSemi||]
+    initialRule (stringP "..")  [||WithToken do Token.SpDots||]
+    initialRule (stringP "…")   [||WithToken do Token.SpDots||]
+    initialRule (stringP ".")   [||WithToken do Token.SpDot||]
     initialRule (stringP "##")  [||WithToken do Token.SpBlock||]
     initialRule (stringP "﹟")  [||WithToken do Token.SpBlock||]
     initialRule (stringP "#@")  [||WithToken do Token.SpTypeBlock||]
