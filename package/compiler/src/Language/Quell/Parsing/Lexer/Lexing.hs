@@ -43,50 +43,50 @@ lexer = go Rules.Initial where
     go lst = do
         result <- tlexScan lst
         case result of
-            Tlex.TlexEndOfInput -> debugTrace "scan: end of input" do
+            Tlex.TlexEndOfInput -> do
                 pure ()
-            Tlex.TlexError -> debugTrace "scan: error" do
+            Tlex.TlexError -> do
                 yieldTlexError
-            Tlex.TlexAccepted pos act -> debugTrace "scan: accepted" do
+            Tlex.TlexAccepted pos act -> do
                 setPosition pos
                 case act of
-                    Rules.WithToken t -> debugTrace ("scan: with token: " <> show t) do
+                    Rules.WithToken t -> do
                         yieldToken t
-                    Rules.WithIdToken t -> debugTrace "scan: with id token" do
+                    Rules.WithIdToken t -> do
                         yieldIdToken t
-                    Rules.WithWhitespace -> debugTrace "scan: with whitespace" do
+                    Rules.WithWhitespace -> do
                         consumeBufferWithNothing
-                    Rules.LexLitRationalWithDot -> debugTrace "scan: lex rational with dot" do
+                    Rules.LexLitRationalWithDot -> do
                         lexAndYieldLitRationalWithDot
-                    Rules.LexLitRationalWithoutDot -> debugTrace "scan: lex rational without dot" do
+                    Rules.LexLitRationalWithoutDot ->  do
                         lexAndYieldLitRationalWithoutDot
-                    Rules.LexLitBitInteger -> debugTrace "scan: lex bit integer" do
+                    Rules.LexLitBitInteger -> do
                         lexAndYieldLitBitInteger
-                    Rules.LexLitOctitInteger -> debugTrace "scan: lex octit integer" do
+                    Rules.LexLitOctitInteger -> do
                         lexAndYieldLitOctitInteger
-                    Rules.LexLitHexitInteger -> debugTrace "scan: lex hexit integer" do
+                    Rules.LexLitHexitInteger -> do
                         lexAndYieldLitHexitInteger
-                    Rules.LexLitDecimalInteger -> debugTrace "scan: lex decimal integer" do
+                    Rules.LexLitDecimalInteger -> do
                         lexAndYieldLitDecimalInteger
-                    Rules.LexLitByteString -> debugTrace "scan: lex byte string" do
+                    Rules.LexLitByteString -> do
                         lexAndYieldLitByteString
-                    Rules.LexLitByteChar -> debugTrace "scan: lex byte char" do
+                    Rules.LexLitByteChar -> do
                         lexAndYieldLitByteChar
-                    Rules.LexLitString -> debugTrace "scan: lex string" do
+                    Rules.LexLitString -> do
                         lexAndYieldLitString
-                    Rules.LexLitChar -> debugTrace "scan: lex char" do
+                    Rules.LexLitChar -> do
                         lexAndYieldLitChar
-                    Rules.LexInterpStringStart -> debugTrace "scan: lex interp string" do
+                    Rules.LexInterpStringStart -> do
                         lexAndYieldInterpStringStart
-                    Rules.LexInterpStringContinue -> debugTrace "scan: lex interp string continue" do
+                    Rules.LexInterpStringContinue -> do
                         lexAndYieldInterpStringContinue
-                    Rules.LexCommentLineWithContent -> debugTrace "scan: lex line comment" do
+                    Rules.LexCommentLineWithContent -> do
                         lexAndYieldCommentLineWithContent
-                    Rules.LexCommentMultilineWithContent -> debugTrace "scan: lex multiline comment" do
+                    Rules.LexCommentMultilineWithContent -> do
                         lexAndYieldCommentMultilineWithContent
-                    Rules.LexCommentDoc -> debugTrace "scan: lex doc comment" do
+                    Rules.LexCommentDoc -> do
                         lexAndYieldCommentDoc
-                    Rules.LexCommentPragma -> debugTrace "scan: lex pragma comment" do
+                    Rules.LexCommentPragma -> do
                         lexAndYieldCommentPragma
                 go Rules.Initial
 

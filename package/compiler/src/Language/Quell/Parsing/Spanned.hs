@@ -70,7 +70,7 @@ spanFromLoc lc = Span
 instance Semigroup Span where
     sp1 <> sp2 = Span
         {
-            beginLoc = max
+            beginLoc = min
                 do beginLoc sp1
                 do beginLoc sp2,
             endLoc = max
