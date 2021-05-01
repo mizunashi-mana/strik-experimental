@@ -1,0 +1,13 @@
+#data List a =
+    | Nil
+    | Cons a (List a)
+
+#type L = List
+
+map: \/a b. (a -> b) -> L a -> L b
+map f = go #where
+    go = \#case
+        Nil         -> Nil
+        Cons x xs   -> Cons
+            ## f x
+            ## go xs
