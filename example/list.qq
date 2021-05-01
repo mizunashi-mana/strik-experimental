@@ -11,3 +11,9 @@ map f = go #where
         Cons x xs   -> Cons
             ## f x
             ## go xs
+
+reverse: \/a. L a -> L a
+reverse = \xs -> go Nil xs #where
+    go l = \#case
+        Nil -> l
+        Cons x xs -> go (Cons x l) xs
