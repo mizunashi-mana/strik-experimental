@@ -698,13 +698,19 @@ pat_unit_list :: { S (Bag.T (Ast.Pat C)) }
     { spn $1 do pure $1 }
 
 pat_infix :: { Ast.Pat C }
-    : pat_infix conop_qualified pat_univ_apps
+    : pat_infix conop_qualified pat_apps
     { spAnn ($1, $2, $3) do Ast.PatInfix $1 (unS $2) $3 }
-    | pat_univ_apps
+    | pat_apps
     { $1 }
 
-pat_univ_apps :: { Ast.Pat C }
-    : pat_apps pat_univ_apps_args
+pat_apps :: { Ast.Pat C }
+    : con_qualified pat_apps_args
+    {
+        case $2 of { (ms2, ps) ->
+            spAnn ($1 :< ms2) do Ast.PatApp (unS $1) do otoList ps
+        }
+    }
+    | pat_qualified pat_univ_apps_args
     {
         case $2 of { (ms2, ts) ->
             spAnn ($1 :< ms2) do Ast.PatUnivApp $1 do otoList ts
@@ -712,32 +718,27 @@ pat_univ_apps :: { Ast.Pat C }
     }
 
 pat_univ_apps_args :: { MaySpBag (Ast.TypeExpr C) }
-    : pat_univ_apps_args pat_univ_app
-    { maySpBagAppend $1 $2 do unS $2 }
-    | {- empty -}
-    { maySpBagEmpty }
+    : pat_univ_apps_args pat_univ_app   { maySpBagAppend $1 $2 do unS $2 }
+    | {- empty -}                       { maySpBagEmpty }
 
 pat_univ_app :: { S (Ast.TypeExpr C) }
     : '@' type_qualified        { spn ($1, $2) $2 }
-    | '#@' type_block_body      { spAnn ($1, $2) do unS $2 }
-
-pat_apps :: { Ast.Pat C }
-    : pat_qualified pat_apps_args %shift
-    {
-        case $2 of { (ms2, ps) ->
-            spAnn ($1 :< ms2) do Ast.PatApp (unS $1) do otoList ps
-        }
-    }
-    | pat_qualified
-    { $1 }
+    | '#@' type_block_body      { spn ($1, $2) do unS $2 }
 
 pat_apps_args :: { MaySpBag (Ast.AppPat C) }
     : pat_apps_args pat_app             { maySpBagAppend $1 $2 $2 }
     | {- empty -}                       { maySpBagEmpty }
 
 pat_app :: { Ast.AppPat C }
-    : pat_qualified     { spAnn $1 do Ast.AppPat $1 }
-    | pat_univ_app      { spAnn $1 do Ast.UnivAppPat do unS $1 }
+    : pat_qualified
+    { spAnn $1 do Ast.AppPat $1 }
+    | con_qualified
+    {
+        let p = spAnn $1 do Ast.PatCon do unS $1
+        in spAnn p do Ast.AppPat p
+    }
+    | pat_univ_app
+    { spAnn $1 do Ast.UnivAppPat do unS $1 }
 
 pat_qualified :: { Ast.Pat C }
     : pat_block     { $1 }
@@ -750,7 +751,6 @@ pat_block :: { Ast.Pat C }
 
 pat_atomic :: { Ast.Pat C }
     : '(' pat ')'           { spAnn ($1, $2, $3) do Ast.PatAnn $2 }
-    | con                   { spAnn $1 do Ast.PatCon do unS $1 }
     | var %shift            { spAnn $1 do Ast.PatVar do unS $1 }
     | pat_literal           { $1 }
 

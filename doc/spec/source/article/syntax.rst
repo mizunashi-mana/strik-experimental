@@ -458,6 +458,7 @@ Grammar
     pat_univ_app    : "@" type_qualified
                     : "#@" type_block_body
     pat_app : pat_qualified
+            : con_qualified
             : pat_univ_app
     pat_qualified: pat_block
     pat_block   : "##" pat_block_body
