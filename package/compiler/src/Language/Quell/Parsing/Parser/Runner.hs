@@ -89,7 +89,7 @@ initialContext = RunnerContext
             }
 
 lexer :: Monad m => RunnerCont m a -> Runner m a
-lexer p0 = do
+lexer p0 = debugTrace "lexer" do
     ctx0 <- runnerGet
     withLCont ctx0
         do \spt -> debugTrace ("parsing: " <> show spt) do p0 spt
@@ -97,7 +97,7 @@ lexer p0 = do
 
 
 reportParseErrorWithCont :: Monad m => RunnerCont m a -> Error.T -> Spanned.Span -> Runner m a
-reportParseErrorWithCont p0 err sp = do
+reportParseErrorWithCont p0 err sp = debugTrace "reportParseErrorWithCont" do
     let spe = Spanned.Spanned
             {
                 Spanned.getSpan = sp,
@@ -115,7 +115,7 @@ reportParseErrorWithCont p0 err sp = do
     p0 spt -- FIXME: Try to recover error
 
 reportParseError :: Monad m => Error.T -> Spanned.Span -> Runner m a
-reportParseError err sp = do
+reportParseError err sp = debugTrace "reportParseError" do
     let spe = Spanned.Spanned
             {
                 Spanned.getSpan = sp,
@@ -131,9 +131,9 @@ reportParseError err sp = do
 
 -- FIXME: Try to analysis error and recover
 parseError :: Monad m => Runner m a
-parseError = do
+parseError = debugTrace "parseError" do
     ctx0 <- runnerGet
-    debugTraceShow (lastSpan ctx0, tokenStack ctx0)
+    debugTrace ("parseError :" <> show (lastSpan ctx0, tokenStack ctx0))
         do Runner do lift do throwE ()
 
 
@@ -177,7 +177,7 @@ runSimpleParserL p spt cont = do
     p spt
 
 errorRecover :: Monad m => Runner m ()
-errorRecover = do
+errorRecover = debugTrace "errorRecover" do
     ctx0 <- runnerGet
     case nextLayoutStack ctx0 of
         _ | not do enableErrorRecover ctx0 ->

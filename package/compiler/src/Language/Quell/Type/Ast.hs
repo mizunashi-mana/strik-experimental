@@ -1,5 +1,6 @@
 module Language.Quell.Type.Ast (
     Program (..),
+    XProgram,
 
     Decl (..),
     XDeclTypeSig,
@@ -124,10 +125,14 @@ import           Language.Quell.Prelude
 import qualified Language.Quell.Type.TextId as TextId
 
 
-data Program c = Program
-    {
-        decls      :: [Decl c]
-    }
+data Program c = Program [Decl c] (XProgram c)
+
+type family XProgram c :: Type
+
+type XCProgram f c =
+    (
+        f (XProgram c)
+    )
 
 deriving instance XEq c => Eq (Program c)
 deriving instance XShow c => Show (Program c)
@@ -567,6 +572,7 @@ primNameWildcard = TextId.primTextId TextId.PrimTextWildcard
 type XC :: (Type -> Constraint) -> Type -> Constraint
 type XC f c =
     (
+        XCProgram f c,
         XCAppExpr f c,
         XCBindVar f c,
         XCLit f c,

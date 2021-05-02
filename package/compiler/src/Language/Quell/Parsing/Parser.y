@@ -107,22 +107,27 @@ TODO
 program :: { Ast.Program C }
     : decl_body
     {
-        Ast.Program
-            {
-                decls = otoList $1
-            }
+        case $1 of { (ms1, ds) ->
+            Ast.Program ds ms1
+        }
     }
 
-decl_body :: { Bag.T (Ast.Decl C) }
-    : lopen decl_items lclose   { $2 }
+decl_body :: { (Maybe Span, [Ast.Decl C]) }
+    : lopen decl_items lclose
+    {
+        case $2 of { (ms2, ds) ->
+            let ms = maySp [fmap sp $1, ms2, fmap sp $3]
+            in (ms, otoList ds)
+        }
+    }
 
-decl_items :: { Bag.T (Ast.Decl C) }
-    : decl_items_semis decl_item    { $1 <> pure $2 }
+decl_items :: { MaySpBag  (Ast.Decl C) }
+    : decl_items_semis decl_item    { maySpBagAppend $1 $2 $2 }
     | decl_items_semis              { $1 }
 
-decl_items_semis :: { Bag.T (Ast.Decl C) }
-    : decl_items_semis decl_item lsemis     { $1 <> pure $2 }
-    | {- empty -}                           { mempty }
+decl_items_semis :: { MaySpBag (Ast.Decl C) }
+    : decl_items_semis decl_item lsemis     { maySpBagAppend $1 ($2 :< $3) $2 }
+    | {- empty -}                           { maySpBagEmpty }
 
 decl_item :: { Ast.Decl C }
     : sig_item              { $1 }
@@ -201,15 +206,13 @@ type_decl_where_item :: { Ast.Decl C }
 data_decl :: { Ast.Decl C }
     : '#data' declcon ':' type data_decl_where
     {
-        case $5 of { (ms5, ds) ->
-            spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclDataType (unS $2) (Just $4) ds
-        }
+        spAnn ($1, $2, $3, $4, $5) do
+            Ast.DeclDataType (unS $2) (Just $4) do unS $5
     }
     | '#data' declcon data_decl_where
     {
-        case $3 of { (ms3, ds) ->
-            spAnn ($1, $2 :< ms3) do Ast.DeclDataType (unS $2) Nothing ds
-        }
+        spAnn ($1, $2, $3) do
+            Ast.DeclDataType (unS $2) Nothing do unS $3
     }
     | '#data' decltype '=' alg_data_type type_decl_where
     {
@@ -217,6 +220,8 @@ data_decl :: { Ast.Decl C }
             spAnn ($1, $2, $3, $4 :< ms5) do Ast.DeclAlgDataType $2 (unS $4) ds
         }
     }
+    | '#data' decltype
+    { spAnn ($1, $2) do Ast.DeclAlgDataType $2 [] [] }
     | '#newtype' decltype '=' type type_decl_where
     {
         case $5 of { (ms5, ds) ->
@@ -224,15 +229,13 @@ data_decl :: { Ast.Decl C }
         }
     }
 
-data_decl_where :: { (Maybe Span, [Ast.Decl C]) }
+data_decl_where :: { S [Ast.Decl C] }
     : '#where' data_decl_body
     {
         case $2 of { (ms2, ds) ->
-            (Just do sp do $1 :< ms2, ds)
+            spn ($1 :< ms2) ds
         }
     }
-    | {- empty -}
-    { (Nothing, []) }
 
 data_decl_body :: { (Maybe Span, [Ast.Decl C]) }
     : lopen data_decl_items lclose
@@ -255,22 +258,28 @@ data_decl_item :: { Ast.Decl C }
     : consig_decl       { $1 }
 
 alg_data_type :: { S [Ast.ImplType C] }
-    : '(' alg_data_type_items ')'   { spn ($1, $2, $3) do unS $2 }
-    | '(' vbars ')'                 { spn ($1 :< $2, $3) [] }
-    | alg_data_type_items           { $1 }
+    : alg_data_type_items           { $1 }
 
 alg_data_type_items :: { S [Ast.ImplType C] }
     : alg_data_type_items_vbar impltype vbars
     {
         case $1 of { (ms1, ts1) ->
-            let ts = otoList do snoc ts $2
-            in spn (ms1 :> $2 :< $3) ts
+            let ts = otoList do snoc ts1 $2
+            in spn (ms1 :> $2, $3) ts
+        }
+    }
+    | alg_data_type_items_vbar impltype
+    {
+        case $1 of { (ms1, ts1) ->
+            let ts = otoList do snoc ts1 $2
+            in spn (ms1 :> $2) ts
         }
     }
 
 alg_data_type_items_vbar :: { MaySpBag (Ast.ImplType C) }
-    : alg_data_type_items_vbar impltype vbars1  { maySpBagAppend $1 ($2, $3) $2 }
-    | vbars                                     { maySpBagEmptyWithSpan $1 }
+    : alg_data_type_items_vbar impltype vbars   { maySpBagAppend $1 ($2, $3) $2 }
+    | vbars                                     { maySpBagEmptyWithSpan do Just $1 }
+    | {- empty -} %shift                        { maySpBagEmpty }
 
 
 val_decl :: { Ast.Decl C }
@@ -1002,7 +1011,8 @@ guard_qual :: { Maybe (Ast.Expr C) }
 
 
 do_body :: { S ([Ast.DoStmt C], Ast.Expr C) }
-    : lopen do_stmt_items lclose        { spn ($1 :> $2 :< $3) do unS $2 }
+    : lopen do_stmt_items lclose
+    { spn ($1 :> $2 :< $3) do unS $2 }
 
 do_stmt_items :: { S ([Ast.DoStmt C], Ast.Expr C) }
     : do_stmt_items_semis do_yield_item lsemis
@@ -1172,12 +1182,9 @@ semi :: { Maybe Span }
     : ';'           { Just do sp $1 }
     | VSEMI         { Nothing }
 
-vbars1 :: { Span }
-    : vbars vbar    { sp do $1 :> $2 }
-
-vbars :: { Maybe Span }
-    : vbars vbar            { $1 <> Just $2 }
-    | {- empty -} %shift    { Nothing }
+vbars :: { Span }
+    : vbars vbar    { $1 <> $2 }
+    | vbar          { $1 }
 
 vbar :: { Span }
     : '|'   { sp $1 }

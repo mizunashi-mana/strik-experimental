@@ -30,21 +30,16 @@ main = go where
         IO.hFlush IO.stdout
         line <- ByteString.getLine
         IO.print line
-        if
-            | onull line -> IO.hIsEOF IO.stdin >>= \case
-                True  -> pure ()
-                False -> go
-            | otherwise -> do
-                ts1 <- lex line
-                IO.putStr "tokens: "
-                IO.print ts1
-                ts2 <- lexWithPreParse line
-                IO.putStr "tokens for preParse: "
-                IO.print ts2
-                r <- parse line
-                IO.putStr "parse result: "
-                IO.print r
-                go
+        ts1 <- lex line
+        IO.putStr "tokens: "
+        IO.print ts1
+        ts2 <- lexWithPreParse line
+        IO.putStr "tokens for preParse: "
+        IO.print ts2
+        r <- parse line
+        IO.putStr "parse result: "
+        IO.print r
+        go
 
 lex :: ByteString -> IO [Spanned.T Token.T]
 lex line = do
@@ -93,3 +88,10 @@ parse line =
             case r of
                 Runner.RunnerSuccess x -> pure do ParseTypeSuccess x
                 Runner.RunnerFailed es -> cont es
+
+parseCustom :: Runner.Runner IO a -> ByteString -> IO (Runner.RunnerResult a)
+parseCustom r line = do
+    let p = Source2Ast.source2Tokens do source line
+            Conduit..| Layout.preParse
+            Conduit..| Runner.runRunner r
+    Conduit.runConduit p

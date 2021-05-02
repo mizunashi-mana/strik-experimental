@@ -210,6 +210,7 @@ data AstParsed
 
 type T = AstParsed
 
+type instance Ast.XProgram AstParsed = Maybe Spanned.Span
 type instance Ast.XAppExpr AstParsed = Spanned.Span
 type instance Ast.XUnivAppExpr AstParsed = Spanned.Span
 type instance Ast.XBindVar AstParsed = Spanned.Span

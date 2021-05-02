@@ -334,8 +334,9 @@ Grammar
                         : type_decl
 
 .. productionlist::
-    data_decl   : "#data" declcon (":" type)? ("#where" data_decl_body)?
+    data_decl   : "#data" declcon (":" type)? "#where" data_decl_body
                 : "#data" decltype "=" alg_data_type ("#where" type_decl_where_body)?
+                : "#data" decltype
                 : "#newtype" decltype "=" type ("#where" type_decl_where_body)?
     data_decl_body  : "{" data_decl_items "}"
                     : "{{" data_decl_items "}}"
@@ -344,9 +345,7 @@ Grammar
     data_decl_item  : typesig_decl
                     : consig_decl
                     : type_decl
-    alg_data_type   : "(" alg_data_type_items ")"
-                    : "(" "|"* ")"
-                    : alg_data_type_items
+    alg_data_type   : alg_data_type_items
     alg_data_type_items : "|"* (impltype "|"+)* impltype "|"*
 
 .. productionlist::
