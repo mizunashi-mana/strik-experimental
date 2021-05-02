@@ -67,9 +67,9 @@ Lexical Syntax
                 : "#infix"
                 : "#letrec"
                 : "#let"
+                : "#match"
                 : "#mod"
                 : "#newtype"
-                : "#of"
                 : "#pattern"
                 : "#record"
                 : "#role"
@@ -78,6 +78,7 @@ Lexical Syntax
                 : "#trait"
                 : "#type"
                 : "#use"
+                : "#with"
                 : "#when"
                 : "#where"
                 : "#yield"
@@ -92,7 +93,7 @@ Lexical Syntax
                 : "="
                 : "?"
                 : "@"
-                : "\\/" | "∀"
+                : "^" | "∀"
                 : "\\" | "λ"
                 : "|"
                 : "~"
@@ -296,7 +297,7 @@ Aliases
     "<-"    : "<-" | "←"
     "<="    : "<=" | "⇐"
     "=>"    : "=>" | "⇒"
-    "\\/"   : "\\/" | "∀"
+    "^"     : "^" | "∀"
     "\\"    : "\\" | "λ"
     "{{"    : "{{" | "❴"
     "}}"    : "}}" | "❵"
@@ -366,7 +367,7 @@ Grammar
                 : simple_bind_var declop simple_bind_var
 
 .. productionlist::
-    type: "\\/" bind_var* "=>" type
+    type: "^" bind_var* "=>" type
         : type_expr
     type_expr   : type_unit "->" type
                 : type_unit
@@ -420,11 +421,11 @@ Grammar
             : "@" type_qualified
             : "#@" type_block_body
     expr_qualified: expr_block
-    expr_block  : "\\" "#case" case_alt_body
-                : "\\" lambda_body
+    expr_block  : "\\" lambda_body
+                : "#case" case_alt_body
                 : "#letrec" let_body
                 : "#let" let_body
-                : "#case" (expr ",")* expr? "#of" case_alt_body
+                : "#match" (expr ",")* expr? "#with" case_alt_body
                 : "#do" do_body
                 : "##" expr_block_body
                 : expr_atomic
@@ -577,14 +578,12 @@ Layout
         = Token Bool Int String
         | ExpectBrace
 
-    preParse ts = go ts 0 isLayoutKeyword where
-        go ts pl isL = skipWhiteSpace ts pl \(b,c,t) ts l -> case t of
-            "\\" ->
-                Token b c t:go ts l isLayoutKeywordLam
-            _ | isL t ->
-                Token b c t:ExpectBrace:go ts l isLayoutKeyword
+    preParse ts = go ts 0 where
+        go ts pl = skipWhiteSpace ts pl \(b,c,t) ts l -> case t of
+            _ | isLayoutKeyword t ->
+                Token b c t:ExpectBrace:go ts l
             _ ->
-                Token b c t:go ts l isLayoutKeyword
+                Token b c t:go ts l
 
     skipWhiteSpace ts pl cont = case ts of
         [] -> []
@@ -600,18 +599,16 @@ Layout
         t match whitespace
 
     isLayoutKeyword t = case t of
+        "\\"        -> True
+        "#case"     -> True
         "#let"      -> True
         "#letrec"   -> True
-        "#of"       -> True
+        "#with"     -> True
         "#when"     -> True
         "#where"    -> True
         "##"        -> True
         "#@"        -> True
         _           -> False
-
-    isLayoutKeywordLam t = case t of
-        "#case"     -> True
-        _           -> isLayoutKeyword t
 
 .. code-block:: haskell
 

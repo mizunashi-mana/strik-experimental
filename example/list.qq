@@ -4,16 +4,16 @@
 
 #type L = List
 
-map: \/a b. (a -> b) -> L a -> L b
+map: ^a b. (a -> b) -> L a -> L b
 map f = go #where
-    go = \#case
+    go = #case
         Nil         -> Nil
         Cons x xs   -> Cons
             ## f x
             ## go xs
 
-reverse: \/a. L a -> L a
+reverse: ^a. L a -> L a
 reverse = \xs -> go Nil xs #where
-    go l = \#case
+    go l = #case
         Nil -> l
         Cons x xs -> go (Cons x l) xs

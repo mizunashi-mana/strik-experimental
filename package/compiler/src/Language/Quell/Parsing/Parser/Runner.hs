@@ -231,8 +231,8 @@ resolveNewline p0 spt expB ms0 = do
             | c < m -> case Spanned.unSpanned spt of
                 Token.SpDBraceClose ->
                     resolveEmptyBrace p0 expB bl \p1 ->
-                        runParserL p1 spt ms1 \p2 ms2 ->
-                            withL p2 False ms2
+                        runSimpleParserL p1 spt \p2 ->
+                            withL p2 False ms1
                 _ -> reportParseErrorWithCont p0
                     Error.ExpectedDBraceClose
                     do Spanned.getSpan spt
@@ -240,8 +240,8 @@ resolveNewline p0 spt expB ms0 = do
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vsemi = Spanned.spannedFromLoc bl
                             Token.SpVSemi
-                    runParserL p1 vsemi ms0 \p2 ms1 ->
-                        resolveToken p2 spt False ms1
+                    runSimpleParserL p1 vsemi \p2 ->
+                        resolveToken p2 spt False ms0
             | otherwise ->
                 resolveToken p0 spt False ms0
         Layout.VirtualBrace m:ms1
@@ -249,14 +249,14 @@ resolveNewline p0 spt expB ms0 = do
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vbCl = Spanned.spannedFromLoc bl
                             Token.SpVBraceClose
-                    runParserL p1 vbCl ms1 \p2 ms2 ->
-                        resolveNewline p2 spt False ms2
+                    runSimpleParserL p1 vbCl \p2 ->
+                        resolveNewline p2 spt False ms1
             | c == m ->
                 resolveEmptyBrace p0 expB bl \p1 -> do
                     let vsemi = Spanned.spannedFromLoc bl
                             Token.SpVSemi
-                    runParserL p1 vsemi ms0 \p2 ms1 ->
-                        resolveToken p2 spt False ms1
+                    runSimpleParserL p1 vsemi \p2 ->
+                        resolveToken p2 spt False ms0
             | otherwise ->
                 resolveToken p0 spt expB ms0
         _ ->

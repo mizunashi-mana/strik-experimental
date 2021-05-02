@@ -40,9 +40,10 @@ TODO
     '#in'           { S Token.KwIn }
     '#let'          { S Token.KwLet }
     '#letrec'       { S Token.KwLetrec }
+    '#match'        { S Token.KwMatch }
     '#newtype'      { S Token.KwNewtype }
-    '#of'           { S Token.KwOf }
     '#type'         { S Token.KwType }
+    '#with'         { S Token.KwWith }
     '#when'         { S Token.KwWhen }
     '#where'        { S Token.KwWhere }
     '#yield'        { S Token.KwYield }
@@ -52,7 +53,7 @@ TODO
     ':'         { S Token.SymColon }
     '=>'        { S Token.SymDArrow }
     '='         { S Token.SymEqual }
-    '\\/'       { S Token.SymForall }
+    '^'         { S Token.SymForall }
     '\\'        { S Token.SymLambda }
     '<-'        { S Token.SymLeftArrow }
     '|'         { S Token.SymOr }
@@ -384,7 +385,7 @@ simple_bind_var_decl :: { Ast.BindVar C }
 
 
 type :: { Ast.TypeExpr C }
-    : '\\/' bind_vars '=>' type
+    : '^' bind_vars '=>' type
     {
         case $2 of { (ms2, vs) ->
             spAnn ($1 :< ms2, $3, $4) do Ast.TypeForall vs $4
@@ -561,10 +562,10 @@ expr_qualified :: { Ast.Expr C }
     : expr_block                { $1 }
 
 expr_block :: { Ast.Expr C }
-    : '\\' '#case' case_alt_body
+    : '#case' case_alt_body
     {
-        case $3 of { (ms3, alts) ->
-            spAnn ($1, $2 :< ms3) do Ast.ExprLambda alts
+        case $2 of { (ms2, alts) ->
+            spAnn ($1 :< ms2) do Ast.ExprLambda alts
         }
     }
     | '\\' lambda_body
@@ -581,7 +582,7 @@ expr_block :: { Ast.Expr C }
             spAnn ($1, $2) do Ast.ExprLetrec ds e
         }
     }
-    | '#case' case_body
+    | '#match' match_body
     {
         case unS $2 of { (es, alts) ->
             spAnn ($1, $2) do Ast.ExprCase es alts
@@ -905,20 +906,20 @@ let_bind_item :: { Ast.Decl C }
     | val_bind                  { $1 }
 
 
-case_body :: { S ([Ast.Expr C], [Ast.CaseAlt C]) }
-    : case_exprs '#of' case_alt_body
+match_body :: { S ([Ast.Expr C], [Ast.CaseAlt C]) }
+    : match_exprs '#with' case_alt_body
     {
         case $1 of { (ms1, es) -> case $3 of { (ms3, alts) ->
             spn (ms1 :> $2 :< ms3) (otoList es, alts)
         } }
     }
 
-case_exprs :: { MaySpBag (Ast.Expr C) }
-    : case_exprs_commas expr    { maySpBagAppend $1 $2 $2 }
-    | case_exprs_commas         { $1 }
+match_exprs :: { MaySpBag (Ast.Expr C) }
+    : match_exprs_commas expr       { maySpBagAppend $1 $2 $2 }
+    | match_exprs_commas            { $1 }
 
-case_exprs_commas :: { MaySpBag (Ast.Expr C) }
-    : case_exprs_commas expr ','
+match_exprs_commas :: { MaySpBag (Ast.Expr C) }
+    : match_exprs_commas expr ','
     { maySpBagAppend $1 ($2, $3) $2 }
     | {- empty -}
     { maySpBagEmpty }

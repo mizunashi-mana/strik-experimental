@@ -7,7 +7,6 @@ module Language.Quell.Parsing.Parser.Layout (
     preParse,
 
     isLayoutKeyword,
-    isLayoutKeywordLam,
 
     isOpen,
     isClose,
@@ -42,18 +41,15 @@ preParseForProgram = do
     preParse
 
 preParse :: Monad m => WithLConduit m ()
-preParse = go 0 isLayoutKeyword where
-    go pl isL = resolveNewline pl \isN spt l -> case Spanned.unSpanned spt of
-        Token.SymLambda -> do
-            Conduit.yield do Token isN spt
-            go l isLayoutKeywordLam
-        t | isL t -> do
+preParse = go 0 where
+    go pl = resolveNewline pl \isN spt l -> case Spanned.unSpanned spt of
+        t | isLayoutKeyword t -> do
             Conduit.yield do Token isN spt
             Conduit.yield ExpectBrace
-            go l isLayoutKeyword
+            go l
         _ -> do
             Conduit.yield do Token isN spt
-            go l isLayoutKeyword
+            go l
 
 resolveNewline :: Monad m
     => Int
@@ -74,19 +70,16 @@ resolveNewline pl cont = Conduit.await >>= \case
 
 isLayoutKeyword :: Token.T -> Bool
 isLayoutKeyword = \case
+    Token.KwCase      -> True
     Token.KwLet       -> True
     Token.KwLetrec    -> True
-    Token.KwOf        -> True
+    Token.KwWith      -> True
     Token.KwWhen      -> True
     Token.KwWhere     -> True
+    Token.SymLambda   -> True
     Token.SpBlock     -> True
     Token.SpTypeBlock -> True
     _                 -> False
-
-isLayoutKeywordLam :: Token.T -> Bool
-isLayoutKeywordLam = \case
-    Token.KwCase -> True
-    t            -> isLayoutKeyword t
 
 isOpen :: Token.T -> Bool
 isOpen = \case

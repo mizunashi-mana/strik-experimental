@@ -29,9 +29,9 @@ data Token
     | KwInfix
     | KwLet
     | KwLetrec
+    | KwMatch
     | KwModule
     | KwNewtype
-    | KwOf
     | KwPattern
     | KwRec
     | KwRecord
@@ -42,6 +42,7 @@ data Token
     | KwTrait
     | KwType
     | KwUse
+    | KwWith
     | KwWhen
     | KwWhere
     | KwYield
@@ -122,9 +123,9 @@ instance Pretty Token where
         KwInfix                         -> pretty "#infix"
         KwLet                           -> pretty "#let"
         KwLetrec                        -> pretty "#letrec"
+        KwMatch                         -> pretty "#match"
         KwModule                        -> pretty "#mod"
         KwNewtype                       -> pretty "#newtype"
-        KwOf                            -> pretty "#of"
         KwPattern                       -> pretty "#pattern"
         KwRec                           -> pretty "#rec"
         KwRecord                        -> pretty "#record"
@@ -135,6 +136,7 @@ instance Pretty Token where
         KwTrait                         -> pretty "#trait"
         KwType                          -> pretty "#type"
         KwUse                           -> pretty "#use"
+        KwWith                          -> pretty "#with"
         KwWhen                          -> pretty "#when"
         KwWhere                         -> pretty "#where"
         KwYield                         -> pretty "#yield"
@@ -147,7 +149,7 @@ instance Pretty Token where
         SymDArrow                       -> pretty "=>"
         SymDLeftArrow                   -> pretty "<="
         SymEqual                        -> pretty "="
-        SymForall                       -> pretty "\\/"
+        SymForall                       -> pretty "^"
         SymLambda                       -> pretty "\\"
         SymLeftArrow                    -> pretty "<-"
         SymOr                           -> pretty "|"

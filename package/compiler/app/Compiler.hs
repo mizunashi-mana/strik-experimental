@@ -26,25 +26,16 @@ source bs = Source2Ast.Source
 main :: IO ()
 main = go where
     go = do
-        IO.putStr "> "
-        IO.hFlush IO.stdout
-        line <- ByteString.getLine
-        IO.print line
-        if
-            | onull line -> IO.hIsEOF IO.stdin >>= \case
-                True  -> pure ()
-                False -> go
-            | otherwise -> do
-                ts1 <- lex line
-                IO.putStr "tokens: "
-                IO.print ts1
-                ts2 <- lexWithPreParse line
-                IO.putStr "tokens for preParse: "
-                IO.print ts2
-                r <- parse line
-                IO.putStr "parse result: "
-                IO.print r
-                go
+        input <- ByteString.getContents
+        ts1 <- lex input
+        IO.putStr "tokens: "
+        IO.print ts1
+        ts2 <- lexWithPreParse input
+        IO.putStr "tokens for preParse: "
+        IO.print ts2
+        r <- parse input
+        IO.putStr "parse result: "
+        IO.print r
 
 lex :: ByteString -> IO [Spanned.T Token.T]
 lex line = do
@@ -61,35 +52,17 @@ lexWithPreParse line = do
 
 data ParseResult c
     = ParseProgramSuccess (Ast.Program c)
-    | ParseExprSuccess (Ast.Expr c)
-    | ParseTypeSuccess (Ast.TypeExpr c)
     | ParseFailed [Spanned.T Error.T]
     deriving (Eq, Show)
 
 parse :: ByteString -> IO (ParseResult AstParsed.T)
 parse line =
     parseProg \esProg -> IO.putStr "esProg: " >> IO.print esProg >>
-    parseExpr \esExpr -> IO.putStr "esExpr: " >> IO.print esExpr >>
-    parseType \esType -> IO.putStr "esType: " >> IO.print esType >>
-    let es = esType in pure do ParseFailed es
+    let es = esProg in pure do ParseFailed es
     where
         parseProg cont = do
             let p = Source2Ast.source2Program do source line
             r <- Conduit.runConduit p
             case r of
                 Runner.RunnerSuccess x -> pure do ParseProgramSuccess x
-                Runner.RunnerFailed es -> cont es
-
-        parseExpr cont = do
-            let p = Source2Ast.source2Expr do source line
-            r <- Conduit.runConduit p
-            case r of
-                Runner.RunnerSuccess x -> pure do ParseExprSuccess x
-                Runner.RunnerFailed es -> cont es
-
-        parseType cont = do
-            let p = Source2Ast.source2Type do source line
-            r <- Conduit.runConduit p
-            case r of
-                Runner.RunnerSuccess x -> pure do ParseTypeSuccess x
                 Runner.RunnerFailed es -> cont es

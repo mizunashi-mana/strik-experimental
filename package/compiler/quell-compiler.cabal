@@ -141,6 +141,21 @@ custom-setup
         Cabal,
         cabal-doctest,
 
+executable quellc
+    import:
+        general
+    main-is:
+        Compiler.hs
+    hs-source-dirs:
+        app
+    build-depends:
+        quell-compiler,
+    ghc-options:
+        -rtsopts
+    ghc-prof-options:
+        -rtsopts
+        "-with-rtsopts=-xc -p"
+
 executable quelli
     import:
         general
