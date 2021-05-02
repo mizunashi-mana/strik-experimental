@@ -642,11 +642,11 @@ Layout
         ExpectBrace:ts ->
             withL ts True ms
 
-    runParserL p t ts ms cont = parse p t \r -> case r of
+    runParserL p t ms cont = parse p t \r -> case r of
         ParseOk p ->
-            cont p ts ms
+            cont p ms
         ParseError ->
-            errorRecover p t ts ms cont
+            errorRecover p t ms cont
 
     runSimpleParserL p t cont = parse p t \r -> case r of
         ParseOk p ->
@@ -654,10 +654,10 @@ Layout
         ParseError ->
             ParseError
 
-    errorRecover p t ts ms cont = case ms of
+    errorRecover p t ms cont = case ms of
         VirtualBrace _:ms -> parse p '}' \r -> case r of
             ParseOk p ->
-                runParserL p t ts ms cont
+                runParserL p t ms cont
             ParseError ->
                 ParseError
         _ ->
@@ -665,23 +665,23 @@ Layout
 
     resolveToken p t ts expB ms = case t of
         "{" | expB ->
-            runParserL p "{" ts ms \p ts ms ->
+            runParserL p t ms \p ms ->
                 withL p ts False (ExplicitBrace:ms)
         "{{" | expB ->
-            runParserL p "{{" ts ms \p ts ms ->
+            runParserL p t ms \p ms ->
                 let m = calcLayoutPos ts
                 in withL p ts False (ExplicitDBrace m:ms)
         _ | expB ->
-            runParserL p '{' ts0 ms \p ts ms ->
-                let m = calcLayoutPos ts
+            runParserL p '{' ms \p ms ->
+                let m = calcLayoutPos (t:ts)
                 in resolveToken p t ts False (VirtualBrace m:ms)
         _ | isOpen t ->
-            runParserL p t ts ms \p ts ms ->
+            runParserL p t ms \p ms ->
                 withL p ts False (NoLayout:ms)
         _ | isClose t || t match interp_string_continue ->
             tryClose p t ts ms
         _ ->
-            runParserL p t ts ms \p ts ms ->
+            runParserL p t ms \p ms ->
                 withL p ts False ms
 
     resolveNewline p c t ts expB ms0 = case ms of

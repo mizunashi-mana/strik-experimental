@@ -89,7 +89,7 @@ initialContext = RunnerContext
             }
 
 lexer :: Monad m => RunnerCont m a -> Runner m a
-lexer p0 = debugTrace "lexer" do
+lexer p0 = do
     ctx0 <- runnerGet
     withLCont ctx0
         do \spt -> debugTrace ("parsing: " <> show spt) do p0 spt
@@ -131,9 +131,9 @@ reportParseError err sp = debugTrace "reportParseError" do
 
 -- FIXME: Try to analysis error and recover
 parseError :: Monad m => Runner m a
-parseError = debugTrace "parseError" do
+parseError = do
     ctx0 <- runnerGet
-    debugTrace ("parseError :" <> show (lastSpan ctx0, tokenStack ctx0))
+    debugTrace ("parseError: " <> show (lastSpan ctx0, tokenStack ctx0))
         do Runner do lift do throwE ()
 
 
@@ -201,14 +201,14 @@ resolveToken p0 spt expB ms0 = do
                 withL p1 False do Layout.ExplicitBrace:ms1
         Token.SpDBraceOpen | expB ->
             runParserL p0 spt ms0 \p1 ms1 -> do
-                m <- calcLayoutPos
+                m <- calcLayoutPos []
                 withL p1 False do Layout.ExplicitDBrace m:ms1
         _ | expB -> do
             let vbOp = Spanned.spannedFromLoc
                     do Spanned.beginLoc do Spanned.getSpan spt
                     do Token.SpVBraceOpen
             runParserL p0 vbOp ms0 \p1 ms1 -> do
-                m <- calcLayoutPos
+                m <- calcLayoutPos [spt]
                 resolveToken p1 spt False do Layout.VirtualBrace m:ms1
         t | Layout.isOpen t ->
             runParserL p0 spt ms0 \p1 ms1 -> do
@@ -257,7 +257,7 @@ resolveNewline p0 spt expB ms0 = do
                             Token.SpVSemi
                     runSimpleParserL p1 vsemi \p2 ->
                         resolveToken p2 spt False ms0
-            | otherwise ->
+            | otherwise -> do
                 resolveToken p0 spt expB ms0
         _ ->
             resolveToken p0 spt expB ms0
@@ -403,24 +403,32 @@ reportParseErrorExpectedClose p0 sp = \case
         error "unreachable: the argument token must be an open token."
 
 
-calcLayoutPos :: forall m. Monad m => Runner m Int
-calcLayoutPos = do
-    ctx0 <- runnerGet
-    go0 do tokenStack ctx0
+calcLayoutPos :: forall m. Monad m => [Spanned.T Token.T] -> Runner m Int
+calcLayoutPos = \ts0 -> go0 ts0
     where
-        go0 :: [Layout.TokenWithL] -> Runner m Int
+        go0 :: [Spanned.T Token.T] -> Runner m Int
         go0 = \case
+            spt:_ -> do
+                let sp = Spanned.getSpan spt
+                    c = Spanned.locCol do Spanned.beginLoc sp
+                pure c
+            [] -> do
+                ctx0 <- runnerGet
+                go1 do tokenStack ctx0
+
+        go1 :: [Layout.TokenWithL] -> Runner m Int
+        go1 = \case
             Layout.Token _ spt:_ -> do
                 let sp = Spanned.getSpan spt
                     c = Spanned.locCol do Spanned.beginLoc sp
                 pure c
             Layout.ExpectBrace:ts ->
-                go0 ts
+                go1 ts
             [] ->
-                go1 []
+                go2 []
 
-        go1 :: [Layout.TokenWithL] -> Runner m Int
-        go1 ts0 = Runner Conduit.await >>= \case
+        go2 :: [Layout.TokenWithL] -> Runner m Int
+        go2 ts0 = Runner Conduit.await >>= \case
             Nothing -> do
                 restoreTokenStack ts0
                 pure 0
@@ -434,11 +442,14 @@ calcLayoutPos = do
                     Layout.ExpectBrace -> do
                         go1 do t:ts0
 
-        restoreTokenStack ts = runnerModify' \ctx -> ctx
-            {
-                -- expect token stack having few elements
-                tokenStack = tokenStack ctx ++ reverse ts
-            }
+        restoreTokenStack :: [Layout.TokenWithL] -> Runner m ()
+        restoreTokenStack = \case
+            [] -> pure ()
+            ts -> runnerModify' \ctx -> ctx
+                {
+                    -- expect token stack having few elements
+                    tokenStack = tokenStack ctx ++ reverse ts
+                }
 
 consumeToken :: Monad m => Runner m (Maybe Layout.TokenWithL)
 consumeToken = do

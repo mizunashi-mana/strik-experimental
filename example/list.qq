@@ -4,7 +4,7 @@
 
 #type L = List
 
-map: ^a b. (a -> b) -> L a -> L b
+map: ^a b => (a -> b) -> L a -> L b
 map f = go #where
     go = #case
         Nil         -> Nil
@@ -12,7 +12,7 @@ map f = go #where
             ## f x
             ## go xs
 
-reverse: ^a. L a -> L a
+reverse: ^a => L a -> L a
 reverse = \xs -> go Nil xs #where
     go l = #case
         Nil -> l
