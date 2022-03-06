@@ -6,23 +6,23 @@ Notational Conventions
 
 .. glossary::
 
-    ``pattern?``
-        optional
-
-    ``pattern*``
-        zero or more repetitions
-
-    ``pattern+``
-        one or more repetitions
-
     ``( pattern )``
         grouping
 
-    ``pattern | pattern``
-        choice
+    ``pattern?``
+        greedy optional
 
-    ``pattern<pattern>``
-        difference
+    ``pattern*``
+        greedy zero or more repetitions
+
+    ``pattern+``
+        greedy one or more repetitions
+
+    ``pattern / pattern``
+        ordered choice
+
+    ``! pattern``
+        not predicate (not consuming input)
 
     ``"..."``
         terminal by unicode properties
@@ -33,11 +33,21 @@ Notational Conventions
     ``EOS``
         end of source
 
+.. productionlist::
+    A   : B1
+        : ...
+        : BN
+
+is equal
+
+.. productionlist::
+    A   : B1 / ... / BN
+
 Lexical Syntax
 --------------
 
 .. productionlist::
-    lexical_program: (lexeme | whitespace)* EOS?
+    lexical_program: (lexeme / whitespace)* EOS?
     lexeme  : literal
             : special
             : brace
@@ -49,55 +59,57 @@ Lexical Syntax
             : con_sym
 
 .. productionlist::
-    var_id: (small (small | large | digit | other)*)
-    con_id: (large (small | large | digit | other)*)
-    var_sym: (symbol<":"> (symbol | other)*)<reserved_sym>
-    con_sym: (":" (symbol | other)*)<reserved_sym>
+    var_id: small id_char*
+    con_id: large id_char*
+    var_sym: (! ":") symbol sym_char*
+    con_sym: ":" sym_char*
 
 .. productionlist::
-    reserved_id : "#as"
-                : "#case"
-                : "#data"
-                : "#derive"
-                : "#do"
-                : "#export"
-                : "#family"
-                : "#foreign"
-                : "#impl"
-                : "#infix"
-                : "#letrec"
-                : "#let"
-                : "#match"
-                : "#mod"
-                : "#newtype"
-                : "#pattern"
-                : "#record"
-                : "#role"
-                : "#sig"
-                : "#static"
-                : "#trait"
-                : "#type"
-                : "#use"
-                : "#with"
-                : "#when"
-                : "#where"
-                : "#yield"
-                : "#Default"
-                : "#Self"
-    reserved_sym: "_"
-                : "!"
-                : "->" | "→"
-                : "<-" | "←"
-                : "=>" | "⇒"
-                : "<=" | "⇐"
-                : "="
-                : "?"
-                : "@"
-                : "^" | "∀"
-                : "\\" | "λ"
-                : "|"
-                : "~"
-                : ":"
+    reserved_id : reserved_id_unit ! id_char
+    reserved_id_unit    : "#as"
+                        : "#case"
+                        : "#data"
+                        : "#derive"
+                        : "#do"
+                        : "#export"
+                        : "#family"
+                        : "#foreign"
+                        : "#impl"
+                        : "#infix"
+                        : "#letrec"
+                        : "#let"
+                        : "#match"
+                        : "#mod"
+                        : "#newtype"
+                        : "#pattern"
+                        : "#record"
+                        : "#role"
+                        : "#sig"
+                        : "#static"
+                        : "#trait"
+                        : "#type"
+                        : "#use"
+                        : "#with"
+                        : "#when"
+                        : "#where"
+                        : "#yield"
+                        : "#Default"
+                        : "#Self"
+    reserved_sym    : reserved_sym_unit ! sym_char
+    reserved_sym_unit   : "_"
+                        : "!"
+                        : "->" / "→"
+                        : "<-" / "←"
+                        : "=>" / "⇒"
+                        : "<=" / "⇐"
+                        : "="
+                        : "?"
+                        : "@"
+                        : "^" / "∀"
+                        : "\\" / "λ"
+                        : "|"
+                        : "~"
+                        : ":"
     special : "("
             : ")"
             : ","
@@ -105,12 +117,13 @@ Lexical Syntax
             : "]"
             : "`" -- ` for syntax highlighting issue
             : ";"
-            : "##" | "﹟"
+            : "##" / "﹟"
             : "#@"
-            : ".." | "…"
+            : "#>" / "↦"
+            : ".." / "…"
             : "."
-    brace   : "{{" | "}}" : "❴" | "❵"
-            : "{" | "}"
+    brace   : "{{" / "}}" / "❴" / "❵"
+            : "{" / "}"
 
 .. productionlist::
     literal : rational
@@ -124,50 +137,50 @@ Lexical Syntax
 .. productionlist::
     rational: sign? decimal "." decimal exponent?
             : sign? decimal exponent
-    integer : sign? zero ("b" | "B") bit (bit | "_")*
-            : sign? zero ("o" | "O") octit (octit | "_")*
-            : sign? zero ("x" | "X") hexit (hexit | "_")*
-            : sign? decimal
-    decimal: digit (digit | "_")*
+    integer : sign? zero ("b" / "B") bit (bit / "_")*
+            : sign? zero ("o" / "O") octit (octit / "_")*
+            : sign? zero ("x" / "X") hexit (hexit / "_")*
+            : sign? (! zero) decimal
+    decimal: digit (digit / "_")*
     sign: "+"
         : "-"
     zero: "0"
-    exponent: ("e" | "E") sign? decimal
-    bit: "0" | "1"
-    octit: "0" | "1" | ... | "7"
+    exponent: ("e" / "E") sign? decimal
+    bit: "0" / "1"
+    octit: "0" / "1" / ... / "7"
     hexit   : digit
-            : "A" | "B" | ... | "F"
-            : "a" | "b" | ... | "f"
+            : "A" / "B" / ... / "F"
+            : "a" / "b" / ... / "f"
 
 .. productionlist::
     bytestring: "#r" str_sep bstr_graphic* str_sep
-    string: str_sep (bstr_graphic | uni_escape)* str_sep
+    string: str_sep (bstr_graphic / uni_escape)* str_sep
     bytechar: "#r" char_sep bchar_graphic char_sep
-    char: char_sep (bchar_graphic | uni_escape) char_sep
+    char: char_sep (bchar_graphic / uni_escape) char_sep
     str_sep: "\""
     char_sep: "'"
     escape_open: "\\"
-    bstr_graphic: graphic<str_sep | escape_open>
-                : whitechar
-                : byte_escape
+    bstr_graphic: byte_escape
                 : gap
-    bchar_graphic   : graphic<char_sep | escape_open>
+                : whitechar
+                : ! (str_sep / escape_open) graphic
+    bchar_graphic   : byte_escape
                     : " "
-                    : byte_escape
-    byte_escape: escape_open (charesc | asciiesc | byteesc)
+                    : ! (char_sep / escape_open) graphic
+    byte_escape: escape_open (charesc / asciiesc / byteesc)
     uni_escape: escape_open "u{" hexit+ "}"
     gap: escape_open "|" whitechar* "|"
-    charesc : "0" | "a" | "b" | "f" | "n" | "r" | "t" | "v"
-            : "$" | escape_open | str_sep | char_sep
+    charesc : "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v"
+            : "$" / escape_open / str_sep / char_sep
     asciiesc: "^" cntrlesc
-            : "NUL" | "SOH" | "STX" | "ETX" | "EOT" | "ENQ"
-            : "ACK" | "BEL" | "BS" | "HT" | "LF" | "VT"
-            : "FF" | "CR" | "SO" | "SI" | "DLE" | "DC1"
-            : "DC2" | "DC3" | "DC4" | "NAK" | "SYN" | "ETB"
-            : "CAN" | "EM" | "SUB" | "ESC" | "FS" | "GS"
-            : "RS" | "US" | "SP" | "DEL"
-    cntrlesc: "A" | "B" | ... | "Z" | "@" | "[" | "\\" | "]"
-            : "^" | "_"
+            : "NUL" / "SOH" / "STX" / "ETX" / "EOT" / "ENQ"
+            : "ACK" / "BEL" / "BS" / "HT" / "LF" / "VT"
+            : "FF" / "CR" / "SO" / "SI" / "DLE" / "DC1"
+            : "DC2" / "DC3" / "DC4" / "NAK" / "SYN" / "ETB"
+            : "CAN" / "EM" / "SUB" / "ESC" / "FS" / "GS"
+            : "RS" / "US" / "SP" / "DEL"
+    cntrlesc: "A" / "B" / ... / "Z" / "@" / "[" / "\\" / "]"
+            : "^" / "_"
     byteesc: "x" hexit hexit
 
 .. productionlist::
@@ -176,10 +189,10 @@ Lexical Syntax
                         : interp_string_cont
                         : interp_string_end
     interp_str_open: "#s" str_sep
-    interp_str_graphic  : bstr_graphic<"$" | str_sep | escape_open>
+    interp_str_graphic  : ! ("$" / str_sep / escape_open) bstr_graphic
                         : uni_escape
-    interp_open: "$" ( "{#" | "⦃" )
-    interp_close: "#}" | "⦄"
+    interp_open: "$" ( "{#" / "⦃" )
+    interp_close: "#}" / "⦄"
     interp_string_without_interp: interp_str_open interp_str_graphic* str_sep
     interp_string_start: interp_str_open interp_str_graphic* interp_open
     interp_string_cont: interp_close interp_str_graphic* interp_open
@@ -195,16 +208,16 @@ Lexical Syntax
             : doc_comment
             : pragma_comment
             : multiline_comment
-    line_comment: "--" "-"* (any<symbol | other> any*)? (newline | EOS)
-    multiline_comment: comment_open (ANY<"!" | "#"> ANYs (nested_comment ANYs)*)? comment_close
-    doc_comment: comment_open "!" (ANY*)<ANY* newline "|" comment_close ANY*> newline "|" comment_close
+    line_comment: "--" "-"* (! sym_char any+)? (newline / EOS)
+    multiline_comment: comment_open (! ("!" / "#")) ANYs (nested_comment ANYs)* comment_close
+    doc_comment: comment_open "!" ((! newline "|" comment_close) ANY)* newline "|" comment_close
     pragma_comment: comment_open "#" ANYs (nested_comment ANYs)* "#" comment_close
     nested_comment: comment_open ANYs (nested_comment ANYs)* comment_close
     comment_open: "{-"
     comment_close: "-}"
-    any: graphic | space
-    ANYs: (ANY*)<ANY* (comment_open | comment_close) ANY*>
-    ANY: graphic | whitechar
+    any: graphic / space
+    ANYs: ((! (comment_open / comment_close)) ANY)*
+    ANY: graphic / whitechar
 
 .. productionlist::
     graphic : small
@@ -215,12 +228,18 @@ Lexical Syntax
             : special
             : other_special
             : other_graphic
-    whitechar   : "\v"
+    id_char : small
+            : large
+            : digit
+            : other
+    sym_char    : symbol
+                : other
+    whitechar  : "\v"
                 : space
                 : newline
-    space   : "\t" | "\u200E" | "\u200F"
+    space   : "\t" / "\u200E" / "\u200F"
             : "\p{General_Category=Space_Separator}"
-    newline : "\r\n" | "\r" | "\n" | "\f"
+    newline : "\r\n" / "\r" / "\n" / "\f"
             : "\p{General_Category=Line_Separator}"
             : "\p{General_Category=Paragraph_Separator}"
     small   : "\p{General_Category=Lowercase_Letter}"
@@ -228,21 +247,22 @@ Lexical Syntax
             : "_"
     large   : "\p{General_Category=Uppercase_Letter}"
             : "\p{General_Category=Titlecase_Letter}"
-    symbol  : symbolchar<special | other_special | "_" | "'">
-    symbolchar  : "\p{General_Category=Connector_Punctuation}"
-                : "\p{General_Category=Dash_Punctuation}"
-                : "\p{General_Category=Other_Punctuation}"
-                : "\p{General_Category=Symbol}"
+    symbol  : (! (special / other_special / "_" / "'")) symbol_category
+    symbol_category : "\p{General_Category=Connector_Punctuation}"
+                    : "\p{General_Category=Dash_Punctuation}"
+                    : "\p{General_Category=Other_Punctuation}"
+                    : "\p{General_Category=Symbol}"
     digit   : "\p{General_Category=Decimal_Number}"
-    other   : "\p{General_Category=Modifier_Letter}"
-            : "\p{General_Category=Mark}"
-            : "\p{General_Category=Letter_Number}"
-            : "\p{General_Category=Other_Number}"
-            : "\p{General_Category=Format}"<whitechar>
-            : "'"
-    other_special: "#" | "\"" | "{" | "}" | "⦃" | "⦄" | "❴" | "❵"
-    other_graphic: other_graphic_char<symbolchar | special | other_special>
-    other_graphic_char: "\p{General_Category=Punctuation}"
+    other   : ! whitechar other_category
+    other_category  : "\p{General_Category=Modifier_Letter}"
+                    : "\p{General_Category=Mark}"
+                    : "\p{General_Category=Letter_Number}"
+                    : "\p{General_Category=Other_Number}"
+                    : "\p{General_Category=Format}"
+                    : "'"
+    other_special: "#" / "\"" / "{" / "}" / "⦃" / "⦄" / "❴" / "❵"
+    other_graphic: (! (symbol_category / special / other_special)) other_graphic_category
+    other_graphic_category: "\p{General_Category=Punctuation}"
 
 Specifications for Lexical Nonterminals
 :::::::::::::::::::::::::::::::::::::::
@@ -253,9 +273,8 @@ These nonterminals must be disjoint:
 * ``var_id``
 * ``var_sym``
 * ``con_id``
-* ``con_sym``
+* ``reserved_sym / con_sym``
 * ``reserved_id``
-* ``reserved_sym``
 * ``special``
 * ``brace``
 * ``literal``
@@ -279,29 +298,31 @@ These nonterminals must be disjoint:
 
 These expressions must be empty:
 
-* ``((lexeme | whitespace)*)<ANY*>``
-* ``reserved_id<'#' (small | large) (small | large | digit | other)*>``
-* ``reserved_sym<'_' | (symbol (symbol | other)*)>``
-* ``brace<other_special*>``
-* ``literal<("+" | "-" | digit | "'" | other_special) ANY*>``
-* ``(multiline_comment | doc_comment | pragma_comment | nested_comment)<comment_open ANY* comment_close>``
-* ``(multiline_comment | doc_comment | pragma_comment)<doc_comment | nested_comment>``
-* ``("\p{General_Category=Letter}" | "\p{General_Category=Mark}" | "\p{General_Category=Number}" | "\p{General_Category=Punctuation}" | "\p{General_Category=Symbol}" | "\p{General_Category=Separator}" | "\p{General_Category=Format}")<graphic | whitechar>``
+* ``(! ANY+) (lexeme / whitespace)``
+* ``(! ('#' (small / large) (small / large / digit / other)*)) reserved_id``
+* ``(! ('_' / symbol (symbol / other)*)) reserved_sym``
+* ``(! other_special*) brace``
+* ``(! ("+" / "-" / digit / "'" / other_special)) literal``
+* ``(! comment_open) (multiline_comment / doc_comment / pragma_comment / nested_comment)``
+* ``(! comment_open ANY* comment_close) (multiline_comment / doc_comment / pragma_comment / nested_comment)``
+* ``(! nested_comment) (multiline_comment / pragma_comment)``
+* ``(! (graphic / whitechar)) ("\p{General_Category=Letter}" / "\p{General_Category=Mark}" / "\p{General_Category=Number}" / "\p{General_Category=Punctuation}" / "\p{General_Category=Symbol}" / "\p{General_Category=Separator}" / "\p{General_Category=Format}")``
 
 Aliases
 -------
 
 .. productionlist::
-    "->"    : "->" | "→"
-    ".."    : ".." | "…"
-    "<-"    : "<-" | "←"
-    "<="    : "<=" | "⇐"
-    "=>"    : "=>" | "⇒"
-    "^"     : "^" | "∀"
-    "\\"    : "\\" | "λ"
-    "{{"    : "{{" | "❴"
-    "}}"    : "}}" | "❵"
-    "##"    : "##" | "﹟"
+    ".."    : ".." / "…"
+    "->"    : "->" / "→"
+    "<-"    : "<-" / "←"
+    "<="    : "<=" / "⇐"
+    "=>"    : "=>" / "⇒"
+    "#>"    : "#>" / "↦"
+    "^"     : "^" / "∀"
+    "\\"    : "\\" / "λ"
+    "{{"    : "{{" / "❴"
+    "}}"    : "}}" / "❵"
+    "##"    : "##" / "﹟"
 
 Grammar
 -------
@@ -310,14 +331,14 @@ Grammar
     program: decl_body
 
 .. productionlist::
-    decl_body   : "{" decl_items "}"
-                : "{{" decl_items "}}"
+    decl_body   : "{{" decl_items "}}"
+                : "{" decl_items "}"
                 : '{' decl_items '}'
     decl_items  : lsemis? (decl_item lsemis)* decl_item?
-    decl_item   : sig_item
-                : type_decl
+    decl_item   : type_decl
                 : data_decl
                 : val_decl
+                : sig_item
 
 .. productionlist::
     typesig_decl: "#type" declcon ":" type
@@ -326,33 +347,33 @@ Grammar
 
 .. productionlist::
     type_decl: "#type" decltype "=" type ("where" type_decl_where_body)?
-    type_decl_where_body: "{" type_decl_where_items "}"
-                        : "{{" type_decl_where_items "}}"
+    type_decl_where_body: "{{" type_decl_where_items "}}"
+                        : "{" type_decl_where_items "}"
                         : '{' type_decl_where_items '}'
     type_decl_where_items: lsemis? (type_decl_where_item lsemis)* type_decl_where_item?
-    type_decl_where_item: typesig_decl
-                        : type_decl
+    type_decl_where_item: type_decl
+                        : typesig_decl
 
 .. productionlist::
-    data_decl   : "#data" declcon (":" type)? "#where" data_decl_body
-                : "#data" decltype "=" alg_data_type ("#where" type_decl_where_body)?
-                : "#data" decltype
+    data_decl   : "#data" decltype ("=" alg_data_type)? ("#where" type_decl_where_body)?
+                : "#data" declcon (":" type)? ("#where" data_decl_body)?
                 : "#newtype" decltype "=" type ("#where" type_decl_where_body)?
-    data_decl_body  : "{" data_decl_items "}"
-                    : "{{" data_decl_items "}}"
+    data_decl_body  : "{{" data_decl_items "}}"
+                    : "{" data_decl_items "}"
                     : '{' data_decl_items '}'
     data_decl_items: lsemis? (data_decl_item lsemis)* data_decl_item?
-    data_decl_item  : typesig_decl
+    data_decl_item  : type_decl
+                    : typesig_decl
                     : consig_decl
-                    : type_decl
-    alg_data_type   : alg_data_type_items
-    alg_data_type_items : "|"* (impltype "|"+)* impltype "|"*
+    alg_data_type   : "(" alg_data_type_items ")"
+                    : alg_data_type_items
+    alg_data_type_items : "|"? (impltype "|")* impltype "|"?
 
 .. productionlist::
     val_decl: declvarexpr (":" type)? "=" expr ("#where" val_decl_where_body)?
     val_bind: pat "=" expr ("#where" val_decl_where_body)?
-    val_decl_where_body : "{" val_decl_where_items "}"
-                        : "{{" val_decl_where_items "}}"
+    val_decl_where_body : "{{" val_decl_where_items "}}"
+                        : "{" val_decl_where_items "}"
                         : '{' val_decl_where_items '}'
     val_decl_where_items: lsemis? (val_decl_where_item lsemis)* val_decl_where_item?
     val_decl_where_item: let_bind_item
@@ -371,10 +392,10 @@ Grammar
     type_expr   : type_unit "->" type
                 : type_unit
     type_unit: type_infix
-    type_infix: type_apps (type_op type_apps)*
-    type_op : con_sym
+    type_infix: (type_apps type_op)* type_apps
+    type_op : "`" type_qualified_op "`"
+            : con_sym
             : var_sym_ext
-            : "`" type_qualified_op "`"
     type_qualified_op   : sym_ext
                         : type_qualified
     type_apps: type_qualified type_app*
@@ -385,15 +406,15 @@ Grammar
     type_block  : "##" type_block_body
                 : type_atomic
     type_atomic : "(" type (":" type)? ")"
+                : type_literal
                 : con
                 : var
-                : type_literal
     type_literal: literal
                 : "(" type_tuple_items ")"
                 : "[" type_array_items "]"
                 : "{" type_simplrecord_items "}"
-    type_block_body : "{" type_block_item "}"
-                    : "{{" type_block_item "}}"
+    type_block_body : "{{" type_block_item "}}"
+                    : "{" type_block_item "}"
                     : '{' type_block_item '}'
     type_block_item   : lsemis? type lsemis?
     type_tuple_items: (type ",")+ type ","?
@@ -409,16 +430,16 @@ Grammar
 .. productionlist::
     expr: expr_infix ":" type
         : expr_infix
-    expr_infix: expr_apps (expr_op expr_apps)*
-    expr_op : con_sym
+    expr_infix: (expr_apps expr_op)* expr_apps
+    expr_op : "`" expr_qualified_op "`"
+            : con_sym
             : var_sym_ext
-            : "`" expr_qualified_op "`"
     expr_qualified_op   : sym_ext
                         : expr_qualified
     expr_apps: expr_qualified expr_app*
-    expr_app: expr_qualified
-            : "@" type_qualified
+    expr_app: "@" type_qualified
             : "#@" type_block_body
+            : expr_qualified
     expr_qualified: expr_block
     expr_block  : "\\" lambda_body
                 : "#case" case_alt_body
@@ -429,16 +450,16 @@ Grammar
                 : "##" expr_block_body
                 : expr_atomic
     expr_atomic : "(" expr ")"
+                : expr_literal
                 : con
                 : var
-                : expr_literal
     expr_literal: literal
                 : expr_interp_string
                 : "(" expr_tuple_items ")"
                 : "[" expr_array_items "]"
                 : "{" expr_simplrecord_items "}"
-    expr_block_body : "{" expr_block_item "}"
-                    : "{{" expr_block_item "}}"
+    expr_block_body : "{{" expr_block_item "}}"
+                    : "{" expr_block_item "}"
                     : '{' expr_block_item '}'
     expr_block_item   : lsemis? expr lsemis?
     expr_interp_string  : interp_string_without_interp
@@ -451,21 +472,21 @@ Grammar
 .. productionlist::
     pat : pat_unit ":" type
         : pat_unit
-    pat_unit: pat_infix ("|" pat_infix)*
-    pat_infix: pat_apps (conop_qualified pat_apps)*
+    pat_unit: "|"? (pat_infix "|")* pat_infix "|"?
+    pat_infix: (pat_apps conop_qualified)* pat_apps
     pat_apps: con_qualified pat_app*
             : pat_qualified pat_univ_app*
     pat_univ_app    : "@" type_qualified
                     : "#@" type_block_body
-    pat_app : pat_qualified
+    pat_app : pat_univ_app
+            : pat_qualified
             : con_qualified
-            : pat_univ_app
     pat_qualified: pat_block
     pat_block   : "##" pat_block_body
                 : pat_atomic
     pat_atomic  : "(" pat ")"
-                : var
                 : pat_literal
+                : var
     pat_literal : literal
                 : "(" pat_tuple_items ")"
                 : "[" pat_array_items "]"
@@ -481,118 +502,121 @@ Grammar
 
 .. productionlist::
     let_body: let_binds "#in" expr
-    let_binds   : "{" let_bind_items "}"
-                : "{{" let_bind_items "}}"
+    let_binds   : "{{" let_bind_items "}}"
+                : "{" let_bind_items "}"
                 : '{' let_bind_items '}'
     let_bind_items: lsemis? (let_bind_item lsemis)* let_bind_item?
-    let_bind_item   : sig_item
-                    : type_decl
+    let_bind_item   : type_decl
                     : data_decl
                     : val_bind
+                    : sig_item
 
 .. productionlist::
-    case_alt_body   : "{" case_alt_items "}"
-                    : "{{" case_alt_items "}}"
+    case_alt_body   : "{{" case_alt_items "}}"
+                    : "{" case_alt_items "}"
                     : '{' case_alt_items '}'
     case_alt_items: lsemis? (case_alt_item lsemis)* case_alt_item?
     case_alt_item: (pat ",")* pat? guarded_alts
-    guarded_alts: "->" expr
+    guarded_alts: "#>" expr
                 : "#when" guarded_alt_body
-    guarded_alt_body: "{" guarded_alt_items "}"
-                    : "{{" guarded_alt_items "}}"
+    guarded_alt_body: "{{" guarded_alt_items "}}"
+                    : "{" guarded_alt_items "}"
                     : '{' guarded_alt_items '}'
     guarded_alt_items: lsemis? (guarded_alt_item lsemis)* guarded_alt_item?
-    guarded_alt_item: guard_qual "->" expr
+    guarded_alt_item: guard_qual "#>" expr
     guard_qual: expr
 
 .. productionlist::
     lambda_body : pat_atomic* guarded_alts
 
 .. productionlist::
-    do_body : "{" do_stmt_items "}"
-            : "{{" do_stmt_items "}}"
+    do_body : "{{" do_stmt_items "}}"
+            : "{" do_stmt_items "}"
             : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* do_yield_item lsemis?
-    do_stmt_item    : pat "<-" expr ("#where" val_decl_where_body)?
+    do_stmt_item    : "#letrec" let_binds
+                    : pat "<-" expr ("#where" val_decl_where_body)?
                     : pat "=" expr ("#where" val_decl_where_body)?
-                    : "#letrec" let_binds
     do_yield_item   : "#yield" expr
 
 .. productionlist::
-    bind_var: "@" simple_bind_var
-            : "#@" block_bind_var
-            : simple_bind_var
+    bind_var: "#@" block_bind_var
+            : "@" simple_bind_var
             : "##" block_bind_var
-    simple_bind_var : var_id_ext
-                    : "(" var_id_ext ":" type ")"
-    block_bind_var  : "{" block_bind_var_items "}"
-                    : "{{" block_bind_var_items "}}"
+            : simple_bind_var
+    simple_bind_var : "(" var_id_ext ":" type ")"
+                    : var_id_ext
+    block_bind_var  : "{{" block_bind_var_items "}}"
+                    : "{" block_bind_var_items "}"
                     : '{' block_bind_var_items '}'
     block_bind_var_items: lsemis? block_bind_var_item lsemis?
-    block_bind_var_item : var_id_ext
-                        : var_id_ext ":" type
+    block_bind_var_item : var_id_ext (":" type)?
     con_qualified : con
     conop_qualified : conop
-    con : con_id_ext
-        : "(" con_sym_ext ")"
+    con : "(" con_sym_ext ")"
+        : con_id_ext
     conop   : con_sym_ext
             : "`" con_sym_ext "`"
             : "`" con_id_ext "`"
-    var : var_id_ext
-        : "(" var_sym_ext ")"
-    op  : var_sym_ext
-        : "`" var_sym_ext "`"
+    var : "(" var_sym_ext ")"
+        : var_id_ext
+    op  : "`" var_sym_ext "`"
         : "`" var_id_ext "`"
+        : var_sym_ext
     sym_ext : con_sym_ext
             : var_sym_ext
-    con_id_ext  : con_id
-                : "(" ")"
-    con_sym_ext : con_sym
-                : "->"
-    var_id_ext  : var_id
-                : "_"
+    con_id_ext  : "(" ")"
+                : con_id
+    con_sym_ext : "->"
+                : con_sym
+    var_id_ext  : "_"
+                : var_id
     var_sym_ext : var_sym
 
 .. productionlist::
-    declcon : con_id
-            : "(" con_sym ")"
-    declconop   : con_sym
-                : "`" con_sym "`"
+    declcon : "(" con_sym ")"
+            : con_id
+    declconop   : "`" con_sym "`"
                 : "`" con_id "`"
-    declvar : var_id
-            : "(" var_sym ")"
-    declop  : var_sym
-            : "`" var_sym "`"
+                : con_sym
+    declvar : "(" var_sym ")"
+            : var_id
+    declop  : "`" var_sym "`"
             : "`" var_id "`"
+            : var_sym
 
 .. productionlist::
-    lsemis: (';' | ";")+
+    lsemis: (';' / ";")+
 
 Layout
-------
+-------
 
 .. code-block:: haskell
 
-    data TokenWithL
-        = Token Bool Int String
-        | ExpectBrace
+    preParse = go1 False 1 where
+        go1 expBrace l0 ts0 = case ts0 of
+            []
+                | expBrace ->
+                    {0}:<0>:[]
+                | otherwise ->
+                    []
+            ((l1,c1),(l2,c2),t):ts1
+                | isWhiteSpace t ->
+                    go1 expBrace l0 ts1
+                | isExplicitOpenBrace t ->
+                    go2 c1 l2 t ts1
+                | expBrace ->
+                    {c1}:<c1>:go2 c1 l2 t ts1
+                | l0 < l1 ->
+                    <c1>:go2 c1 l2 t ts1
+                | otherwise ->
+                    go2 c1 l0 t ts1
 
-    preParse ts = go ts 0 where
-        go ts pl = skipWhiteSpace ts pl \(b,c,t) ts l -> case t of
-            _ | isLayoutKeyword t ->
-                Token b c t:ExpectBrace:go ts l
-            _ ->
-                Token b c t:go ts l
-
-    skipWhiteSpace ts pl cont = case ts of
-        [] -> []
-        ((l1,c1),(l2,c2),t):ts
-            | isWhiteSpace t ->
-                skipWhiteSpace ts pl cont
-            | pl < l1 ->
-                cont (True,c1,t) ts l2
+        go2 c1 l0 t ts = if
+            | isLayoutKeyword t ->
+                (c1,t):go1 True l0 ts
             | otherwise ->
-                cont (False,c1,t) ts l2
+                (c1,t):go1 False l0 ts
 
     isWhiteSpace t =
         t match whitespace
@@ -609,167 +633,175 @@ Layout
         "#@"        -> True
         _           -> False
 
+    isExplicitOpenBrace t = case t of
+        "{{"        -> True
+        "{"         -> True
+        _           -> False
+
 .. code-block:: haskell
 
     parseWithoutL p ts = case ts of
-        [] -> []
-        Token _ _ t:ts -> parse p t \r -> case r of
+        [] ->
+            ParseOk p
+        {n}:ts ->
+            parseWithoutL p ts
+        <n>:ts ->
+            parseWithoutL p ts
+        (_,t):ts -> p t \r -> case r of
             ParseOk p ->
                 parseWithoutL p ts
             ParseError ->
                 ParseError
-        ExpectBrace:ts ->
-            parseWithoutL p ts
 
 .. code-block:: haskell
 
-    data Layout
-        = NoLayout
-        | ExplicitBrace
-        | ExplicitDBrace Int
-        | VirtualBrace Int
+    parseWithL p ts = withL p ts []
 
-    parseWithL p ts = withL p ts False []
-
-    withL p ts expB ms = case ts of
-        [] -> resolveEmptyBrace p expB \p ->
+    withL p ms ts = case ts of
+        [] ->
             tryEnd p ms
-        Token isN c t:ts
-            | isN ->
-                resolveNewline p c t ts expB ms
-            | otherwise ->
-                resolveToken p t ts expB ms
-        ExpectBrace:ts ->
-            withL ts True ms
+        {n}:ts ->
+            resolveImpBo p ms n ts
+        <n>:ts ->
+            resolveNewline p ms n ts
+        (n,t):ts ->
+            resolveToken p ms n t ts
 
-    runParserL p t ms cont = parse p t \r -> case r of
-        ParseOk p ->
-            cont p ms
+    resolveImpBo p ms n ts = p "{" \r -> case r of
+        ParseOk p -> case ms of
+            [] ->
+                withL p (<n,"{">:ms) ts
+            <m,"{">:_
+                | m < n ->
+                    withL p (<n,"{">:ms) ts
+                | otherwise ->
+                    withL p (<n+1,"{">:ms) ts
+            <m,"{{">:_
+                | m < n ->
+                    withL p (<n,"{">:ms) ts
+                | otherwise ->
+                    withL p (<n+1,"{">:ms) ts
+            <>:_ ->
+                withL p (<n,"{">:ms) ts
         ParseError ->
-            errorRecover p t ms cont
+            parseError p ms ({n}:ts)
 
-    runSimpleParserL p t cont = parse p t \r -> case r of
-        ParseOk p ->
-            cont p
-        ParseError ->
-            ParseError
+    resolveNewline p ms n ts = case ms of
+        [] ->
+            withL p ms ts
+        <m,"{">:ms1
+            | m == n -> p ";" \r -> case r of
+                ParseOk p ->
+                    withL p ms ts
+                ParseError ->
+                    parseError p ms (<n>:ts)
+            | m < n ->
+                withL p ms ts
+            | m > n -> p "}" \r -> case r of
+                ParseOk p ->
+                    withL p ms1 (<n>:ts)
+                ParseError ->
+                    parseError p ms (<n>:ts)
+        <m,"{{">:_
+            | m == n -> p ";" \r -> case r of
+                ParseOk p ->
+                    withL p ms ts
+                ParseError ->
+                    parseError p ms (<n>:ts)
+            | m < n ->
+                withL p ms ts
+            | m > n ->
+                parseError p ms (<n>:ts)
+        <>:_ ->
+            withL p ms ts
 
-    errorRecover p t ms cont = case ms of
-        VirtualBrace _:ms -> parse p '}' \r -> case r of
+    resolveToken p ms n t ts
+        | t match interp_string_cont = p t \r -> case r of
             ParseOk p ->
-                runParserL p t ms cont
+                withL p (<>:ms) ts
             ParseError ->
-                ParseError
-        _ ->
-            ParseError
-
-    resolveToken p t ts expB ms = case t of
-        "{" | expB ->
-            runParserL p t ms \p ms ->
-                withL p ts False (ExplicitBrace:ms)
-        "{{" | expB ->
-            runParserL p t ms \p ms ->
-                let m = calcLayoutPos ts
-                in withL p ts False (ExplicitDBrace m:ms)
-        _ | expB ->
-            runParserL p '{' ms \p ms ->
-                let m = calcLayoutPos (t:ts)
-                in resolveToken p t ts False (VirtualBrace m:ms)
-        _ | isOpen t ->
-            runParserL p t ms \p ms ->
-                withL p ts False (NoLayout:ms)
-        _ | isClose t || t match interp_string_continue ->
-            tryClose p t ts ms
-        _ ->
-            runParserL p t ms \p ms ->
-                withL p ts False ms
-
-    resolveNewline p c t ts expB ms0 = case ms of
-        ExplicitDBrace m:ms1 ->
-            | c < m -> case t of
-                "}}" -> resolveEmptyBrace p expB \p ->
-                    runSimpleParserL p "}}" \p ->
-                        withL p ts False ms1
-                _ ->
-                    ParseError
-            | c == m -> resolveEmptyBrace p expB \p ->
-                runSimpleParserL p ';' \p ->
-                    resolveToken p t ts False ms0
-            | otherwise ->
-                resolveToken p t ts expB ms0
-        VirtualBrace m:ms1
-            | c < m -> resolveEmptyBrace p expB \p ->
-                runSimpleParserL p '}' \p ->
-                    resolveNewline p c t ts False ms1
-            | c == m -> resolveEmptyBrace p expB \p ->
-                runSimpleParserL p ';' \p ->
-                    resolveToken p t ts False ms0
-            | otherwise ->
-                resolveToken p t ts expB ms0
-        _ ->
-            resolveToken p t ts expB ms
-
-    resolveEmptyBrace p expB cont = case expB of
-        False ->
-            cont p
-        True ->
-            runSimpleParserL p '{' \p ->
-                runSimpleParserL p '}' \p ->
-                    cont p
-
-    tryClose p t ts ms = case ms of
-        []   ->
-            ParseError
-        m:ms -> case m of
-            VirtualBrace _ -> runSimpleParserL p '}' \p ->
-                tryClose p t ts ms
-            ExplicitBrace -> case t of
-                "}" -> runSimpleParserL p "}" \p ->
-                    withL p ts ms
-                _ ->
-                    ParseError
-            ExplicitDBrace _ -> case t of
-                "}}" -> runSimpleParserL p "}}" \p ->
-                    withL p ts ms
-                _ ->
-                    ParseError
-            NoLayout
-                | t match interp_string_continue -> runSimpleParserL p t \p ->
-                    withL p ts (NoLayout:ms)
-                | otherwise -> runSimpleParserL p t \p ->
-                    withL p ts ms
+                parseError p ms ((n,t):ts)
+        | t match "{{" = p t \r -> case r of
+            ParseOk p ->
+                withL p (<n,"{{">:ms) ts
+            ParseError ->
+                parseError p ms ((n,t):ts)
+        | isOpen t = p t \r -> case r of
+            ParseOk p ->
+                withL p (<>:ms) ts
+            ParseError ->
+                parseError p ms ((n,t):ts)
+        | t match "}}" = case ms of
+            <m,"{{">:ms1 -> p t \r -> case r of
+                ParseOk p ->
+                    withL p ms1 ts
+                ParseError ->
+                    parseError p ms ((n,t):ts)
+            _:_ ->
+                parseError p ms ((n,t):ts)
+            [] ->
+                parseError p ms ((n,t):ts)
+        | isClose t = case ms of
+            <>:ms1 -> p t \r -> case r of
+                ParseOk p ->
+                    withL p ms1 ts
+                ParseError ->
+                    parseError p ms ((n,t):ts)
+            _:_ ->
+                parseError p ms ((n,t):ts)
+            [] ->
+                parseError p ms ((n,t):ts)
+        | otherwise = p t \r -> case r of
+            ParseOk p ->
+                withL p ms ts
+            ParseError ->
+                parseError p ms ts
 
     tryEnd p ms = case ms of
         [] ->
             ParseOk p
-        m:ms -> case m of
-            VirtualBrace _ -> runSimpleParserL p '}' \p ->
+        <_,"{">:ms -> p "}" \r -> case r of
+            ParseOk p ->
                 tryEnd p ms
-            _ ->
+            ParseError ->
                 ParseError
+        <_,"{{">:_ ->
+            ParseError
+        <>:_ ->
+            ParseError
 
-    calcLayoutPos ts = case ts of
-        []              -> 0
-        Token m _:_     -> m
-        ExpectBrace:ts  -> calcLayoutPos ts
+    parseError p ms ts = case ms of
+        <_,"{">:ms -> p "}" \r -> case r of
+            ParseOk p ->
+                withL p ms ts
+            ParseError ->
+                ParseError
+        _:_ ->
+            ParseError
+        [] ->
+            ParseError
 
-    isOpen t = case t of
-        "("     -> True
-        "["     -> True
-        "{"     -> True
-        "{{"    -> True
-        _ | t match interp_string_start
-                -> True
-        _       -> False
+    isOpen t
+        | t match "{"   = True
+        | t match "{{"  = True
+        | t match "("   = True
+        | t match "["   = True
+        | t match interp_string_start
+                        = True
+        | t match interp_string_cont
+                        = True
+        | otherwise     = False
 
-    isClose t = case t of
-        ")"     -> True
-        "]"     -> True
-        "}"     -> True
-        "}}"    -> True
-        _ | t match interp_string_end
-                -> True
-        _       -> False
+    isClose t
+        | t match "}"   = True
+        | t match "}}"  = True
+        | t match ")"   = True
+        | t match "]"   = True
+        | t match interp_string_end
+                        = True
+        | t match interp_string_cont
+                        = True
+        | otherwise     = False
 
 Fixity Resolution
 -----------------
@@ -777,5 +809,6 @@ Fixity Resolution
 Reference
 ---------
 
+* `Parsing Expression Grammars: A Recognition-Based Syntactic Foundation <https://bford.info/pub/lang/peg/>`_
 * `Unicode Identifier and Pattern Syntax <https://unicode.org/reports/tr31/>`_
 * `Unicode Character Database - 5.7.1 General Category Values <http://www.unicode.org/reports/tr44/#General_Category_Values>`_

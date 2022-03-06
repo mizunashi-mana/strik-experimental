@@ -146,7 +146,7 @@ data Decl c
     | DeclDataType Name (Maybe (TypeExpr c)) [Decl c] (XDeclDataType c)
     | DeclAlgDataType (DeclType c) [ImplType c] [Decl c] (XDeclAlgDataType c)
     | DeclNewType (DeclType c) (TypeExpr c) [Decl c] (XDeclNewType c)
-    | DeclVal (DeclExpr c) (Expr c) [Decl c] (XDeclVal c)
+    | DeclVal (DeclExpr c) (Maybe (TypeExpr c)) (Expr c) [Decl c] (XDeclVal c)
     | DeclValBind (Pat c) (Expr c) [Decl c] (XDeclValBind c)
 
 type family XDeclTypeSig c :: Type

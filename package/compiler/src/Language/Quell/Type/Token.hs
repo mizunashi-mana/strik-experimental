@@ -79,10 +79,11 @@ data Token
     | SpParenOpen
     | SpParenClose
     | SpSemi
+    | SpThen
     | SpTypeBlock
-    | SpVBraceOpen
-    | SpVBraceClose
-    | SpVSemi
+
+    | VirtExpBrace
+    | VirtNewline
 
     | IdConId TextId.T
     | IdConSym TextId.T
@@ -157,7 +158,6 @@ instance Pretty Token where
         SymUnderscore                   -> pretty "_"
         SymUnknown                      -> pretty "?"
         SpBackquote                     -> pretty "`"
-        SpBlock                         -> pretty "##"
         SpBrackOpen                     -> pretty "["
         SpBrackClose                    -> pretty "]"
         SpComma                         -> pretty ","
@@ -170,6 +170,8 @@ instance Pretty Token where
         SpParenOpen                     -> pretty "("
         SpParenClose                    -> pretty ")"
         SpSemi                          -> pretty ";"
+        SpBlock                         -> pretty "##"
+        SpThen                          -> pretty "#>"
         SpTypeBlock                     -> pretty "#@"
         SpVBraceOpen                    -> pretty "{"
         SpVBraceClose                   -> pretty "}"

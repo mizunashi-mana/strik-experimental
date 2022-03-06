@@ -126,9 +126,8 @@ common general
         tlex-core,
         transformers,
         vector,
-
-    build-tool-depends:
-        happy:happy,
+        ptera,
+        ptera-th,
 
     autogen-modules:
         Paths_quell_compiler

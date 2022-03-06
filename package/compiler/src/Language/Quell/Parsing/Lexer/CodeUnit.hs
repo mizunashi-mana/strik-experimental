@@ -182,6 +182,7 @@ data CodeUnit
     | LcU2026 -- '…'
     | LcU2190 -- '←'
     | LcU2192 -- '→'
+    | LcU21A6 -- '↦'
     | LcU21D0 -- '⇐'
     | LcU21D2 -- '⇒'
     | LcU2200 -- '∀'
@@ -466,6 +467,7 @@ fromChar c = case fromEnum c of
     0x2026 -> LcU2026
     0x2190 -> LcU2190
     0x2192 -> LcU2192
+    0x21A6 -> LcU21A6
     0x21D0 -> LcU21D0
     0x21D2 -> LcU21D2
     0x2200 -> LcU2200
@@ -644,7 +646,7 @@ catSymbol = EnumSet.fromList
     [
         LcU0024, LcU002B, LcU003C, LcU003D, LcU003E,
         LcU005E, LcU0060, LcU007C, LcU007E, LcU2190,
-        LcU2192, LcU21D0, LcU21D2, LcU2200,
+        LcU2192, LcU21A6, LcU21D0, LcU21D2, LcU2200,
         LcOtherCatS
     ]
 

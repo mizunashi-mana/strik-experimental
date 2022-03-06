@@ -314,7 +314,7 @@ yieldTlexError :: MonadST.T s m => Lexer s m ()
 yieldTlexError = lexerYield do
     Spanned.Spanned
         {
-            getSpan = undefined,
+            getSpan = error "todo: yieldTlexError",
             unSpanned = LexError Error.UnexpectedCodeUnits
                 do text "TODO"
         }

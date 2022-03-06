@@ -228,6 +228,7 @@ specialRules = do
     initialRule (stringsP ["..", "…"])  [||WithToken do Token.SpDots||]
     initialRule (stringP ".")           [||WithToken do Token.SpDot||]
     initialRule (stringsP ["##", "﹟"])  [||WithToken do Token.SpBlock||]
+    initialRule (stringsP ["#>", "↦"])  [||WithToken do Token.SpThen||]
     initialRule (stringP "#@")          [||WithToken do Token.SpTypeBlock||]
 
 specialCs = charsCs ['(', ')', ',', '[', ']', '`', ';', '﹟']

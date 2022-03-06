@@ -76,7 +76,6 @@ isLayoutKeyword = \case
     Token.KwWith      -> True
     Token.KwWhen      -> True
     Token.KwWhere     -> True
-    Token.SymLambda   -> True
     Token.SpBlock     -> True
     Token.SpTypeBlock -> True
     _                 -> False
