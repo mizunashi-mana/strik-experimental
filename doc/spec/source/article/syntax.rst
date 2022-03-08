@@ -716,19 +716,9 @@ Layout
             withL p ms ts
 
     resolveToken p ms n t ts
-        | t match interp_string_cont = p t \r -> case r of
-            ParseOk p ->
-                withL p (<>:ms) ts
-            ParseError ->
-                parseError p ms ((n,t):ts)
         | t match "{{" = p t \r -> case r of
             ParseOk p ->
                 withL p (<n,"{{">:ms) ts
-            ParseError ->
-                parseError p ms ((n,t):ts)
-        | isOpen t = p t \r -> case r of
-            ParseOk p ->
-                withL p (<>:ms) ts
             ParseError ->
                 parseError p ms ((n,t):ts)
         | t match "}}" = case ms of
@@ -737,19 +727,23 @@ Layout
                     withL p ms1 ts
                 ParseError ->
                     parseError p ms ((n,t):ts)
-            _:_ ->
+            _ ->
                 parseError p ms ((n,t):ts)
-            [] ->
-                parseError p ms ((n,t):ts)
-        | isClose t = case ms of
+        | isNoLayoutClose t = case ms of
             <>:ms1 -> p t \r -> case r of
-                ParseOk p ->
-                    withL p ms1 ts
+                ParseOk p
+                    | isNoLayoutOpen t ->
+                        withL p (<>:ms1) ts
+                    | otherwise ->
+                        withL p ms1 ts
                 ParseError ->
                     parseError p ms ((n,t):ts)
-            _:_ ->
+            _ ->
                 parseError p ms ((n,t):ts)
-            [] ->
+        | isNoLayoutOpen t = p t \r -> case r of
+            ParseOk p ->
+                withL p (<>:ms) ts
+            ParseError ->
                 parseError p ms ((n,t):ts)
         | otherwise = p t \r -> case r of
             ParseOk p ->
@@ -781,9 +775,8 @@ Layout
         [] ->
             ParseError
 
-    isOpen t
+    isNoLayoutOpen t
         | t match "{"   = True
-        | t match "{{"  = True
         | t match "("   = True
         | t match "["   = True
         | t match interp_string_start
@@ -792,9 +785,8 @@ Layout
                         = True
         | otherwise     = False
 
-    isClose t
+    isNoLayoutClose t
         | t match "}"   = True
-        | t match "}}"  = True
         | t match ")"   = True
         | t match "]"   = True
         | t match interp_string_end
