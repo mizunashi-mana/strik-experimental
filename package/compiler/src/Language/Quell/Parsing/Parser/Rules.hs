@@ -7,6 +7,7 @@ import           Language.Parser.Ptera.TH         (varA)
 import qualified Language.Parser.Ptera.TH         as Ptera
 import qualified Language.Quell.Type.Token as Token
 import qualified Language.Quell.Type.Ast as Ast
+import qualified Language.Quell.Parsing.Parser.Layout as Layout
 
 
 $(Ptera.genGrammarToken (TH.mkName "Tokens") [t|Token.T|]
@@ -103,3 +104,14 @@ $(Ptera.genGrammarToken (TH.mkName "Tokens") [t|Token.T|]
     , ("interp_string_end",
                         [p|Token.LitInterpStringEnd{}|])
     ])
+
+data GrammarContext = GrammarContext
+    { layoutStack :: [LayoutItem]
+    }
+    deriving (Eq, Show)
+
+data LayoutItem
+    = NoLayout
+    | ImplicitLayout Layout.LayoutPos
+    | ExplicitScopedLayout Layout.LayoutPos
+    deriving (Eq, Show)

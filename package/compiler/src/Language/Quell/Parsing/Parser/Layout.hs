@@ -1,15 +1,14 @@
 module Language.Quell.Parsing.Parser.Layout (
     T,
-    Layout (..),
 
     TokenWithL (..),
     preParseForProgram,
     preParse,
 
-    isLayoutKeyword,
+    LayoutPos (..),
 
-    isOpen,
-    isClose,
+    isLayoutKeyword,
+    isExplicitOpenBrace,
 ) where
 
 import           Language.Quell.Prelude
@@ -19,56 +18,58 @@ import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Type.Token      as Token
 
 
-type T = Layout
-
-data Layout
-    = NoLayout Token.T
-    | ExplicitBrace
-    | ExplicitDBrace Int
-    | VirtualBrace Int
-    deriving (Eq, Show)
+type T = TokenWithL
 
 data TokenWithL
-    = Token Bool (Spanned.T Token.T)
-    | ExpectBrace
+    = Token (Spanned.T Token.LexToken)
+    | ExpectNewImplicitLayout LayoutPos
+    | Newline LayoutPos
     deriving (Eq, Show)
 
-type WithLConduit = Conduit.ConduitT (Spanned.T Token.T) TokenWithL
+data LayoutPos
+    = LayoutPosByCol Int
+    | LayoutPosEos
+    deriving (Eq, Show)
+
+type WithLConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL
 
 preParseForProgram :: Monad m => WithLConduit m ()
-preParseForProgram = do
-    Conduit.yield ExpectBrace
-    preParse
+preParseForProgram = preParse True do Spanned.locLine Spanned.initialLoc
 
-preParse :: Monad m => WithLConduit m ()
-preParse = go 0 where
-    go pl = resolveNewline pl \isN spt l -> case Spanned.unSpanned spt of
-        t | isLayoutKeyword t -> do
-            Conduit.yield do Token isN spt
-            Conduit.yield ExpectBrace
-            go l
-        _ -> do
-            Conduit.yield do Token isN spt
-            go l
-
-resolveNewline :: Monad m
-    => Int
-    -> (Bool -> Spanned.T Token.T -> Int -> WithLConduit m ())
-    -> WithLConduit m ()
-resolveNewline pl cont = Conduit.await >>= \case
-    Nothing ->
-        pure ()
-    Just spt -> do
-        let sp = Spanned.getSpan spt
-            l1 = Spanned.locLine do Spanned.beginLoc sp
-            l2 = Spanned.locLine do Spanned.endLoc sp
-        if
-            | pl < l1 -> do
-                cont True spt l2
+preParse :: Monad m => Bool -> Int -> WithLConduit m ()
+preParse = go1 where
+    go1 expBrace l0 = Conduit.await >>= \case
+        Nothing
+            | expBrace -> do
+                Conduit.yield do ExpectNewImplicitLayout LayoutPosEos
+                Conduit.yield do Newline LayoutPosEos
+                pure ()
             | otherwise ->
-                cont False spt l2
+                pure ()
+        Just tok -> do
+            let loc1 = Spanned.beginLoc do Spanned.getSpan tok
+            if
+                | isExplicitOpenBrace do Spanned.unSpanned tok -> do
+                    go2 tok
+                | expBrace -> do
+                    let lpos = LayoutPosByCol do Spanned.locCol loc1
+                    Conduit.yield do ExpectNewImplicitLayout lpos
+                    Conduit.yield do Newline lpos
+                    go2 tok
+                | l0 < Spanned.locLine loc1 -> do
+                    let lpos = LayoutPosByCol do Spanned.locCol loc1
+                    Conduit.yield do Newline lpos
+                    go2 tok
+                | otherwise -> do
+                    go2 tok
 
-isLayoutKeyword :: Token.T -> Bool
+    go2 tok = do
+        Conduit.yield do Token tok
+        go1
+            do isLayoutKeyword do Spanned.unSpanned tok
+            do Spanned.locLine do Spanned.endLoc do Spanned.getSpan tok
+
+isLayoutKeyword :: Token.LexToken -> Bool
 isLayoutKeyword = \case
     Token.KwCase      -> True
     Token.KwLet       -> True
@@ -80,20 +81,8 @@ isLayoutKeyword = \case
     Token.SpTypeBlock -> True
     _                 -> False
 
-isOpen :: Token.T -> Bool
-isOpen = \case
-    Token.SpParenOpen            -> True
-    Token.SpBrackOpen            -> True
+isExplicitOpenBrace :: Token.LexToken -> Bool
+isExplicitOpenBrace = \case
     Token.SpBraceOpen            -> True
     Token.SpDBraceOpen           -> True
-    Token.LitInterpStringStart{} -> True
     _                            -> False
-
-isClose :: Token.T -> Bool
-isClose = \case
-    Token.SpParenClose         -> True
-    Token.SpBrackClose         -> True
-    Token.SpBraceClose         -> True
-    Token.SpDBraceClose        -> True
-    Token.LitInterpStringEnd{} -> True
-    _                          -> False

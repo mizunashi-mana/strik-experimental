@@ -13,6 +13,11 @@ import qualified Prelude
 type T = Token
 
 data Token
+    = TokLexeme LexToken
+    | TokWhiteSpace WsToken
+    deriving (Eq, Show)
+
+data LexToken
     = EndOfSource
 
     | KwAs
@@ -100,8 +105,10 @@ data Token
     | LitInterpStringStart Text
     | LitInterpStringContinue Text
     | LitInterpStringEnd Text
+    deriving (Eq, Show)
 
-    | CommentLine Text
+data WsToken
+    = CommentLine Text
     | CommentMultiline Text
     | CommentPragma Text
     | CommentDoc Text
@@ -190,6 +197,9 @@ instance Pretty Token where
         LitInterpStringStart v          -> pretty do text "#s\"" <> v <> text "${#" -- FIXME: escape
         LitInterpStringContinue v       -> pretty do text "#}" <> v <> text "${#" -- FIXME: escape
         LitInterpStringEnd v            -> pretty do text "#}" <> v <> text "\"" -- FIXME: escape
+
+instance Pretty WSToken where
+    pretty = \case
         CommentLine v                   -> pretty do text "--" <> v
         CommentMultiline v              -> pretty do text "{-" <> v <> text "-}"
         CommentPragma v                 -> pretty do text "{-#" <> v <> text "#-}"

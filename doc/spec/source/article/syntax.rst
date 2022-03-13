@@ -327,6 +327,8 @@ Aliases
 Grammar
 -------
 
+TODO: module support
+
 .. productionlist::
     program: decl_body
 
@@ -593,7 +595,7 @@ Layout
 
 .. code-block:: haskell
 
-    preParse = go1 False 1 where
+    preParse = go1 True 1 where
         go1 expBrace l0 ts0 = case ts0 of
             []
                 | expBrace ->
@@ -610,19 +612,18 @@ Layout
                 | l0 < l1 ->
                     <c1>:go2 c1 l2 t ts1
                 | otherwise ->
-                    go2 c1 l0 t ts1
+                    go2 c1 l2 t ts1
 
-        go2 c1 l0 t ts = if
+        go2 c1 l2 t ts = if
             | isLayoutKeyword t ->
-                (c1,t):go1 True l0 ts
+                (c1,t):go1 True l2 ts
             | otherwise ->
-                (c1,t):go1 False l0 ts
+                (c1,t):go1 False l2 ts
 
     isWhiteSpace t =
         t match whitespace
 
     isLayoutKeyword t = case t of
-        "\\"        -> True
         "#case"     -> True
         "#let"      -> True
         "#letrec"   -> True
