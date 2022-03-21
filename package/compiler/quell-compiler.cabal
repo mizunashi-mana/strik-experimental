@@ -98,14 +98,6 @@ common general
 
             -dcore-lint
 
-            -ddump-to-file
-            -ddump-splices
-            -ddump-deriv
-            -ddump-simpl
-            -ddump-prep
-            -ddump-stg
-            -ddump-cmm
-
     build-depends:
         array,
         base,
@@ -121,11 +113,12 @@ common general
         prettyprinter,
         prettyprinter-ansi-terminal,
         primitive,
+        transformers,
+        vector,
+        enummapset-th,
         tlex,
         tlex-th,
         tlex-core,
-        transformers,
-        vector,
         ptera,
         ptera-th,
 

@@ -98,10 +98,7 @@ Lexical Syntax
     reserved_sym    : reserved_sym_unit ! sym_char
     reserved_sym_unit   : "_"
                         : "!"
-                        : "->" / "→"
-                        : "<-" / "←"
-                        : "=>" / "⇒"
-                        : "<=" / "⇐"
+                        : "<#" / "⧏"
                         : "="
                         : "?"
                         : "@"
@@ -118,8 +115,10 @@ Lexical Syntax
             : "`" -- ` for syntax highlighting issue
             : ";"
             : "##" / "﹟"
-            : "#@"
-            : "#>" / "↦"
+            : "#@" / "⧥"
+            : "#>" / "⧐"
+            : "#=>"
+            : "#->"
             : ".." / "…"
             : "."
     brace   : "{{" / "}}" / "❴" / "❵"
@@ -313,16 +312,14 @@ Aliases
 
 .. productionlist::
     ".."    : ".." / "…"
-    "->"    : "->" / "→"
-    "<-"    : "<-" / "←"
-    "<="    : "<=" / "⇐"
-    "=>"    : "=>" / "⇒"
-    "#>"    : "#>" / "↦"
+    "<#"    : "<#" / "⧏"
+    "#>"    : "#>" / "⧐"
     "^"     : "^" / "∀"
     "\\"    : "\\" / "λ"
     "{{"    : "{{" / "❴"
     "}}"    : "}}" / "❵"
     "##"    : "##" / "﹟"
+    "#@"    : "#@" / "⧥"
 
 Grammar
 -------
@@ -369,7 +366,7 @@ TODO: module support
                     : consig_decl
     alg_data_type   : "(" alg_data_type_items ")"
                     : alg_data_type_items
-    alg_data_type_items : "|"? (impltype "|")* impltype "|"?
+    alg_data_type_items : "|"? (impltype "|")* impltype?
 
 .. productionlist::
     val_decl: declvarexpr (":" type)? "=" expr ("#where" val_decl_where_body)?
@@ -381,31 +378,28 @@ TODO: module support
     val_decl_where_item: let_bind_item
 
 .. productionlist::
-    decltype    : declcon bind_var*
-                : simple_bind_var declconop simple_bind_var
-    impltype    : con_qualified type_qualified*
-                : type_qualified conop_qualified type_qualified
-    declvarexpr : declvar bind_var*
-                : simple_bind_var declop simple_bind_var
+    decltype    : simple_bind_var declconop simple_bind_var
+                : declcon bind_var*
+    impltype    : type_qualified conop_qualified type_qualified
+                : con_qualified type_qualified*
+    declvarexpr : simple_bind_var declop simple_bind_var
+                : declvar bind_var*
 
 .. productionlist::
-    type: "^" bind_var* "=>" type
-        : type_expr
-    type_expr   : type_unit "->" type
-                : type_unit
-    type_unit: type_infix
-    type_infix: (type_apps type_op)* type_apps
-    type_op : "`" type_qualified_op "`"
-            : con_sym
+    type: (type_apps type_op)* type_apps
+    type_op : "`" type_op_block "`"
+            : con_sym_ext
             : var_sym_ext
-    type_qualified_op   : sym_ext
-                        : type_qualified
+    type_op_block   : con_sym_ext
+                    : var_sym_ext
+                    : type_apps
     type_apps: type_qualified type_app*
     type_app: "@" type_qualified
             : "#@" type_block_body
             : type_qualified
     type_qualified: type_block
-    type_block  : "##" type_block_body
+    type_block  : "^" bind_var* "#>" type
+                : "##" type_block_body
                 : type_atomic
     type_atomic : "(" type (":" type)? ")"
                 : type_literal
@@ -433,11 +427,12 @@ TODO: module support
     expr: expr_infix ":" type
         : expr_infix
     expr_infix: (expr_apps expr_op)* expr_apps
-    expr_op : "`" expr_qualified_op "`"
-            : con_sym
+    expr_op : "`" expr_op_block "`"
+            : con_sym_ext
             : var_sym_ext
-    expr_qualified_op   : sym_ext
-                        : expr_qualified
+    expr_op_block   : con_sym_ext
+                    : var_sym_ext
+                    : expr_apps
     expr_apps: expr_qualified expr_app*
     expr_app: "@" type_qualified
             : "#@" type_block_body
@@ -475,7 +470,11 @@ TODO: module support
     pat : pat_unit ":" type
         : pat_unit
     pat_unit: "|"? (pat_infix "|")* pat_infix "|"?
-    pat_infix: (pat_apps conop_qualified)* pat_apps
+    pat_infix: (pat_apps pat_op)* pat_apps
+    pat_op  : "`" pat_op_block "`"
+            : con_sym_ext
+    pat_op_block    : con_sym_ext
+                    : pat_apps
     pat_apps: con_qualified pat_app*
             : pat_qualified pat_univ_app*
     pat_univ_app    : "@" type_qualified
@@ -537,7 +536,7 @@ TODO: module support
             : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* do_yield_item lsemis?
     do_stmt_item    : "#letrec" let_binds
-                    : pat "<-" expr ("#where" val_decl_where_body)?
+                    : pat "<#" expr ("#where" val_decl_where_body)?
                     : pat "=" expr ("#where" val_decl_where_body)?
     do_yield_item   : "#yield" expr
 
@@ -565,11 +564,10 @@ TODO: module support
     op  : "`" var_sym_ext "`"
         : "`" var_id_ext "`"
         : var_sym_ext
-    sym_ext : con_sym_ext
-            : var_sym_ext
     con_id_ext  : "(" ")"
                 : con_id
-    con_sym_ext : "->"
+    con_sym_ext : "#->"
+                : "#=>"
                 : con_sym
     var_id_ext  : "_"
                 : var_id
@@ -599,7 +597,7 @@ Layout
         go1 expBrace l0 ts0 = case ts0 of
             []
                 | expBrace ->
-                    {0}:<0>:[]
+                    {0}:[]
                 | otherwise ->
                     []
             ((l1,c1),(l2,c2),t):ts1

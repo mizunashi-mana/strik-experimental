@@ -1,11 +1,9 @@
 module Language.Quell.Parsing.Parser.Layout (
-    T,
-
     TokenWithL (..),
     preParseForProgram,
     preParse,
 
-    LayoutPos (..),
+    Position (..),
 
     isLayoutKeyword,
     isExplicitOpenBrace,
@@ -18,17 +16,15 @@ import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Type.Token      as Token
 
 
-type T = TokenWithL
-
 data TokenWithL
     = Token (Spanned.T Token.LexToken)
-    | ExpectNewImplicitLayout LayoutPos
-    | Newline LayoutPos
+    | ExpectNewImplicitLayout Position
+    | Newline Position
     deriving (Eq, Show)
 
-data LayoutPos
-    = LayoutPosByCol Int
-    | LayoutPosEos
+data Position
+    = PositionByCol Int
+    | PositionEos
     deriving (Eq, Show)
 
 type WithLConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL
@@ -41,8 +37,8 @@ preParse = go1 where
     go1 expBrace l0 = Conduit.await >>= \case
         Nothing
             | expBrace -> do
-                Conduit.yield do ExpectNewImplicitLayout LayoutPosEos
-                Conduit.yield do Newline LayoutPosEos
+                Conduit.yield do ExpectNewImplicitLayout PositionEos
+                Conduit.yield do Newline PositionEos
                 pure ()
             | otherwise ->
                 pure ()
@@ -52,13 +48,13 @@ preParse = go1 where
                 | isExplicitOpenBrace do Spanned.unSpanned tok -> do
                     go2 tok
                 | expBrace -> do
-                    let lpos = LayoutPosByCol do Spanned.locCol loc1
-                    Conduit.yield do ExpectNewImplicitLayout lpos
-                    Conduit.yield do Newline lpos
+                    let pos = PositionByCol do Spanned.locCol loc1
+                    Conduit.yield do ExpectNewImplicitLayout pos
+                    Conduit.yield do Newline pos
                     go2 tok
                 | l0 < Spanned.locLine loc1 -> do
-                    let lpos = LayoutPosByCol do Spanned.locCol loc1
-                    Conduit.yield do Newline lpos
+                    let pos = PositionByCol do Spanned.locCol loc1
+                    Conduit.yield do Newline pos
                     go2 tok
                 | otherwise -> do
                     go2 tok

@@ -1,6 +1,8 @@
 module Language.Quell.Type.Token (
   T,
   Token (..),
+  LexToken (..),
+  WsToken (..),
 ) where
 
 import           Language.Quell.Prelude
@@ -16,6 +18,13 @@ data Token
     = TokLexeme LexToken
     | TokWhiteSpace WsToken
     deriving (Eq, Show)
+
+instance Pretty Token where
+    pretty = \case
+        TokLexeme t ->
+            pretty t
+        TokWhiteSpace t ->
+            pretty t
 
 data LexToken
     = EndOfSource
@@ -87,9 +96,6 @@ data LexToken
     | SpThen
     | SpTypeBlock
 
-    | VirtExpBrace
-    | VirtNewline
-
     | IdConId TextId.T
     | IdConSym TextId.T
     | IdVarId TextId.T
@@ -114,7 +120,7 @@ data WsToken
     | CommentDoc Text
     deriving (Eq, Show)
 
-instance Pretty Token where
+instance Pretty LexToken where
     pretty = \case
         EndOfSource                     -> mempty
         KwAs                            -> pretty "#as"
@@ -180,9 +186,6 @@ instance Pretty Token where
         SpBlock                         -> pretty "##"
         SpThen                          -> pretty "#>"
         SpTypeBlock                     -> pretty "#@"
-        SpVBraceOpen                    -> pretty "{"
-        SpVBraceClose                   -> pretty "}"
-        SpVSemi                         -> pretty ";"
         IdConId v                       -> pretty v
         IdConSym v                      -> pretty v
         IdVarId v                       -> pretty v
@@ -198,7 +201,7 @@ instance Pretty Token where
         LitInterpStringContinue v       -> pretty do text "#}" <> v <> text "${#" -- FIXME: escape
         LitInterpStringEnd v            -> pretty do text "#}" <> v <> text "\"" -- FIXME: escape
 
-instance Pretty WSToken where
+instance Pretty WsToken where
     pretty = \case
         CommentLine v                   -> pretty do text "--" <> v
         CommentMultiline v              -> pretty do text "{-" <> v <> text "-}"

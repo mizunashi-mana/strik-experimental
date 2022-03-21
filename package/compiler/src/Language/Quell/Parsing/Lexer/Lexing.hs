@@ -8,7 +8,7 @@ import qualified Conduit
 import qualified Data.ByteString.Builder                     as BSBuilder
 import qualified Data.ByteString.Lazy                        as LazyByteString
 import qualified Language.Lexer.Tlex                         as Tlex
-import qualified Language.Lexer.Tlex.Data.EnumSet            as EnumSet
+import qualified Data.EnumSet            as EnumSet
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Data.STBuffer                as STBuffer
 import qualified Language.Quell.Parsing.Lexer.CodeUnit       as CodeUnit
@@ -347,7 +347,8 @@ yieldIdToken (Rules.IdToken t) = do
                         Spanned.unSpanned sptxtB <> textBuilderFromChar c
                 }
     let u = sptxtB0 <&> \txtB0 ->
-            LexedToken do t do TextId.textId do buildText txtB0
+            LexedToken do
+                Token.TokLexeme do t do TextId.textId do buildText txtB0
     lexerYield u
 
 consumeBufferWithSpan :: forall s m. MonadST.T s m => Lexer s m Spanned.Span
@@ -381,9 +382,10 @@ lexAndYieldLitRationalWithDot = do
                     LexedSignNegative -> negate i0
                 n1 = m0 - n0
             LexedToken do
-                Token.LitRational if
-                    | n1 < 0    -> i1 % 10 ^ negate n1
-                    | otherwise -> i1 * 10 ^ n1 % 1
+                Token.TokLexeme do
+                    Token.LitRational if
+                        | n1 < 0    -> i1 % 10 ^ negate n1
+                        | otherwise -> i1 * 10 ^ n1 % 1
     where
         go0 c u = case lexMaySignUnit u of
             Just lexedSign ->
@@ -444,9 +446,10 @@ lexAndYieldLitRationalWithoutDot = do
                     LexedSignPositive -> i0
                     LexedSignNegative -> negate i0
             LexedToken do
-                Token.LitRational if
-                    | m0 < 0    -> i1 % 10 ^ negate m0
-                    | otherwise -> i1 * 10 ^ m0 % 1
+                Token.TokLexeme do
+                    Token.LitRational if
+                        | m0 < 0    -> i1 % 10 ^ negate m0
+                        | otherwise -> i1 * 10 ^ m0 % 1
     where
         go0 c u = case lexMaySignUnit u of
             Just lexedSign ->
@@ -496,7 +499,7 @@ lexAndYieldLitBitInteger = do
             let i1 = case lexedSign of
                     LexedSignPositive -> i0
                     LexedSignNegative -> negate i0
-            LexedToken do Token.LitInteger i1
+            LexedToken do Token.TokLexeme do Token.LitInteger i1
     where
         go0 u = case lexMaySignUnit u of
             -- rest 0[bB]
@@ -533,7 +536,7 @@ lexAndYieldLitOctitInteger = do
             let i1 = case lexedSign of
                     LexedSignPositive -> i0
                     LexedSignNegative -> negate i0
-            LexedToken do Token.LitInteger i1
+            LexedToken do Token.TokLexeme do Token.LitInteger i1
     where
         go0 u = case lexMaySignUnit u of
             -- rest 0[oO]
@@ -576,7 +579,7 @@ lexAndYieldLitHexitInteger = do
             let i1 = case lexedSign of
                     LexedSignPositive -> i0
                     LexedSignNegative -> negate i0
-            LexedToken do Token.LitInteger i1
+            LexedToken do Token.TokLexeme do Token.LitInteger i1
     where
         go0 u = case lexMaySignUnit u of
             -- rest 0[xX]
@@ -625,7 +628,7 @@ lexAndYieldLitDecimalInteger = do
             let i1 = case lexedSign of
                     LexedSignPositive -> i0
                     LexedSignNegative -> negate i0
-            LexedToken do Token.LitInteger i1
+            LexedToken do Token.TokLexeme do Token.LitInteger i1
     where
         go0 c u = case lexMaySignUnit u of
             Just lexedSign ->
@@ -903,7 +906,8 @@ lexAndYieldLitByteString = do
                 {
                     getSpan = sp,
                     unSpanned = LexedToken do
-                        Token.LitByteString bs
+                        Token.TokLexeme do
+                            Token.LitByteString bs
                 }
 
 lexAndYieldLitByteChar :: forall s m. MonadST.T s m => Lexer s m ()
@@ -1036,7 +1040,8 @@ lexAndYieldLitByteChar = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.LitByteChar w
+                                    Token.TokLexeme do
+                                        Token.LitByteChar w
                             }
                     _ -> do
                         lexerYield do
@@ -1067,7 +1072,8 @@ lexAndYieldLitByteChar = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.LitByteChar w
+                                    Token.TokLexeme do
+                                        Token.LitByteChar w
                             }
                     _ -> goTooMany sp1 w
 
@@ -1154,7 +1160,8 @@ lexAndYieldLitString = do
                 {
                     getSpan = sp,
                     unSpanned = LexedToken do
-                        Token.LitString do buildText tb
+                        Token.TokLexeme do
+                            Token.LitString do buildText tb
                 }
 
         textBuilderFromWord8 w = textBuilderFromChar
@@ -1272,7 +1279,7 @@ lexAndYieldLitChar = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.LitChar c
+                                    Token.TokLexeme do Token.LitChar c
                             }
                     _ -> do
                         lexerYield do
@@ -1303,7 +1310,7 @@ lexAndYieldLitChar = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.LitChar c
+                                    Token.TokLexeme do Token.LitChar c
                             }
                     _ -> goTooMany sp1 c
 
@@ -1338,13 +1345,14 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty
                         Spanned.Spanned
                             {
                                 getSpan = sp1,
-                                unSpanned = LexedToken case b of
-                                    True ->
-                                        Token.LitInterpStringWithoutInterp
-                                            do buildText t0
-                                    False ->
-                                        Token.LitInterpStringEnd
-                                            do buildText t0
+                                unSpanned = LexedToken do
+                                    Token.TokLexeme case b of
+                                        True ->
+                                            Token.LitInterpStringWithoutInterp
+                                                do buildText t0
+                                        False ->
+                                            Token.LitInterpStringEnd
+                                                do buildText t0
                             }
                     CodeUnit.LcUSymDollar ->
                         goInterpOpen sp1 t0
@@ -1427,13 +1435,14 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty
                         Spanned.Spanned
                             {
                                 getSpan = sp1,
-                                unSpanned = LexedToken case b of
-                                    True ->
-                                        Token.LitInterpStringStart
-                                            do buildText t0
-                                    False ->
-                                        Token.LitInterpStringContinue
-                                            do buildText t0
+                                unSpanned = LexedToken do
+                                    Token.TokLexeme case b of
+                                        True ->
+                                            Token.LitInterpStringStart
+                                                do buildText t0
+                                        False ->
+                                            Token.LitInterpStringContinue
+                                                do buildText t0
                             }
                     _ -> lexerYield do
                         Spanned.Spanned
@@ -1462,13 +1471,14 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty
                         Spanned.Spanned
                             {
                                 getSpan = sp1,
-                                unSpanned = LexedToken case b of
-                                    True ->
-                                        Token.LitInterpStringStart
-                                            do buildText t0
-                                    False ->
-                                        Token.LitInterpStringContinue
-                                            do buildText t0
+                                unSpanned = LexedToken do
+                                    Token.TokLexeme case b of
+                                        True ->
+                                            Token.LitInterpStringStart
+                                                do buildText t0
+                                        False ->
+                                            Token.LitInterpStringContinue
+                                                do buildText t0
                             }
                     _ -> lexerYield do
                         Spanned.Spanned
@@ -1509,8 +1519,8 @@ lexAndYieldCommentLineWithContent = do
                     {
                         getSpan = sp0,
                         unSpanned = LexedToken do
-                            Token.CommentLine
-                                do buildText t0
+                            Token.TokWhiteSpace do
+                                Token.CommentLine do buildText t0
                     }
             Just item -> do
                 let (c, u) = Spanned.unSpanned item
@@ -1522,8 +1532,8 @@ lexAndYieldCommentLineWithContent = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.CommentLine
-                                        do buildText t0
+                                    Token.TokWhiteSpace do
+                                        Token.CommentLine do buildText t0
                             }
                     _ | EnumSet.member u graphicSpaceCs -> do
                         goChar sp1
@@ -1543,8 +1553,8 @@ lexAndYieldCommentLineWithContent = do
                     {
                         getSpan = sp0,
                         unSpanned = LexedToken do
-                            Token.CommentLine
-                                do buildText t0
+                            Token.TokWhiteSpace do
+                                Token.CommentLine do buildText t0
                     }
             Just item -> do
                 let (_, u) = Spanned.unSpanned item
@@ -1555,8 +1565,8 @@ lexAndYieldCommentLineWithContent = do
                             {
                                 getSpan = sp1,
                                 unSpanned = LexedToken do
-                                    Token.CommentLine
-                                        do buildText t0
+                                    Token.TokWhiteSpace do
+                                        Token.CommentLine do buildText t0
                             }
                     _ -> do
                         restoreBufferItem item
@@ -1565,8 +1575,8 @@ lexAndYieldCommentLineWithContent = do
                                 {
                                     getSpan = sp0,
                                     unSpanned = LexedToken do
-                                        Token.CommentLine
-                                            do buildText t0
+                                        Token.TokWhiteSpace do
+                                            Token.CommentLine do buildText t0
                                 }
 
 lexAndYieldCommentMultilineWithContent :: forall s m. MonadST.T s m => Lexer s m ()
@@ -1618,8 +1628,8 @@ lexAndYieldCommentMultilineWithContent = do
                                 {
                                     getSpan = sp1,
                                     unSpanned = LexedToken do
-                                        Token.CommentMultiline
-                                            do buildText t0
+                                        Token.TokWhiteSpace do
+                                            Token.CommentMultiline do buildText t0
                                 }
                     _ | EnumSet.member u graphicWhiteCharCs -> do
                         goChar False i sp1
@@ -1679,7 +1689,8 @@ lexAndYieldCommentDoc = do
                     {
                         getSpan = sp0,
                         unSpanned = LexedToken do
-                            Token.CommentDoc do buildText t0
+                            Token.TokWhiteSpace do
+                                Token.CommentDoc do buildText t0
                     }
             r:rs1 -> goClose1 b sp0 r rs1 t0 rt0
 
