@@ -413,9 +413,9 @@ TODO: module support
                     : "{" type_block_item "}"
                     : '{' type_block_item '}'
     type_block_item   : lsemis? type lsemis?
-    type_tuple_items: (type ",")+ type ","?
-    type_array_items: (type ",")* type?
-    type_simplrecord_items: (type_simplrecord_item ",")* type_simplrecord_item?
+    type_tuple_items: ","? (type ",")+ type ","?
+    type_array_items: ","? (type ",")* type?
+    type_simplrecord_items: ","? (type_simplrecord_item ",")* type_simplrecord_item?
     type_simplrecord_item: declvar ":" type
 
 .. productionlist::
@@ -438,11 +438,11 @@ TODO: module support
             : "#@" type_block_body
             : expr_qualified
     expr_qualified: expr_block
-    expr_block  : "\\" lambda_body
+    expr_block  : "\\" pat_atomic* guarded_alts
                 : "#case" case_alt_body
-                : "#letrec" let_body
-                : "#let" let_body
-                : "#match" (expr ",")* expr? "#with" case_alt_body
+                : "#letrec" let_binds "#in" expr
+                : "#let" let_binds "#in" expr
+                : "#match" ","? (expr ",")* expr? "#with" case_alt_body
                 : "#do" do_body
                 : "##" expr_block_body
                 : expr_atomic
@@ -502,7 +502,6 @@ TODO: module support
     pat_simplrecord_item: declvar "=" pat
 
 .. productionlist::
-    let_body: let_binds "#in" expr
     let_binds   : "{{" let_bind_items "}}"
                 : "{" let_bind_items "}"
                 : '{' let_bind_items '}'
@@ -526,9 +525,6 @@ TODO: module support
     guarded_alt_items: lsemis? (guarded_alt_item lsemis)* guarded_alt_item?
     guarded_alt_item: guard_qual "#>" expr
     guard_qual: expr
-
-.. productionlist::
-    lambda_body : pat_atomic* guarded_alts
 
 .. productionlist::
     do_body : "{{" do_stmt_items "}}"

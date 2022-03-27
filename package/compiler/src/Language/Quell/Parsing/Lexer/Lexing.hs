@@ -1326,171 +1326,170 @@ lexAndYieldInterpStringContinue = do
 
 lexAndYieldInterpString :: forall s m. MonadST.T s m
     => Bool -> Spanned.Span -> Lexer s m ()
-lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty
-    where
-        goChar sp0 t0 = consumeBufferItem @s @m >>= \case
-            Nothing -> lexerYield do
-                Spanned.Spanned
-                    {
-                        getSpan = sp0,
-                        unSpanned = LexError
-                            Error.UnclosedInterpStringLiteral
-                            do text "Found an unclosed literal."
-                    }
-            Just item -> do
-                let (c, u) = Spanned.unSpanned item
-                    sp1 = sp0 <> Spanned.getSpan item
-                case u of
-                    CodeUnit.LcUSymDQuote -> lexerYield do
+lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty where
+    goChar sp0 t0 = consumeBufferItem @s @m >>= \case
+        Nothing -> lexerYield do
+            Spanned.Spanned
+                {
+                    getSpan = sp0,
+                    unSpanned = LexError
+                        Error.UnclosedInterpStringLiteral
+                        do text "Found an unclosed literal."
+                }
+        Just item -> do
+            let (c, u) = Spanned.unSpanned item
+                sp1 = sp0 <> Spanned.getSpan item
+            case u of
+                CodeUnit.LcUSymDQuote -> lexerYield do
+                    Spanned.Spanned
+                        {
+                            getSpan = sp1,
+                            unSpanned = LexedToken do
+                                Token.TokLexeme case b of
+                                    True ->
+                                        Token.LitInterpStringWithoutInterp
+                                            do buildText t0
+                                    False ->
+                                        Token.LitInterpStringEnd
+                                            do buildText t0
+                        }
+                CodeUnit.LcUSymDollar ->
+                    goInterpOpen sp1 t0
+                        do Spanned.getSpan item
+                LexEscapeOpen ->
+                    goEscape sp1 t0
+                _ | EnumSet.member u graphicWhiteCharCs -> do
+                    goChar sp1
+                        do t0 <> textBuilderFromChar c
+                _ -> do
+                    lexerYield do
                         Spanned.Spanned
                             {
-                                getSpan = sp1,
-                                unSpanned = LexedToken do
-                                    Token.TokLexeme case b of
-                                        True ->
-                                            Token.LitInterpStringWithoutInterp
-                                                do buildText t0
-                                        False ->
-                                            Token.LitInterpStringEnd
-                                                do buildText t0
-                            }
-                    CodeUnit.LcUSymDollar ->
-                        goInterpOpen sp1 t0
-                            do Spanned.getSpan item
-                    LexEscapeOpen ->
-                        goEscape sp1 t0
-                    _ | EnumSet.member u graphicWhiteCharCs -> do
-                        goChar sp1
-                            do t0 <> textBuilderFromChar c
-                    _ -> do
-                        lexerYield do
-                            Spanned.Spanned
-                                {
-                                    getSpan = Spanned.getSpan item,
-                                    unSpanned = LexError
-                                        Error.NonGraphicInInterpStringLiteral
-                                        do text "Found a non graphic char."
-                                }
-                        goChar sp1 t0
-
-        goEscape sp0 t0 = CharEscLex.tlexScan () >>= \case
-            Tlex.TlexEndOfInput -> lexerYield do
-                Spanned.Spanned
-                    {
-                        getSpan = sp0,
-                        unSpanned = LexError
-                            Error.UnclosedInterpStringLiteral
-                            do text "Found an unclosed literal."
-                    }
-            Tlex.TlexError -> do
-                yieldTlexError
-            Tlex.TlexAccepted pos act -> do
-                setPosition pos
-                case act of
-                    Rules.WithGap -> do
-                        sp1 <- consumeBufferWithSpan @s @m
-                        goChar
-                            do sp0 <> sp1
-                            do t0
-                    Rules.WithCharesc w -> do
-                        sp1 <- consumeBufferWithSpan
-                        goChar
-                            do sp0 <> sp1
-                            do t0 <> textBuilderFromWord8 w
-                    Rules.WithAsciiEsc w -> do
-                        sp1 <- consumeBufferWithSpan
-                        goChar
-                            do sp0 <> sp1
-                            do t0 <> textBuilderFromWord8 w
-                    Rules.LexByteesc -> do
-                        spw <- lexCharEscByteesc
-                        let w = Spanned.unSpanned spw
-                        goChar
-                            do sp0 <> Spanned.getSpan spw
-                            do t0 <> textBuilderFromWord8 w
-                    Rules.LexUniEscape -> do
-                        spc <- lexCharEscUniEscape
-                        let c = Spanned.unSpanned spc
-                        goChar
-                            do sp0 <> Spanned.getSpan spc
-                            do t0 <> textBuilderFromChar c
-
-        goInterpOpen sp0 t0 isp0 = consumeBufferItem @s @m >>= \case
-            Nothing -> lexerYield do
-                Spanned.Spanned
-                    {
-                        getSpan = sp0,
-                        unSpanned = LexError
-                            Error.UnclosedInterpStringLiteral
-                            do text "Found an unclosed literal."
-                    }
-            Just item -> do
-                let (_, u) = Spanned.unSpanned item
-                    sp1 = sp0 <> Spanned.getSpan item
-                    isp1 = isp0 <> Spanned.getSpan item
-                case u of
-                    CodeUnit.LcUSymBraceOpen ->
-                        goInterpBraceOpen sp1 t0 isp1
-                    CodeUnit.LcUSymWhiteBraceOpen -> lexerYield do
-                        Spanned.Spanned
-                            {
-                                getSpan = sp1,
-                                unSpanned = LexedToken do
-                                    Token.TokLexeme case b of
-                                        True ->
-                                            Token.LitInterpStringStart
-                                                do buildText t0
-                                        False ->
-                                            Token.LitInterpStringContinue
-                                                do buildText t0
-                            }
-                    _ -> lexerYield do
-                        Spanned.Spanned
-                            {
-                                getSpan = isp1,
+                                getSpan = Spanned.getSpan item,
                                 unSpanned = LexError
-                                    Error.InvalidInterpOpenInInterpStringLiteral
-                                    do text "Unexpected a interp opening."
+                                    Error.NonGraphicInInterpStringLiteral
+                                    do text "Found a non graphic char."
                             }
+                    goChar sp1 t0
 
-        goInterpBraceOpen sp0 t0 isp0 = consumeBufferItem @s @m >>= \case
-            Nothing -> lexerYield do
-                Spanned.Spanned
-                    {
-                        getSpan = sp0,
-                        unSpanned = LexError
-                            Error.UnclosedInterpStringLiteral
-                            do text "Found an unclosed literal."
-                    }
-            Just item -> do
-                let (_, u) = Spanned.unSpanned item
-                    sp1 = sp0 <> Spanned.getSpan item
-                    isp1 = isp0 <> Spanned.getSpan item
-                case u of
-                    CodeUnit.LcUSymHash -> lexerYield do
-                        Spanned.Spanned
-                            {
-                                getSpan = sp1,
-                                unSpanned = LexedToken do
-                                    Token.TokLexeme case b of
-                                        True ->
-                                            Token.LitInterpStringStart
-                                                do buildText t0
-                                        False ->
-                                            Token.LitInterpStringContinue
-                                                do buildText t0
-                            }
-                    _ -> lexerYield do
-                        Spanned.Spanned
-                            {
-                                getSpan = isp1,
-                                unSpanned = LexError
-                                    Error.InvalidInterpOpenInInterpStringLiteral
-                                    do text "Unexpected a interp opening."
-                            }
+    goEscape sp0 t0 = CharEscLex.tlexScan () >>= \case
+        Tlex.TlexEndOfInput -> lexerYield do
+            Spanned.Spanned
+                {
+                    getSpan = sp0,
+                    unSpanned = LexError
+                        Error.UnclosedInterpStringLiteral
+                        do text "Found an unclosed literal."
+                }
+        Tlex.TlexError -> do
+            yieldTlexError
+        Tlex.TlexAccepted pos act -> do
+            setPosition pos
+            case act of
+                Rules.WithGap -> do
+                    sp1 <- consumeBufferWithSpan @s @m
+                    goChar
+                        do sp0 <> sp1
+                        do t0
+                Rules.WithCharesc w -> do
+                    sp1 <- consumeBufferWithSpan
+                    goChar
+                        do sp0 <> sp1
+                        do t0 <> textBuilderFromWord8 w
+                Rules.WithAsciiEsc w -> do
+                    sp1 <- consumeBufferWithSpan
+                    goChar
+                        do sp0 <> sp1
+                        do t0 <> textBuilderFromWord8 w
+                Rules.LexByteesc -> do
+                    spw <- lexCharEscByteesc
+                    let w = Spanned.unSpanned spw
+                    goChar
+                        do sp0 <> Spanned.getSpan spw
+                        do t0 <> textBuilderFromWord8 w
+                Rules.LexUniEscape -> do
+                    spc <- lexCharEscUniEscape
+                    let c = Spanned.unSpanned spc
+                    goChar
+                        do sp0 <> Spanned.getSpan spc
+                        do t0 <> textBuilderFromChar c
 
-        textBuilderFromWord8 w = textBuilderFromChar
-            do toEnum do fromIntegral w
+    goInterpOpen sp0 t0 isp0 = consumeBufferItem @s @m >>= \case
+        Nothing -> lexerYield do
+            Spanned.Spanned
+                {
+                    getSpan = sp0,
+                    unSpanned = LexError
+                        Error.UnclosedInterpStringLiteral
+                        do text "Found an unclosed literal."
+                }
+        Just item -> do
+            let (_, u) = Spanned.unSpanned item
+                sp1 = sp0 <> Spanned.getSpan item
+                isp1 = isp0 <> Spanned.getSpan item
+            case u of
+                CodeUnit.LcUSymBraceOpen ->
+                    goInterpBraceOpen sp1 t0 isp1
+                CodeUnit.LcUSymWhiteBraceOpen -> lexerYield do
+                    Spanned.Spanned
+                        {
+                            getSpan = sp1,
+                            unSpanned = LexedToken do
+                                Token.TokLexeme case b of
+                                    True ->
+                                        Token.LitInterpStringStart
+                                            do buildText t0
+                                    False ->
+                                        Token.LitInterpStringContinue
+                                            do buildText t0
+                        }
+                _ -> lexerYield do
+                    Spanned.Spanned
+                        {
+                            getSpan = isp1,
+                            unSpanned = LexError
+                                Error.InvalidInterpOpenInInterpStringLiteral
+                                do text "Unexpected a interp opening."
+                        }
+
+    goInterpBraceOpen sp0 t0 isp0 = consumeBufferItem @s @m >>= \case
+        Nothing -> lexerYield do
+            Spanned.Spanned
+                {
+                    getSpan = sp0,
+                    unSpanned = LexError
+                        Error.UnclosedInterpStringLiteral
+                        do text "Found an unclosed literal."
+                }
+        Just item -> do
+            let (_, u) = Spanned.unSpanned item
+                sp1 = sp0 <> Spanned.getSpan item
+                isp1 = isp0 <> Spanned.getSpan item
+            case u of
+                CodeUnit.LcUSymHash -> lexerYield do
+                    Spanned.Spanned
+                        {
+                            getSpan = sp1,
+                            unSpanned = LexedToken do
+                                Token.TokLexeme case b of
+                                    True ->
+                                        Token.LitInterpStringStart
+                                            do buildText t0
+                                    False ->
+                                        Token.LitInterpStringContinue
+                                            do buildText t0
+                        }
+                _ -> lexerYield do
+                    Spanned.Spanned
+                        {
+                            getSpan = isp1,
+                            unSpanned = LexError
+                                Error.InvalidInterpOpenInInterpStringLiteral
+                                do text "Unexpected a interp opening."
+                        }
+
+    textBuilderFromWord8 w = textBuilderFromChar
+        do toEnum do fromIntegral w
 
 graphicSpaceCs :: Rules.CharSet
 graphicSpaceCs = mconcat

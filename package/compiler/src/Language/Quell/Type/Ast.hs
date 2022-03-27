@@ -241,7 +241,7 @@ data TypeExpr c
     | TypeLit (Lit c) (XTypeLit c)
     | TypeTuple [TypeExpr c] (XTypeTuple c)
     | TypeArray [TypeExpr c] (XTypeArray c)
-    | TypeRecord [(Name, TypeExpr c)] (XTypeRecord c)
+    | TypeRecord [TypeRecordItem c] (XTypeRecord c)
     | TypeAnn (TypeExpr c) (XTypeAnn c)
 
 type family XTypeForall c :: Type
@@ -294,6 +294,20 @@ deriving instance XEq c => Eq (AppType c)
 deriving instance XShow c => Show (AppType c)
 
 
+data TypeRecordItem c = TypeRecordItem Name (TypeExpr c) (XTypeRecordItem c)
+
+type family XTypeRecordItem c :: Type
+
+type XCTypeRecordItem :: (Type -> Constraint) -> Type -> Constraint
+type XCTypeRecordItem f c =
+    (
+        f (XTypeRecordItem c)
+    )
+
+deriving instance XEq c => Eq (TypeRecordItem c)
+deriving instance XShow c => Show (TypeRecordItem c)
+
+
 data Expr c
     = ExprSig (Expr c) (TypeExpr c) (XExprSig c)
     | ExprInfix (Expr c) (Expr c) (Expr c) (XExprInfix c)
@@ -301,12 +315,12 @@ data Expr c
     | ExprLambda [CaseAlt c] (XExprLambda c)
     | ExprLetrec [Decl c] (Expr c) (XExprLetrec c)
     | ExprLet [Decl c] (Expr c) (XExprLet c)
-    | ExprCase [Expr c] [CaseAlt c] (XExprCase c)
+    | ExprMatch [Expr c] [CaseAlt c] (XExprCase c)
     | ExprDo [DoStmt c] (Expr c) (XExprDo c)
     | ExprCon Name (XExprCon c)
     | ExprVar Name (XExprVar c)
     | ExprLit (Lit c) (XExprLit c)
-    | ExprInterpString [InterpStringPart c] (XExprInterpString c)
+    | ExprInterpString (NonEmpty (InterpStringPart c)) (XExprInterpString c)
     | ExprTuple [Expr c] (XExprTuple c)
     | ExprArray [Expr c] (XExprArray c)
     | ExprRecord [(Name, Expr c)] (XExprRecord c)
@@ -318,7 +332,7 @@ type family XExprApp c :: Type
 type family XExprLambda c :: Type
 type family XExprLetrec c :: Type
 type family XExprLet c :: Type
-type family XExprCase c :: Type
+type family XExprMatch c :: Type
 type family XExprDo c :: Type
 type family XExprCon c :: Type
 type family XExprVar c :: Type
@@ -338,7 +352,7 @@ type XCExpr f c =
         f (XExprLambda c),
         f (XExprLetrec c),
         f (XExprLet c),
-        f (XExprCase c),
+        f (XExprMatch c),
         f (XExprDo c),
         f (XExprCon c),
         f (XExprVar c),
@@ -585,6 +599,7 @@ type XC f c =
         XCDoStmt f c,
         XCPat f c,
         XCAppType f c,
+        XCTypeRecordItem f c,
         XCAppPat f c,
         XCDeclExpr f c,
         XCGuardedAlt f c,

@@ -150,7 +150,7 @@ type instance Ast.XExprRecord AstParsed = Spanned.Span
 type instance Ast.XExprAnn AstParsed = Spanned.Span
 type instance Ast.XInterpStringLit AstParsed = Spanned.Span
 type instance Ast.XInterpStringExpr AstParsed = Spanned.Span
-type instance Ast.XCaseAlt AstParsed = Spanned.Span
+type instance Ast.XCaseAlt AstParsed = Maybe Spanned.Span
 type instance Ast.XGuardedAlt AstParsed = Spanned.Span
 type instance Ast.XDoStmtBind AstParsed = Spanned.Span
 type instance Ast.XDoStmtMonBind AstParsed = Spanned.Span
@@ -224,6 +224,10 @@ instance SpanBuilder (Ast.AppType AstParsed) where
         Ast.AppType _ x     -> x
         Ast.UnivAppType _ x -> x
 
+instance SpanBuilder (Ast.TypeRecordItem AstParsed) where
+    sp = \case
+        Ast.TypeRecordItem _ _ x -> x
+
 instance SpanBuilder (Ast.Expr AstParsed) where
     sp = \case
         Ast.ExprSig _ _ x        -> x
@@ -248,8 +252,8 @@ instance SpanBuilder (Ast.AppExpr AstParsed) where
         Ast.AppExpr _ x     -> x
         Ast.UnivAppExpr _ x -> x
 
-instance SpanBuilder (Ast.CaseAlt AstParsed) where
-    sp = \case
+instance MaySpanBuilder (Ast.CaseAlt AstParsed) where
+    maySp = \case
         Ast.CaseAlt _ _ x -> x
 
 instance SpanBuilder (Ast.GuardedAlt AstParsed) where
