@@ -323,7 +323,7 @@ data Expr c
     | ExprInterpString (NonEmpty (InterpStringPart c)) (XExprInterpString c)
     | ExprTuple [Expr c] (XExprTuple c)
     | ExprArray [Expr c] (XExprArray c)
-    | ExprRecord [(Name, Expr c)] (XExprRecord c)
+    | ExprRecord [ExprRecordItem c] (XExprRecord c)
     | ExprAnn (Expr c) (XExprAnn c)
 
 type family XExprSig c :: Type
@@ -384,6 +384,20 @@ type XCAppExpr f c =
 
 deriving instance XEq c => Eq (AppExpr c)
 deriving instance XShow c => Show (AppExpr c)
+
+
+data ExprRecordItem c = ExprRecordItem Name (Expr c) (XExprRecordItem c)
+
+type family XExprRecordItem c :: Type
+
+type XCExprRecordItem :: (Type -> Constraint) -> Type -> Constraint
+type XCExprRecordItem f c =
+    (
+        f (XExprRecordItem c)
+    )
+
+deriving instance XEq c => Eq (ExprRecordItem c)
+deriving instance XShow c => Show (ExprRecordItem c)
 
 
 data CaseAlt c = CaseAlt [Pat c] [GuardedAlt c] (XCaseAlt c)

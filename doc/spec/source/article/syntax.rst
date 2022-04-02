@@ -461,9 +461,9 @@ TODO: module support
     expr_block_item   : lsemis? expr lsemis?
     expr_interp_string  : interp_string_without_interp
                         : interp_string_start expr (interp_string_cont expr)* interp_string_end
-    expr_tuple_items: (expr ",")+ expr ","?
-    expr_array_items: (expr ",")* expr?
-    expr_simplrecord_items: (expr_simplrecord_item ",")* expr_simplrecord_item?
+    expr_tuple_items: ","? (expr ",")+ expr ","?
+    expr_array_items: ","? (expr ",")* expr?
+    expr_simplrecord_items: ","? (expr_simplrecord_item ",")* expr_simplrecord_item?
     expr_simplrecord_item: declvar "=" expr
 
 .. productionlist::
@@ -496,9 +496,9 @@ TODO: module support
                     : "{{" pat_block_item "}}"
                     : '{' pat_block_item '}'
     pat_block_item  : lsemis? pat lsemis?
-    pat_tuple_items: (pat ",")+ pat ","?
-    pat_array_items: (pat ",")* pat?
-    pat_simplrecord_items: (pat_simplrecord_item ",")* pat_simplrecord_item?
+    pat_tuple_items: ","? (pat ",")+ pat ","?
+    pat_array_items: ","? (pat ",")* pat?
+    pat_simplrecord_items: ","? (pat_simplrecord_item ",")* pat_simplrecord_item?
     pat_simplrecord_item: declvar "=" pat
 
 .. productionlist::
@@ -516,7 +516,7 @@ TODO: module support
                     : "{" case_alt_items "}"
                     : '{' case_alt_items '}'
     case_alt_items: lsemis? (case_alt_item lsemis)* case_alt_item?
-    case_alt_item: (pat ",")* pat? guarded_alts
+    case_alt_item: ","? (pat ",")* pat? guarded_alts
     guarded_alts: "#>" expr
                 : "#when" guarded_alt_body
     guarded_alt_body: "{{" guarded_alt_items "}}"
