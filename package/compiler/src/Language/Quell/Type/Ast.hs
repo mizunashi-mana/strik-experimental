@@ -43,7 +43,7 @@ module Language.Quell.Type.Ast (
     XExprInfix,
     XExprApp,
     XExprLambda,
-    XExprCase,
+    XExprMatch,
     XExprDo,
     XExprLetrec,
     XExprLet,
@@ -64,9 +64,15 @@ module Language.Quell.Type.Ast (
     XAppType,
     XUnivAppType,
 
+    TypeRecordItem (..),
+    XTypeRecordItem,
+
     AppExpr (..),
     XAppExpr,
     XUnivAppExpr,
+
+    ExprRecordItem (..),
+    XExprRecordItem,
 
     CaseAlt (..),
     XCaseAlt,
@@ -315,7 +321,7 @@ data Expr c
     | ExprLambda [CaseAlt c] (XExprLambda c)
     | ExprLetrec [Decl c] (Expr c) (XExprLetrec c)
     | ExprLet [Decl c] (Expr c) (XExprLet c)
-    | ExprMatch [Expr c] [CaseAlt c] (XExprCase c)
+    | ExprMatch [Expr c] [CaseAlt c] (XExprMatch c)
     | ExprDo [DoStmt c] (Expr c) (XExprDo c)
     | ExprCon Name (XExprCon c)
     | ExprVar Name (XExprVar c)
@@ -451,9 +457,8 @@ data Pat c
     = PatSig (Pat c) (TypeExpr c) (XPatSig c)
     | PatOr [Pat c] (XPatOr c)
     | PatInfix (Pat c) Name (Pat c) (XPatInfix c)
-    | PatApp Name [AppPat c] (XPatApp c)
+    | PatConApp Name [AppPat c] (XPatApp c)
     | PatUnivApp (Pat c) [TypeExpr c] (XPatUnivApp c)
-    | PatCon Name (XPatCon c)
     | PatVar Name (XPatVar c)
     | PatWildcard Name (XPatWildcard c)
     | PatLit (Lit c) (XPatLit c)
@@ -608,6 +613,7 @@ type XC f c =
         XCDecl f c,
         XCExpr f c,
         XCInterpStringPart f c,
+        XCExprRecordItem f c,
         XCDeclType f c,
         XCImplType f c,
         XCDoStmt f c,

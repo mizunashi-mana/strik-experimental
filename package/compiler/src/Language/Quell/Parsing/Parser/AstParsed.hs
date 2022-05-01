@@ -137,7 +137,7 @@ type instance Ast.XExprInfix AstParsed = Spanned.Span
 type instance Ast.XExprLambda AstParsed = Spanned.Span
 type instance Ast.XExprLetrec AstParsed = Spanned.Span
 type instance Ast.XExprLet AstParsed = Spanned.Span
-type instance Ast.XExprCase AstParsed = Spanned.Span
+type instance Ast.XExprMatch AstParsed = Spanned.Span
 type instance Ast.XExprApp AstParsed = Spanned.Span
 type instance Ast.XExprDo AstParsed = Spanned.Span
 type instance Ast.XExprCon AstParsed = Spanned.Span
@@ -170,6 +170,8 @@ type instance Ast.XPatRecord AstParsed = Spanned.Span
 type instance Ast.XPatAnn AstParsed = Spanned.Span
 type instance Ast.XAppPat AstParsed = Spanned.Span
 type instance Ast.XUnivAppPat AstParsed = Spanned.Span
+type instance Ast.XTypeRecordItem AstParsed = Spanned.Span
+type instance Ast.XExprRecordItem AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed
@@ -234,7 +236,7 @@ instance SpanBuilder (Ast.Expr AstParsed) where
         Ast.ExprInfix _ _ _ x    -> x
         Ast.ExprApp _ _ x        -> x
         Ast.ExprLambda _ x       -> x
-        Ast.ExprCase _ _ x       -> x
+        Ast.ExprMatch _ _ x      -> x
         Ast.ExprLetrec _ _ x     -> x
         Ast.ExprLet _ _ x        -> x
         Ast.ExprDo _ _ x         -> x
@@ -271,8 +273,7 @@ instance SpanBuilder (Ast.Pat AstParsed) where
         Ast.PatSig _ _ x     -> x
         Ast.PatOr _ x        -> x
         Ast.PatInfix _ _ _ x -> x
-        Ast.PatApp _ _ x     -> x
-        Ast.PatCon _ x       -> x
+        Ast.PatConApp _ _ x  -> x
         Ast.PatVar _ x       -> x
         Ast.PatWildcard _ x  -> x
         Ast.PatLit _ x       -> x

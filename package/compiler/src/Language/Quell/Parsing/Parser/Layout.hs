@@ -1,6 +1,7 @@
 module Language.Quell.Parsing.Parser.Layout (
     TokenWithL (..),
     preParseForProgram,
+    preParseForPart,
     preParse,
 
     Position (..),
@@ -31,6 +32,9 @@ type WithLConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL
 
 preParseForProgram :: Monad m => WithLConduit m ()
 preParseForProgram = preParse True do Spanned.locLine Spanned.initialLoc
+
+preParseForPart :: Monad m => WithLConduit m ()
+preParseForPart = preParse False do Spanned.locLine Spanned.initialLoc
 
 preParse :: Monad m => Bool -> Int -> WithLConduit m ()
 preParse = go1 where

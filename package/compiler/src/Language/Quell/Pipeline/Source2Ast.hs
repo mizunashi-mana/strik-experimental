@@ -13,15 +13,12 @@ import qualified Language.Quell.Parsing.Lexer            as Lexer
 import qualified Language.Quell.Parsing.Lexer.Encoding   as Encoding
 import qualified Language.Quell.Parsing.Spanned          as Spanned
 import qualified Language.Quell.Parsing.Parser           as Parser
-import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
 import qualified Language.Quell.Parsing.Parser.Layout    as Layout
-import qualified Language.Quell.Parsing.Parser.Runner    as Runner
 import qualified Language.Quell.Type.Ast                 as Ast
 import qualified Language.Quell.Type.Token               as Token
 
 
-type ParseResult f = Runner.RunnerResult (f AstParsed.T)
-type ParseConduit i m f = Conduit.ConduitT i Conduit.Void m (ParseResult f)
+type Pipeline i m f = Conduit.ConduitT i Conduit.Void m (Parser.Result f)
 
 data Source i m = Source
     {
@@ -31,25 +28,41 @@ data Source i m = Source
 
 
 source2Program :: Lexer.LexerMonad s m
-    => Source i m -> ParseConduit i m Ast.Program
+    => Source i m -> Pipeline i m Ast.Program
 source2Program s = source2Tokens s
+    Conduit..| skipWsToken
     Conduit..| Layout.preParseForProgram
-    Conduit..| Runner.runRunner Parser.parseProgram
+    Conduit..| Parser.parseProgram
 
 source2Type :: Lexer.LexerMonad s m
-    => Source i m -> ParseConduit i m Ast.TypeExpr
+    => Source i m -> Pipeline i m Ast.TypeExpr
 source2Type s = source2Tokens s
-    Conduit..| Layout.preParse
-    Conduit..| Runner.runRunner Parser.parseType
+    Conduit..| skipWsToken
+    Conduit..| Layout.preParseForPart
+    Conduit..| Parser.parseType
 
 source2Expr :: Lexer.LexerMonad s m
-    => Source i m -> ParseConduit i m Ast.Expr
+    => Source i m -> Pipeline i m Ast.Expr
 source2Expr s = source2Tokens s
-    Conduit..| Layout.preParse
-    Conduit..| Runner.runRunner Parser.parseExpr
+    Conduit..| skipWsToken
+    Conduit..| Layout.preParseForPart
+    Conduit..| Parser.parseExpr
 
 source2Tokens :: Lexer.LexerMonad s m
     => Source i m -> Conduit.ConduitT i (Spanned.T Token.T) m ()
 source2Tokens s
     =           sourceConduit s
     Conduit..|  Lexer.lexerConduit do sourceEncoding s
+
+skipWsToken :: Monad m
+    => Conduit.ConduitT (Spanned.T Token.T) (Spanned.T Token.LexToken) m ()
+skipWsToken = Conduit.await >>= \case
+    Nothing ->
+        pure ()
+    Just st -> do
+        case Spanned.unSpanned st of
+            Token.TokLexeme t ->
+                Conduit.yield do st <&> \_ -> t
+            Token.TokWhiteSpace{} ->
+                pure ()
+        skipWsToken
