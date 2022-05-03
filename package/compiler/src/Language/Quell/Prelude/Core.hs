@@ -33,6 +33,7 @@ module Language.Quell.Prelude.Core (
     module GHC.Prim,
     module GHC.Stack,
     module GHC.Types,
+    module GHC.TypeLits,
     module Prettyprinter,
 ) where
 
@@ -80,4 +81,5 @@ import           GHC.Prim
 import           GHC.Stack                        (CallStack, HasCallStack,
                                                    callStack)
 import           GHC.Types
+import           GHC.TypeLits                     (Symbol, KnownSymbol)
 import           Prettyprinter                    (Doc, Pretty (..))

@@ -152,7 +152,7 @@ data Decl c
     | DeclDataType Name (Maybe (TypeExpr c)) [Decl c] (XDeclDataType c)
     | DeclAlgDataType (DeclType c) [ImplType c] [Decl c] (XDeclAlgDataType c)
     | DeclNewType (DeclType c) (TypeExpr c) [Decl c] (XDeclNewType c)
-    | DeclVal (DeclExpr c) (Maybe (TypeExpr c)) (Expr c) [Decl c] (XDeclVal c)
+    | DeclVal (DeclExpr c) (Expr c) [Decl c] (XDeclVal c)
     | DeclValBind (Pat c) (Expr c) [Decl c] (XDeclValBind c)
 
 type family XDeclTypeSig c :: Type
@@ -184,8 +184,8 @@ deriving instance XShow c => Show (Decl c)
 
 
 data DeclType c
-    = DeclAppType Name [BindVar c] (XDeclAppType c)
-    | DeclInfixType (BindVar c) Name (BindVar c) (XDeclInfixType c)
+    = DeclAppType Name [BindVar c] (Maybe (TypeExpr c)) (XDeclAppType c)
+    | DeclInfixType (BindVar c) Name (BindVar c) (Maybe (TypeExpr c)) (XDeclInfixType c)
 
 type family XDeclAppType c :: Type
 type family XDeclInfixType c :: Type
@@ -220,8 +220,8 @@ deriving instance XShow c => Show (ImplType c)
 
 
 data DeclExpr c
-    = DeclAppExpr Name [BindVar c] (XDeclAppExpr c)
-    | DeclInfixExpr (BindVar c) Name (BindVar c) (XDeclInfixExpr c)
+    = DeclAppExpr Name [BindVar c] (Maybe (TypeExpr c)) (XDeclAppExpr c)
+    | DeclInfixExpr (BindVar c) Name (BindVar c) (Maybe (TypeExpr c)) (XDeclInfixExpr c)
 
 type family XDeclAppExpr c :: Type
 type family XDeclInfixExpr c :: Type

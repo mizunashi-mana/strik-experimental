@@ -189,13 +189,13 @@ instance SpanBuilder (Ast.Decl AstParsed) where
         Ast.DeclDataType _ _ _ x    -> x
         Ast.DeclAlgDataType _ _ _ x -> x
         Ast.DeclNewType _ _ _ x     -> x
-        Ast.DeclVal _ _ _ _ x       -> x
+        Ast.DeclVal _ _ _ x       -> x
         Ast.DeclValBind _ _ _ x     -> x
 
 instance SpanBuilder (Ast.DeclType AstParsed) where
     sp = \case
-        Ast.DeclAppType _ _ x     -> x
-        Ast.DeclInfixType _ _ _ x -> x
+        Ast.DeclAppType _ _ _ x     -> x
+        Ast.DeclInfixType _ _ _ _ x -> x
 
 instance SpanBuilder (Ast.ImplType AstParsed) where
     sp = \case
@@ -204,8 +204,8 @@ instance SpanBuilder (Ast.ImplType AstParsed) where
 
 instance SpanBuilder (Ast.DeclExpr AstParsed) where
     sp = \case
-        Ast.DeclAppExpr _ _ x     -> x
-        Ast.DeclInfixExpr _ _ _ x -> x
+        Ast.DeclAppExpr _ _ _ x     -> x
+        Ast.DeclInfixExpr _ _ _ _ x -> x
 
 instance SpanBuilder (Ast.TypeExpr AstParsed) where
     sp = \case

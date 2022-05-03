@@ -369,7 +369,7 @@ TODO: module support
     alg_data_type_items : "|"? (impltype "|")* impltype?
 
 .. productionlist::
-    val_decl: declvarexpr (":" type)? "=" expr ("#where" val_decl_where_body)?
+    val_decl: declvarexpr "=" expr ("#where" val_decl_where_body)?
     val_bind: pat "=" expr ("#where" val_decl_where_body)?
     val_decl_where_body : "{{" val_decl_where_items "}}"
                         : "{" val_decl_where_items "}"
@@ -378,12 +378,12 @@ TODO: module support
     val_decl_where_item: let_bind_item
 
 .. productionlist::
-    decltype    : simple_bind_var declconop simple_bind_var
-                : declcon bind_var*
+    decltype    : actual_bind_var declconop actual_bind_var (":" type)?
+                : declcon bind_var* (":" type)?
     impltype    : type_qualified conop_qualified type_qualified
                 : con_qualified type_qualified*
-    declvarexpr : simple_bind_var declop simple_bind_var
-                : declvar bind_var*
+    declvarexpr : simple_bind_var declop simple_bind_var (":" type)?
+                : declvar bind_var* (":" type)?
 
 .. productionlist::
     type: (type_apps type_op)* type_apps
@@ -539,9 +539,10 @@ TODO: module support
 .. productionlist::
     bind_var: "#@" block_bind_var
             : "@" simple_bind_var
-            : "##" block_bind_var
-            : simple_bind_var
-    simple_bind_var : "(" var_id_ext ":" type ")"
+            : actual_bind_var
+    actual_bind_var : "##" block_bind_var
+                    : simple_bind_var
+    simple_bind_var : "(" block_bin_var_item ")"
                     : var_id_ext
     block_bind_var  : "{{" block_bind_var_items "}}"
                     : "{" block_bind_var_items "}"
