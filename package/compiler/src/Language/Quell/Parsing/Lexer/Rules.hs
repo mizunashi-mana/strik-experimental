@@ -6,9 +6,9 @@ module Language.Quell.Parsing.Lexer.Rules where
 
 import           Language.Quell.Prelude
 
+import qualified Data.EnumSet                          as EnumSet
 import qualified Language.Haskell.TH                   as TH
 import qualified Language.Lexer.Tlex                   as Tlex
-import qualified Data.EnumSet      as EnumSet
 import qualified Language.Lexer.Tlex.Plugin.TH         as TlexTH
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
 import qualified Language.Quell.Type.TextId            as TextId

@@ -3,9 +3,9 @@ module Language.Quell.Parsing.Parser where
 import           Language.Quell.Prelude
 
 import qualified Conduit
-import qualified Language.Quell.Parsing.Parser.Layout as Layout
 import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
-import qualified Language.Quell.Type.Ast as Ast
+import qualified Language.Quell.Parsing.Parser.Layout    as Layout
+import qualified Language.Quell.Type.Ast                 as Ast
 
 data ParseResult a
     = Parsed a

@@ -70,8 +70,8 @@ module Language.Quell.Parsing.Lexer.CodeUnit (
 
 import           Language.Quell.Prelude
 
-import qualified Data.Char                        as Char
-import qualified Data.EnumSet as EnumSet
+import qualified Data.Char              as Char
+import qualified Data.EnumSet           as EnumSet
 
 
 type T = CodeUnit

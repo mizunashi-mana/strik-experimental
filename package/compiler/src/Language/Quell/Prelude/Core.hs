@@ -40,11 +40,11 @@ module Language.Quell.Prelude.Core (
 -- FIXME: hiding (error)
 import           Prelude                          hiding (String, break, drop,
                                                    dropWhile, filter, foldl,
-                                                   foldr, head, lines, pi,
+                                                   foldr, head, lex, lines, pi,
                                                    replicate, reverse, span,
                                                    splitAt, tail, take,
                                                    takeWhile, unlines, unwords,
-                                                   words, ($), lex)
+                                                   words, ($))
 
 import           Control.Applicative
 import           Control.Monad                    hiding (filterM, replicateM)
@@ -80,6 +80,6 @@ import           Data.Word                        (Word, Word8)
 import           GHC.Prim
 import           GHC.Stack                        (CallStack, HasCallStack,
                                                    callStack)
+import           GHC.TypeLits                     (KnownSymbol, Symbol)
 import           GHC.Types
-import           GHC.TypeLits                     (Symbol, KnownSymbol)
 import           Prettyprinter                    (Doc, Pretty (..))

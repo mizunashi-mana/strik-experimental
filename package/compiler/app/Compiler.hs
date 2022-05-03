@@ -2,18 +2,18 @@ module Main where
 
 import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Lexer.Encoding as Encoding
-import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
-import qualified Language.Quell.Parsing.Parser.Runner as Runner
-import qualified Language.Quell.Parsing.Parser.Error as Error
-import qualified Language.Quell.Parsing.Parser.Layout as Layout
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Type.Ast as Ast
-import qualified Language.Quell.Type.Token as Token
-import qualified Language.Quell.Pipeline.Source2Ast as Source2Ast
 import qualified Conduit
-import qualified System.IO as IO
-import qualified Data.ByteString as ByteString
+import qualified Data.ByteString                         as ByteString
+import qualified Language.Quell.Parsing.Lexer.Encoding   as Encoding
+import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
+import qualified Language.Quell.Parsing.Parser.Error     as Error
+import qualified Language.Quell.Parsing.Parser.Layout    as Layout
+import qualified Language.Quell.Parsing.Parser.Runner    as Runner
+import qualified Language.Quell.Parsing.Spanned          as Spanned
+import qualified Language.Quell.Pipeline.Source2Ast      as Source2Ast
+import qualified Language.Quell.Type.Ast                 as Ast
+import qualified Language.Quell.Type.Token               as Token
+import qualified System.IO                               as IO
 
 
 source :: ByteString -> Source2Ast.Source i IO

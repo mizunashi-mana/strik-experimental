@@ -189,7 +189,7 @@ instance SpanBuilder (Ast.Decl AstParsed) where
         Ast.DeclDataType _ _ _ x    -> x
         Ast.DeclAlgDataType _ _ _ x -> x
         Ast.DeclNewType _ _ _ x     -> x
-        Ast.DeclVal _ _ _ x       -> x
+        Ast.DeclVal _ _ _ x         -> x
         Ast.DeclValBind _ _ _ x     -> x
 
 instance SpanBuilder (Ast.DeclType AstParsed) where

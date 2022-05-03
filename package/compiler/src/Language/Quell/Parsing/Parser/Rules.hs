@@ -1,20 +1,23 @@
-{-# LANGUAGE TemplateHaskell       #-}
-{-# LANGUAGE AllowAmbiguousTypes   #-}
+{-# LANGUAGE AllowAmbiguousTypes #-}
+{-# LANGUAGE TemplateHaskell     #-}
 
 module Language.Quell.Parsing.Parser.Rules where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Haskell.TH              as TH
-import           Language.Parser.Ptera.TH         (varA, eps, (<:>), (<::>), (<^>), ruleExpr, pattern (:*), pattern HNil)
-import qualified Language.Parser.Ptera.TH         as Ptera
-import qualified Language.Quell.Type.Token as Token
-import qualified Language.Quell.Type.Ast as Ast
-import qualified Language.Quell.Parsing.Parser.Layout as Layout
+import qualified Data.List                               as List
+import qualified Language.Haskell.TH                     as TH
+import           Language.Parser.Ptera.TH                (eps, pattern (:*),
+                                                          pattern HNil,
+                                                          ruleExpr, varA,
+                                                          (<::>), (<:>), (<^>))
+import qualified Language.Parser.Ptera.TH                as Ptera
+import qualified Language.Quell.Data.Bag                 as Bag
 import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Data.Bag as Bag
-import qualified Data.List as List
+import qualified Language.Quell.Parsing.Parser.Layout    as Layout
+import qualified Language.Quell.Parsing.Spanned          as Spanned
+import qualified Language.Quell.Type.Ast                 as Ast
+import qualified Language.Quell.Type.Token               as Token
 
 
 type Token = Layout.TokenWithL

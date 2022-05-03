@@ -7,8 +7,8 @@ import           Language.Quell.Prelude
 import qualified Conduit
 import qualified Data.ByteString.Builder                     as BSBuilder
 import qualified Data.ByteString.Lazy                        as LazyByteString
+import qualified Data.EnumSet                                as EnumSet
 import qualified Language.Lexer.Tlex                         as Tlex
-import qualified Data.EnumSet            as EnumSet
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Data.STBuffer                as STBuffer
 import qualified Language.Quell.Parsing.Lexer.CodeUnit       as CodeUnit

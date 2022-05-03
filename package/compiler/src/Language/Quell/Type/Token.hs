@@ -203,10 +203,10 @@ instance Pretty LexToken where
 
 instance Pretty WsToken where
     pretty = \case
-        CommentLine v                   -> pretty do text "--" <> v
-        CommentMultiline v              -> pretty do text "{-" <> v <> text "-}"
-        CommentPragma v                 -> pretty do text "{-#" <> v <> text "#-}"
-        CommentDoc v                    -> pretty do text "{-!" <> v <> text "\n|-}"
+        CommentLine v      -> pretty do text "--" <> v
+        CommentMultiline v -> pretty do text "{-" <> v <> text "-}"
+        CommentPragma v    -> pretty do text "{-#" <> v <> text "#-}"
+        CommentDoc v       -> pretty do text "{-!" <> v <> text "\n|-}"
 
 -- FIXME: Current implementation is approximately.
 -- Make to show complete representation.

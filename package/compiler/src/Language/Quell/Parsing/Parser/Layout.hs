@@ -83,6 +83,6 @@ isLayoutKeyword = \case
 
 isExplicitOpenBrace :: Token.LexToken -> Bool
 isExplicitOpenBrace = \case
-    Token.SpBraceOpen            -> True
-    Token.SpDBraceOpen           -> True
-    _                            -> False
+    Token.SpBraceOpen  -> True
+    Token.SpDBraceOpen -> True
+    _                  -> False
