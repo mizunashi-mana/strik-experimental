@@ -105,8 +105,8 @@ type instance Ast.XDeclVal AstParsed = Spanned.Span
 type instance Ast.XDeclValBind AstParsed = Spanned.Span
 type instance Ast.XDeclAppType AstParsed = Spanned.Span
 type instance Ast.XDeclInfixType AstParsed = Spanned.Span
-type instance Ast.XImplAppType AstParsed = Spanned.Span
-type instance Ast.XImplInfixType AstParsed = Spanned.Span
+type instance Ast.XConAppType AstParsed = Spanned.Span
+type instance Ast.XConInfixType AstParsed = Spanned.Span
 type instance Ast.XDeclAppExpr AstParsed = Spanned.Span
 type instance Ast.XDeclInfixExpr AstParsed = Spanned.Span
 type instance Ast.XAppExpr AstParsed = Spanned.Span
@@ -198,10 +198,10 @@ instance SpanBuilder (Ast.DeclType AstParsed) where
         Ast.DeclAppType _ _ _ x     -> x
         Ast.DeclInfixType _ _ _ _ x -> x
 
-instance SpanBuilder (Ast.ImplType AstParsed) where
+instance SpanBuilder (Ast.ConType AstParsed) where
     sp = \case
-        Ast.ImplAppType _ _ x     -> x
-        Ast.ImplInfixType _ _ _ x -> x
+        Ast.ConAppType _ _ x     -> x
+        Ast.ConInfixType _ _ _ x -> x
 
 instance SpanBuilder (Ast.DeclExpr AstParsed) where
     sp = \case

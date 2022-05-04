@@ -366,7 +366,7 @@ TODO: module support
                     : consig_decl
     alg_data_type   : "(" alg_data_type_items ")"
                     : alg_data_type_items
-    alg_data_type_items : "|"? (impltype "|")* impltype?
+    alg_data_type_items : "|"? (contype "|")* contype?
 
 .. productionlist::
     val_decl: declvarexpr "=" expr ("#where" val_decl_where_body)?
@@ -380,8 +380,8 @@ TODO: module support
 .. productionlist::
     decltype    : actual_bind_var declconop actual_bind_var (":" type)?
                 : declcon bind_var* (":" type)?
-    impltype    : type_qualified conop_qualified type_qualified
-                : con_qualified type_qualified*
+    contype     : type_qualified conop_qualified type_qualified
+                : con_qualified type_app*
     declvarexpr : actual_bind_var declop actual_bind_var (":" type)?
                 : declvar bind_var* (":" type)?
 

@@ -17,9 +17,9 @@ module Language.Quell.Type.Ast (
     XDeclAppType,
     XDeclInfixType,
 
-    ImplType (..),
-    XImplAppType,
-    XImplInfixType,
+    ConType (..),
+    XConAppType,
+    XConInfixType,
 
     DeclExpr (..),
     XDeclAppExpr,
@@ -153,7 +153,7 @@ data Decl c
     | DeclConSig Name (TypeExpr c) (XDeclConSig c)
     | DeclType (DeclType c) (TypeExpr c) [Decl c] (XDeclType c)
     | DeclDataType Name (Maybe (TypeExpr c)) [Decl c] (XDeclDataType c)
-    | DeclAlgDataType (DeclType c) [ImplType c] [Decl c] (XDeclAlgDataType c)
+    | DeclAlgDataType (DeclType c) [ConType c] [Decl c] (XDeclAlgDataType c)
     | DeclNewType (DeclType c) (TypeExpr c) [Decl c] (XDeclNewType c)
     | DeclVal (DeclExpr c) (Expr c) [Decl c] (XDeclVal c)
     | DeclValBind (Pat c) (Expr c) [Decl c] (XDeclValBind c)
@@ -204,22 +204,22 @@ deriving instance XEq c => Eq (DeclType c)
 deriving instance XShow c => Show (DeclType c)
 
 
-data ImplType c
-    = ImplAppType Name [AppType c] (XImplAppType c)
-    | ImplInfixType (TypeExpr c) Name (TypeExpr c) (XImplInfixType c)
+data ConType c
+    = ConAppType Name [AppType c] (XConAppType c)
+    | ConInfixType (TypeExpr c) Name (TypeExpr c) (XConInfixType c)
 
-type family XImplAppType c :: Type
-type family XImplInfixType c :: Type
+type family XConAppType c :: Type
+type family XConInfixType c :: Type
 
-type XCImplType :: (Type -> Constraint) -> Type -> Constraint
-type XCImplType f c =
+type XCConType :: (Type -> Constraint) -> Type -> Constraint
+type XCConType f c =
     (
-        f (XImplAppType c),
-        f (XImplInfixType c)
+        f (XConAppType c),
+        f (XConInfixType c)
     )
 
-deriving instance XEq c => Eq (ImplType c)
-deriving instance XShow c => Show (ImplType c)
+deriving instance XEq c => Eq (ConType c)
+deriving instance XShow c => Show (ConType c)
 
 
 data DeclExpr c
@@ -630,7 +630,7 @@ type XC f c =
         XCInterpStringPart f c,
         XCExprRecordItem f c,
         XCDeclType f c,
-        XCImplType f c,
+        XCConType f c,
         XCDoStmt f c,
         XCPat f c,
         XCPatOp f c,
