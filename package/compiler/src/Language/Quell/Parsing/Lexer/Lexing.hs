@@ -1347,10 +1347,10 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty where
                             unSpanned = LexedToken do
                                 Token.TokLexeme case b of
                                     True ->
-                                        Token.LitInterpStringWithoutInterp
+                                        Token.InterpStringWithoutInterp
                                             do buildText t0
                                     False ->
-                                        Token.LitInterpStringEnd
+                                        Token.InterpStringEnd
                                             do buildText t0
                         }
                 CodeUnit.LcUSymDollar ->
@@ -1437,10 +1437,10 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty where
                             unSpanned = LexedToken do
                                 Token.TokLexeme case b of
                                     True ->
-                                        Token.LitInterpStringStart
+                                        Token.InterpStringStart
                                             do buildText t0
                                     False ->
-                                        Token.LitInterpStringContinue
+                                        Token.InterpStringContinue
                                             do buildText t0
                         }
                 _ -> lexerYield do
@@ -1473,10 +1473,10 @@ lexAndYieldInterpString b = \sp0 -> goChar sp0 mempty where
                             unSpanned = LexedToken do
                                 Token.TokLexeme case b of
                                     True ->
-                                        Token.LitInterpStringStart
+                                        Token.InterpStringStart
                                             do buildText t0
                                     False ->
-                                        Token.LitInterpStringContinue
+                                        Token.InterpStringContinue
                                             do buildText t0
                         }
                 _ -> lexerYield do

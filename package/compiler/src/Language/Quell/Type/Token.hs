@@ -107,10 +107,11 @@ data LexToken
     | LitRational Rational
     | LitChar Char
     | LitString Text
-    | LitInterpStringWithoutInterp Text
-    | LitInterpStringStart Text
-    | LitInterpStringContinue Text
-    | LitInterpStringEnd Text
+
+    | InterpStringWithoutInterp Text
+    | InterpStringStart Text
+    | InterpStringContinue Text
+    | InterpStringEnd Text
     deriving (Eq, Show)
 
 data WsToken
@@ -196,10 +197,10 @@ instance Pretty LexToken where
         LitString v                     -> pretty do text "\"" <> v <> text "\"" -- FIXME: escape
         LitInteger v                    -> pretty v
         LitRational v                   -> prettyRational v
-        LitInterpStringWithoutInterp v  -> pretty do text "#s\"" <> v <> text "\"" -- FIXME: escape
-        LitInterpStringStart v          -> pretty do text "#s\"" <> v <> text "${#" -- FIXME: escape
-        LitInterpStringContinue v       -> pretty do text "#}" <> v <> text "${#" -- FIXME: escape
-        LitInterpStringEnd v            -> pretty do text "#}" <> v <> text "\"" -- FIXME: escape
+        InterpStringWithoutInterp v     -> pretty do text "#s\"" <> v <> text "\"" -- FIXME: escape
+        InterpStringStart v             -> pretty do text "#s\"" <> v <> text "${#" -- FIXME: escape
+        InterpStringContinue v          -> pretty do text "#}" <> v <> text "${#" -- FIXME: escape
+        InterpStringEnd v               -> pretty do text "#}" <> v <> text "\"" -- FIXME: escape
 
 instance Pretty WsToken where
     pretty = \case

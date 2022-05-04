@@ -112,6 +112,9 @@ module Language.Quell.Type.Ast (
     XPatRecord,
     XPatAnn,
 
+    PatOp (..),
+    XPatOpConApp,
+
     AppPat (..),
     XAppPat,
     XUnivAppPat,
@@ -456,7 +459,7 @@ deriving instance XShow c => Show (DoStmt c)
 data Pat c
     = PatSig (Pat c) (TypeExpr c) (XPatSig c)
     | PatOr [Pat c] (XPatOr c)
-    | PatInfix (Pat c) Name (Pat c) (XPatInfix c)
+    | PatInfix (Pat c) (PatOp c) (Pat c) (XPatInfix c)
     | PatConApp Name [AppPat c] (XPatApp c)
     | PatUnivApp (Pat c) [TypeExpr c] (XPatUnivApp c)
     | PatVar Name (XPatVar c)
@@ -501,6 +504,18 @@ type XCPat f c =
 
 deriving instance XEq c => Eq (Pat c)
 deriving instance XShow c => Show (Pat c)
+
+
+data PatOp c
+    = PatOpConApp Name [AppPat c] (XPatOpConApp c)
+
+type family XPatOpConApp c :: Type
+
+type XCPatOp :: (Type -> Constraint) -> Type -> Constraint
+type XCPatOp f c = f (XPatOpConApp c)
+
+deriving instance XEq c => Eq (PatOp c)
+deriving instance XShow c => Show (PatOp c)
 
 
 data AppPat c
@@ -618,6 +633,7 @@ type XC f c =
         XCImplType f c,
         XCDoStmt f c,
         XCPat f c,
+        XCPatOp f c,
         XCAppType f c,
         XCTypeRecordItem f c,
         XCAppPat f c,

@@ -168,6 +168,7 @@ type instance Ast.XPatTuple AstParsed = Spanned.Span
 type instance Ast.XPatArray AstParsed = Spanned.Span
 type instance Ast.XPatRecord AstParsed = Spanned.Span
 type instance Ast.XPatAnn AstParsed = Spanned.Span
+type instance Ast.XPatOpConApp AstParsed = Spanned.Span
 type instance Ast.XAppPat AstParsed = Spanned.Span
 type instance Ast.XUnivAppPat AstParsed = Spanned.Span
 type instance Ast.XTypeRecordItem AstParsed = Spanned.Span
@@ -282,6 +283,10 @@ instance SpanBuilder (Ast.Pat AstParsed) where
         Ast.PatRecord _ x    -> x
         Ast.PatUnivApp _ _ x -> x
         Ast.PatAnn _ x       -> x
+
+instance SpanBuilder (Ast.PatOp AstParsed) where
+    sp = \case
+        Ast.PatOpConApp _ _ x -> x
 
 instance SpanBuilder (Ast.AppPat AstParsed) where
     sp = \case

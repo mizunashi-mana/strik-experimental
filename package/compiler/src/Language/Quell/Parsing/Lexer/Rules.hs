@@ -103,6 +103,7 @@ lexerRules = do
 
     -- be before varSymRule to avoid conflicting
     literalRules
+    interpStringPartRules
 
     -- be before varSymRule / conSymRule to avoid conflicting
     specialRules
@@ -258,8 +259,6 @@ literalRules = do
     initialRule stringOpenP             [||LexLitString||]
     initialRule byteCharOpenP           [||LexLitByteChar||]
     initialRule charOpenP               [||LexLitChar||]
-
-    interpStringPartRules
 
 
 rationalRules :: ScannerBuilder ()

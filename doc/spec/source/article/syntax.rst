@@ -49,6 +49,7 @@ Lexical Syntax
 .. productionlist::
     lexical_program: (lexeme / whitespace)* EOS?
     lexeme  : literal
+            : interp_string_part
             : special
             : brace
             : reserved_id
@@ -131,7 +132,6 @@ Lexical Syntax
             : string
             : bytechar
             : char
-            : interp_string_part
 
 .. productionlist::
     rational: sign? decimal "." decimal exponent?
@@ -382,17 +382,16 @@ TODO: module support
                 : declcon bind_var* (":" type)?
     impltype    : type_qualified conop_qualified type_qualified
                 : con_qualified type_qualified*
-    declvarexpr : simple_bind_var declop simple_bind_var (":" type)?
+    declvarexpr : actual_bind_var declop actual_bind_var (":" type)?
                 : declvar bind_var* (":" type)?
 
 .. productionlist::
     type: (type_apps type_op)* type_apps
     type_op : "`" type_op_block "`"
-            : con_sym_ext
-            : var_sym_ext
-    type_op_block   : con_sym_ext
-                    : var_sym_ext
+            : type_op_sym_qualified
+    type_op_block   : type_op_sym_qualified
                     : type_apps
+    type_op_sym_qualified   : sym
     type_apps: type_qualified type_app*
     type_app: "@" type_qualified
             : "#@" type_block_body
@@ -428,11 +427,10 @@ TODO: module support
         : expr_infix
     expr_infix: (expr_apps expr_op)* expr_apps
     expr_op : "`" expr_op_block "`"
-            : con_sym_ext
-            : var_sym_ext
-    expr_op_block   : con_sym_ext
-                    : var_sym_ext
+            : expr_op_sym_qualified
+    expr_op_block   : expr_op_sym_qualified
                     : expr_apps
+    expr_op_sym_qualified : sym
     expr_apps: expr_qualified expr_app*
     expr_app: "@" type_qualified
             : "#@" type_block_body
@@ -442,7 +440,7 @@ TODO: module support
                 : "#case" case_alt_body
                 : "#letrec" let_binds "#in" expr
                 : "#let" let_binds "#in" expr
-                : "#match" ","? (expr ",")* expr? "#with" case_alt_body
+                : "#match" expr_match_items "#with" case_alt_body
                 : "#do" do_body
                 : "##" expr_block_body
                 : expr_atomic
@@ -461,6 +459,7 @@ TODO: module support
     expr_block_item   : lsemis? expr lsemis?
     expr_interp_string  : interp_string_without_interp
                         : interp_string_start expr (interp_string_cont expr)* interp_string_end
+    expr_match_items: ","? (expr ",")* expr?
     expr_tuple_items: ","? (expr ",")+ expr ","?
     expr_array_items: ","? (expr ",")* expr?
     expr_simplrecord_items: ","? (expr_simplrecord_item ",")* expr_simplrecord_item?
@@ -472,9 +471,10 @@ TODO: module support
     pat_unit: "|"? (pat_infix "|")* pat_infix "|"?
     pat_infix: (pat_apps pat_op)* pat_apps
     pat_op  : "`" pat_op_block "`"
-            : con_sym_ext
-    pat_op_block    : con_sym_ext
-                    : pat_apps
+            : pat_op_sym_qualified
+    pat_op_block    : pat_op_sym_qualified
+                    : con_qualified pat_app*
+    pat_op_sym_qualified : con_sym_ext
     pat_apps: con_qualified pat_app*
             : pat_qualified pat_univ_app*
     pat_univ_app    : "@" type_qualified
@@ -549,18 +549,18 @@ TODO: module support
                     : '{' block_bind_var_items '}'
     block_bind_var_items: lsemis? block_bind_var_item lsemis?
     block_bind_var_item : var_id_ext (":" type)?
+    sym : var_sym_ext
+        : con_sym_ext
     con_qualified : con
     conop_qualified : conop
     con : "(" con_sym_ext ")"
+        : "(" con_id_ext ")"
         : con_id_ext
-    conop   : con_sym_ext
-            : "`" con_sym_ext "`"
+    conop   : "`" con_sym_ext "`"
             : "`" con_id_ext "`"
+            : con_sym_ext
     var : "(" var_sym_ext ")"
         : var_id_ext
-    op  : "`" var_sym_ext "`"
-        : "`" var_id_ext "`"
-        : var_sym_ext
     con_id_ext  : "(" ")"
                 : con_id
     con_sym_ext : "#->"
@@ -572,11 +572,13 @@ TODO: module support
 
 .. productionlist::
     declcon : "(" con_sym ")"
+            : "(" con_id ")"
             : con_id
     declconop   : "`" con_sym "`"
                 : "`" con_id "`"
                 : con_sym
     declvar : "(" var_sym ")"
+            : "(" var_id ")"
             : var_id
     declop  : "`" var_sym "`"
             : "`" var_id "`"
