@@ -152,8 +152,19 @@ $(Ptera.genRules
     , (TH.mkName "rdConSigDecl", "consig_decl", [t|Ast.Decl AstParsed.T|])
 
     , (TH.mkName "rdTypeDecl", "type_decl", [t|Ast.Decl AstParsed.T|])
+    , (TH.mkName "rdTypeDeclWhereBody", "type_decl_where_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdTypeDeclWhereItems", "type_decl_where_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdTypeDeclWhereItemsWithSemis0", "(type_decl_where_item lsemis)* type_decl_where_item?", [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdTypeDeclWhereItem", "type_decl_where_item", [t|Ast.Decl AstParsed.T|])
 
     , (TH.mkName "rdDataDecl", "data_decl", [t|Ast.Decl AstParsed.T|])
+    , (TH.mkName "rdDataDeclBody", "data_decl_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdDataDeclItems", "data_decl_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdDataDeclItemsWithSemis0", "(data_decl_item lsemis)* data_decl_item?", [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdDataDeclItem", "data_decl_item", [t|Ast.Decl AstParsed.T|])
+    , (TH.mkName "rdAlgDataType", "alg_data_type", [t|([Ast.ConType AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdAlgDataTypeItems", "alg_data_type_items", [t|([Ast.ConType AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdConTypesWithBars0", "(contype '|')* contype?", [t|(Bag.T (Ast.ConType AstParsed.T), Maybe Spanned.Span)|])
 
     , (TH.mkName "rdValDecl", "val_decl", [t|Ast.Decl AstParsed.T|])
     , (TH.mkName "rdValDeclWhereBody", "val_decl_where_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
@@ -161,6 +172,7 @@ $(Ptera.genRules
     , (TH.mkName "rdValDeclWhereItemsWithSemis0", "(val_decl_where_item lsemis)* val_decl_where_item?", [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
     , (TH.mkName "rdValDeclWhereItem", "val_decl_where_item", [t|Ast.Decl AstParsed.T|])
 
+    , (TH.mkName "rdDeclType", "decltype", [t|Ast.DeclType AstParsed.T|])
     , (TH.mkName "rdConType", "contype", [t|Ast.ConType AstParsed.T|])
     , (TH.mkName "rdDeclVarExpr", "declvarexpr", [t|Ast.DeclExpr AstParsed.T|])
 
@@ -256,6 +268,7 @@ $(Ptera.genRules
     , (TH.mkName "rdLsemi", "lsemi", [t|Maybe Spanned.Span|])
 
     , (TH.mkName "rdLiteral", "literal", [t|Ast.Lit AstParsed.T|])
+    , (TH.mkName "rdMayTypeSig", "(':' type)?", [t|(Maybe (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)|])
 
     , (TH.mkName "rdTokOpenParen", "tok_open_paren_without_skip", [t|Spanned.Span|])
     , (TH.mkName "rdTokOpenBrack", "tok_open_brack_without_skip", [t|Spanned.Span|])
