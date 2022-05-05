@@ -165,6 +165,7 @@ $(Ptera.genRules
     , (TH.mkName "rdConTypesWithBars0", "(contype '|')* contype?", [t|(Bag.T (Ast.ConType AstParsed.T), Maybe Spanned.Span)|])
 
     , (TH.mkName "rdValDecl", "val_decl", [t|Ast.Decl AstParsed.T|])
+    , (TH.mkName "rdValBind", "val_bind", [t|Ast.Decl AstParsed.T|])
     , (TH.mkName "rdValDeclWhereBody", "val_decl_where_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdValDeclWhereItems", "val_decl_where_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdValDeclWhereItemsWithSemis0", "(val_decl_where_item lsemis)* val_decl_where_item?", [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
@@ -238,6 +239,8 @@ $(Ptera.genRules
     , (TH.mkName "rdPatAtomics0", "pat_atomic*", [t|(Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)|])
 
     , (TH.mkName "rdLetBinds", "let_binds", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdLetBindItems", "let_bind_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdLetBindItemsWithSemis0", "(let_bind_item lsemis)* let_bind_item?", [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
     , (TH.mkName "rdLetBindItem", "let_bind_item", [t|Ast.Decl AstParsed.T|])
 
     , (TH.mkName "rdCaseAltBody", "case_alt_body", [t|([Ast.CaseAlt AstParsed.T], Maybe Spanned.Span)|])
@@ -339,8 +342,8 @@ grammar = Ptera.fixGrammar
         , rdDoBody = rDoBody
         , rdGuardedAlts = undefined
         , rdCaseAltBody = undefined
-        , rdLetBindItem = undefined
-        , rdLetBinds = undefined
+        , rdLetBindItem = rLetBindItem
+        , rdLetBinds = rLetBinds
         , rdPatAtomics0 = rPatAtomics0
         , rdPatAtomic = undefined
         , rdPatApps0 = undefined
@@ -434,6 +437,9 @@ grammar = Ptera.fixGrammar
         , rdDoStmtItem = rDoStmtItem
         , rdDoStmtItemsWithSemis1 = rDoStmtItemsWithSemis1
         , rdDoStmtItems = rDoStmtItems
+        , rdLetBindItemsWithSemis0 = rLetBindItemsWithSemis0
+        , rdLetBindItems = rLetBindItems
+        , rdValBind = rValBind
         }
 
 
@@ -2065,6 +2071,82 @@ rPatApps = ruleExpr
                         do AstParsed.sp do spCon AstParsed.:<< msPats
                 }
             }||]
+    ]
+
+
+rLetBinds :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
+rLetBinds = ruleExpr
+    [ tokVarA @"{{" <^> varA @"let_bind_items" <^> tokVarA @"}}"
+        <:> \(_ :* kdbraceo :* itemsE :* _ :* kdbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kdbraceo) AstParsed.:<< msItems, $$(kdbracec))
+                )
+            }||]
+    , tokVarA @"{" <^> varA @"let_bind_items" <^> tokVarA @"}"
+        <:> \(_ :* kbraceo :* itemsE :* _ :* kbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kbraceo) AstParsed.:<< msItems, $$(kbracec))
+                )
+            }||]
+    , tokVarA @"{n}" <^> varA @"let_bind_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
+    ]
+
+rLetBindItems :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
+rLetBindItems = ruleExpr
+    [ varA @"lsemis?" <^> varA @"(let_bind_item lsemis)* let_bind_item?"
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp ($$(mayLsemis), msItems)
+                )
+            }||]
+    ]
+
+rLetBindItemsWithSemis0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
+rLetBindItemsWithSemis0 = ruleExpr
+    [ varA @"let_bind_item" <^> varA @"lsemis" <^> varA @"(let_bind_item lsemis)* let_bind_item?"
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just
+                    do AstParsed.sp
+                        do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
+                )
+            }||]
+    , varA @"let_bind_item"
+        <:> \(item :* HNil) ->
+            [||
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
+rLetBindItem :: RuleExpr (Ast.Decl AstParsed.T)
+rLetBindItem = ruleExpr
+    [ varA @"type_decl"
+        <:> \(item :* HNil) ->
+            item
+    , varA @"data_decl"
+        <:> \(item :* HNil) ->
+            item
+    , varA @"val_bind"
+        <:> \(item :* HNil) ->
+            item
+    , varA @"sig_item"
+        <:> \(item :* HNil) ->
+            item
     ]
 
 
