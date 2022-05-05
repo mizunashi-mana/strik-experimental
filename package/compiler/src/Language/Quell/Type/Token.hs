@@ -64,22 +64,19 @@ data LexToken
     | LKwDefault
     | LKwSelf
 
-    | SymArrow
     | SymAt
     | SymBang
     | SymColon
-    | SymDArrow
-    | SymDLeftArrow
     | SymEqual
     | SymForall
     | SymLambda
-    | SymLeftArrow
     | SymOr
     | SymTilde
     | SymUnderscore
     | SymUnknown
 
     | SpBackquote
+    | SpBind
     | SpBlock
     | SpBrackOpen
     | SpBrackClose
@@ -157,16 +154,12 @@ instance Pretty LexToken where
         KwYield                         -> pretty "#yield"
         LKwDefault                      -> pretty "#Default"
         LKwSelf                         -> pretty "#Self"
-        SymArrow                        -> pretty "->"
         SymAt                           -> pretty "@"
         SymBang                         -> pretty "!"
         SymColon                        -> pretty ":"
-        SymDArrow                       -> pretty "=>"
-        SymDLeftArrow                   -> pretty "<="
         SymEqual                        -> pretty "="
         SymForall                       -> pretty "^"
         SymLambda                       -> pretty "\\"
-        SymLeftArrow                    -> pretty "<-"
         SymOr                           -> pretty "|"
         SymTilde                        -> pretty "~"
         SymUnderscore                   -> pretty "_"
@@ -175,6 +168,7 @@ instance Pretty LexToken where
         SpBrackOpen                     -> pretty "["
         SpBrackClose                    -> pretty "]"
         SpComma                         -> pretty ","
+        SpBind                          -> pretty "#<"
         SpBraceOpen                     -> pretty "{"
         SpBraceClose                    -> pretty "}"
         SpDBraceOpen                    -> pretty "{{"

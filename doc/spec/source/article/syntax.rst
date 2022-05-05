@@ -99,7 +99,6 @@ Lexical Syntax
     reserved_sym    : reserved_sym_unit ! sym_char
     reserved_sym_unit   : "_"
                         : "!"
-                        : "<#" / "⧏"
                         : "="
                         : "?"
                         : "@"
@@ -118,6 +117,7 @@ Lexical Syntax
             : "##" / "﹟"
             : "#@" / "⧥"
             : "#>" / "⧐"
+            : "#<" / "⧏"
             : "#=>"
             : "#->"
             : ".." / "…"
@@ -312,7 +312,7 @@ Aliases
 
 .. productionlist::
     ".."    : ".." / "…"
-    "<#"    : "<#" / "⧏"
+    "#<"    : "#<" / "⧏"
     "#>"    : "#>" / "⧐"
     "^"     : "^" / "∀"
     "\\"    : "\\" / "λ"
@@ -532,7 +532,7 @@ TODO: module support
             : '{' do_stmt_items '}'
     do_stmt_items   : lsemis? (do_stmt_item lsemis)* do_yield_item lsemis?
     do_stmt_item    : "#letrec" let_binds
-                    : pat "<#" expr ("#where" val_decl_where_body)?
+                    : pat "#<" expr ("#where" val_decl_where_body)?
                     : pat "=" expr ("#where" val_decl_where_body)?
     do_yield_item   : "#yield" expr
 

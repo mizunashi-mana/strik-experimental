@@ -190,6 +190,8 @@ data CodeUnit
     | LcU2775 -- '❵'
     | LcU2983 -- '⦃'
     | LcU2984 -- '⦄'
+    | LcU29CF -- '⧏'
+    | LcU29D0 -- '⧐'
     | LcUFE5F -- '﹟'
 
     -- https://www.compart.com/en/unicode/category
@@ -475,6 +477,8 @@ fromChar c = case fromEnum c of
     0x2775 -> LcU2775
     0x2983 -> LcU2983
     0x2984 -> LcU2984
+    0x29CF -> LcU29CF
+    0x29D0 -> LcU29D0
     0xFE5F -> LcUFE5F
     _      -> case Char.generalCategory c of
         Char.Format               -> LcOtherCatCf
