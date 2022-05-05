@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Parsing.Parser.Layout (
     TokenWithL (..),
     preParseForProgram,
@@ -5,6 +7,7 @@ module Language.Quell.Parsing.Parser.Layout (
     preParse,
 
     Position (..),
+    nextPosition,
 
     isLayoutKeyword,
     isExplicitOpenBrace,
@@ -15,6 +18,7 @@ import           Language.Quell.Prelude
 import qualified Conduit
 import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Type.Token      as Token
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 
 
 data TokenWithL
@@ -23,10 +27,33 @@ data TokenWithL
     | Newline Position
     deriving (Eq, Show)
 
+instance LiftType.LiftType TokenWithL where
+    liftType _ = [t|TokenWithL|]
+
 data Position
     = PositionByCol Int
     | PositionEos
     deriving (Eq, Show)
+
+instance Ord Position where
+    compare p1 p2 = case p1 of
+        PositionByCol i1 -> case p2 of
+            PositionByCol i2 ->
+                compare i1 i2
+            PositionEos ->
+                GT
+        PositionEos -> case p2 of
+            PositionByCol{} ->
+                LT
+            PositionEos ->
+                EQ
+
+nextPosition :: Position -> Position
+nextPosition = \case
+    PositionByCol i ->
+        PositionByCol do i + 1
+    PositionEos ->
+        PositionEos
 
 type WithLConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL
 

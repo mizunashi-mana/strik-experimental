@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Type.Ast (
     Program (..),
     XProgram,
@@ -132,6 +134,7 @@ module Language.Quell.Type.Ast (
 import           Language.Quell.Prelude
 
 import qualified Language.Quell.Type.TextId as TextId
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 
 
 data Program c = Program [Decl c] (XProgram c)
@@ -145,6 +148,9 @@ type XCProgram f c =
 
 deriving instance XEq c => Eq (Program c)
 deriving instance XShow c => Show (Program c)
+
+instance LiftType.T c => LiftType.LiftType (Program c) where
+    liftType _ = [t|Program $(LiftType.liftType do Proxy @c)|]
 
 
 data Decl c
@@ -185,6 +191,9 @@ type XCDecl f c =
 deriving instance XEq c => Eq (Decl c)
 deriving instance XShow c => Show (Decl c)
 
+instance LiftType.T c => LiftType.LiftType (Decl c) where
+    liftType _ = [t|Decl $(LiftType.liftType do Proxy @c)|]
+
 
 data DeclType c
     = DeclAppType Name [BindVar c] (Maybe (TypeExpr c)) (XDeclAppType c)
@@ -202,6 +211,9 @@ type XCDeclType f c =
 
 deriving instance XEq c => Eq (DeclType c)
 deriving instance XShow c => Show (DeclType c)
+
+instance LiftType.T c => LiftType.LiftType (DeclType c) where
+    liftType _ = [t|DeclType $(LiftType.liftType do Proxy @c)|]
 
 
 data ConType c
@@ -221,6 +233,9 @@ type XCConType f c =
 deriving instance XEq c => Eq (ConType c)
 deriving instance XShow c => Show (ConType c)
 
+instance LiftType.T c => LiftType.LiftType (ConType c) where
+    liftType _ = [t|ConType $(LiftType.liftType do Proxy @c)|]
+
 
 data DeclExpr c
     = DeclAppExpr Name [BindVar c] (Maybe (TypeExpr c)) (XDeclAppExpr c)
@@ -238,6 +253,9 @@ type XCDeclExpr f c =
 
 deriving instance XEq c => Eq (DeclExpr c)
 deriving instance XShow c => Show (DeclExpr c)
+
+instance LiftType.T c => LiftType.LiftType (DeclExpr c) where
+    liftType _ = [t|DeclExpr $(LiftType.liftType do Proxy @c)|]
 
 
 data TypeExpr c
@@ -284,6 +302,9 @@ type XCTypeExpr f c =
 deriving instance XEq c => Eq (TypeExpr c)
 deriving instance XShow c => Show (TypeExpr c)
 
+instance LiftType.T c => LiftType.LiftType (TypeExpr c) where
+    liftType _ = [t|TypeExpr $(LiftType.liftType do Proxy @c)|]
+
 
 data AppType c
     = AppType (TypeExpr c) (XAppType c)
@@ -302,6 +323,9 @@ type XCAppType f c =
 deriving instance XEq c => Eq (AppType c)
 deriving instance XShow c => Show (AppType c)
 
+instance LiftType.T c => LiftType.LiftType (AppType c) where
+    liftType _ = [t|AppType $(LiftType.liftType do Proxy @c)|]
+
 
 data TypeRecordItem c = TypeRecordItem Name (TypeExpr c) (XTypeRecordItem c)
 
@@ -315,6 +339,9 @@ type XCTypeRecordItem f c =
 
 deriving instance XEq c => Eq (TypeRecordItem c)
 deriving instance XShow c => Show (TypeRecordItem c)
+
+instance LiftType.T c => LiftType.LiftType (TypeRecordItem c) where
+    liftType _ = [t|TypeRecordItem $(LiftType.liftType do Proxy @c)|]
 
 
 data Expr c
@@ -376,6 +403,9 @@ type XCExpr f c =
 deriving instance XEq c => Eq (Expr c)
 deriving instance XShow c => Show (Expr c)
 
+instance LiftType.T c => LiftType.LiftType (Expr c) where
+    liftType _ = [t|Expr $(LiftType.liftType do Proxy @c)|]
+
 
 data AppExpr c
     = AppExpr (Expr c) (XAppExpr c)
@@ -394,6 +424,9 @@ type XCAppExpr f c =
 deriving instance XEq c => Eq (AppExpr c)
 deriving instance XShow c => Show (AppExpr c)
 
+instance LiftType.T c => LiftType.LiftType (AppExpr c) where
+    liftType _ = [t|AppExpr $(LiftType.liftType do Proxy @c)|]
+
 
 data ExprRecordItem c = ExprRecordItem Name (Expr c) (XExprRecordItem c)
 
@@ -408,6 +441,9 @@ type XCExprRecordItem f c =
 deriving instance XEq c => Eq (ExprRecordItem c)
 deriving instance XShow c => Show (ExprRecordItem c)
 
+instance LiftType.T c => LiftType.LiftType (ExprRecordItem c) where
+    liftType _ = [t|ExprRecordItem $(LiftType.liftType do Proxy @c)|]
+
 
 data CaseAlt c = CaseAlt [Pat c] [GuardedAlt c] (XCaseAlt c)
 
@@ -421,6 +457,9 @@ type XCCaseAlt f c =
 deriving instance XEq c => Eq (CaseAlt c)
 deriving instance XShow c => Show (CaseAlt c)
 
+instance LiftType.T c => LiftType.LiftType (CaseAlt c) where
+    liftType _ = [t|CaseAlt $(LiftType.liftType do Proxy @c)|]
+
 
 data GuardedAlt c = GuardedAlt (Maybe (Expr c)) (Expr c) (XGuardedAlt c)
 
@@ -433,6 +472,9 @@ type XCGuardedAlt f c =
 
 deriving instance XEq c => Eq (GuardedAlt c)
 deriving instance XShow c => Show (GuardedAlt c)
+
+instance LiftType.T c => LiftType.LiftType (GuardedAlt c) where
+    liftType _ = [t|GuardedAlt $(LiftType.liftType do Proxy @c)|]
 
 
 data DoStmt c
@@ -454,6 +496,9 @@ type XCDoStmt f c =
 
 deriving instance XEq c => Eq (DoStmt c)
 deriving instance XShow c => Show (DoStmt c)
+
+instance LiftType.T c => LiftType.LiftType (DoStmt c) where
+    liftType _ = [t|DoStmt $(LiftType.liftType do Proxy @c)|]
 
 
 data Pat c
@@ -505,6 +550,9 @@ type XCPat f c =
 deriving instance XEq c => Eq (Pat c)
 deriving instance XShow c => Show (Pat c)
 
+instance LiftType.T c => LiftType.LiftType (Pat c) where
+    liftType _ = [t|Pat $(LiftType.liftType do Proxy @c)|]
+
 
 data PatOp c
     = PatOpConApp Name [AppPat c] (XPatOpConApp c)
@@ -516,6 +564,9 @@ type XCPatOp f c = f (XPatOpConApp c)
 
 deriving instance XEq c => Eq (PatOp c)
 deriving instance XShow c => Show (PatOp c)
+
+instance LiftType.T c => LiftType.LiftType (PatOp c) where
+    liftType _ = [t|PatOp $(LiftType.liftType do Proxy @c)|]
 
 
 data AppPat c
@@ -534,6 +585,9 @@ type XCAppPat f c =
 
 deriving instance XEq c => Eq (AppPat c)
 deriving instance XShow c => Show (AppPat c)
+
+instance LiftType.T c => LiftType.LiftType (AppPat c) where
+    liftType _ = [t|AppPat $(LiftType.liftType do Proxy @c)|]
 
 
 data Lit c
@@ -565,6 +619,9 @@ type XCLit f c =
 deriving instance XEq c => Eq (Lit c)
 deriving instance XShow c => Show (Lit c)
 
+instance LiftType.T c => LiftType.LiftType (Lit c) where
+    liftType _ = [t|Lit $(LiftType.liftType do Proxy @c)|]
+
 
 data InterpStringPart c
     = InterpStringLit Text (XInterpStringLit c)
@@ -583,6 +640,9 @@ type XCInterpStringPart f c =
 deriving instance XEq c => Eq (InterpStringPart c)
 deriving instance XShow c => Show (InterpStringPart c)
 
+instance LiftType.T c => LiftType.LiftType (InterpStringPart c) where
+    liftType _ = [t|InterpStringPart $(LiftType.liftType do Proxy @c)|]
+
 
 data BindVar c
     = BindVar Name (Maybe (TypeExpr c)) (XBindVar c)
@@ -600,6 +660,9 @@ type XCBindVar f c =
 
 deriving instance XEq c => Eq (BindVar c)
 deriving instance XShow c => Show (BindVar c)
+
+instance LiftType.T c => LiftType.LiftType (BindVar c) where
+    liftType _ = [t|BindVar $(LiftType.liftType do Proxy @c)|]
 
 
 type Name = TextId.T

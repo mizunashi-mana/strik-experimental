@@ -113,7 +113,7 @@ Lexical Syntax
             : ","
             : "["
             : "]"
-            : "`" -- ` for syntax highlighting issue
+            : "`"
             : ";"
             : "##" / "﹟"
             : "#@" / "⧥"

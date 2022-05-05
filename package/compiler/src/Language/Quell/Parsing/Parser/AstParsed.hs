@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Parsing.Parser.AstParsed (
     T,
     AstParsed,
@@ -12,6 +14,7 @@ import           Language.Quell.Prelude
 
 import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Type.Ast        as Ast
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 
 
 class SpanBuilder s where
@@ -150,7 +153,7 @@ type instance Ast.XExprRecord AstParsed = Spanned.Span
 type instance Ast.XExprAnn AstParsed = Spanned.Span
 type instance Ast.XInterpStringLit AstParsed = Spanned.Span
 type instance Ast.XInterpStringExpr AstParsed = Spanned.Span
-type instance Ast.XCaseAlt AstParsed = Maybe Spanned.Span
+type instance Ast.XCaseAlt AstParsed = Spanned.Span
 type instance Ast.XGuardedAlt AstParsed = Spanned.Span
 type instance Ast.XDoStmtBind AstParsed = Spanned.Span
 type instance Ast.XDoStmtMonBind AstParsed = Spanned.Span
@@ -176,6 +179,9 @@ type instance Ast.XExprRecordItem AstParsed = Spanned.Span
 
 instance Ast.XEq AstParsed
 instance Ast.XShow AstParsed
+
+instance LiftType.LiftType AstParsed where
+    liftType _ = [t|AstParsed|]
 
 instance MaySpanBuilder (Ast.Program AstParsed) where
     maySp = \case
@@ -255,8 +261,8 @@ instance SpanBuilder (Ast.AppExpr AstParsed) where
         Ast.AppExpr _ x     -> x
         Ast.UnivAppExpr _ x -> x
 
-instance MaySpanBuilder (Ast.CaseAlt AstParsed) where
-    maySp = \case
+instance SpanBuilder (Ast.CaseAlt AstParsed) where
+    sp = \case
         Ast.CaseAlt _ _ x -> x
 
 instance SpanBuilder (Ast.GuardedAlt AstParsed) where
@@ -268,6 +274,10 @@ instance SpanBuilder (Ast.DoStmt AstParsed) where
         Ast.DoStmtBind _ _ _ x    -> x
         Ast.DoStmtMonBind _ _ _ x -> x
         Ast.DoStmtLetrec _ x      -> x
+
+instance SpanBuilder (Ast.ExprRecordItem AstParsed) where
+    sp = \case
+        Ast.ExprRecordItem _ _ x -> x
 
 instance SpanBuilder (Ast.Pat AstParsed) where
     sp = \case

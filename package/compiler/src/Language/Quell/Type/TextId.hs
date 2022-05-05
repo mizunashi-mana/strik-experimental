@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Type.TextId (
   T,
   TextId (..),
@@ -10,6 +12,7 @@ module Language.Quell.Type.TextId (
 
 import           Language.Quell.Prelude
 
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 
 type T = TextId
 
@@ -18,6 +21,9 @@ newtype TextId = UnsafeTextId
         unsafeUnTextId :: Text -- FIXME: Use memorized hash integer
     }
     deriving (Eq, Show)
+
+instance LiftType.LiftType TextId where
+    liftType _ = [t|TextId|]
 
 data PrimTextId
     = PrimTextUnit

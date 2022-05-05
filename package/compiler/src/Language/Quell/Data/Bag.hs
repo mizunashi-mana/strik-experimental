@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Data.Bag (
     T,
     Bag,
@@ -7,6 +9,7 @@ module Language.Quell.Data.Bag (
 import           Language.Quell.Prelude
 
 import qualified Data.Foldable          as Foldable
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 
 
 type T = Bag
@@ -128,3 +131,6 @@ instance IsSequence (Bag a) where
         do xs
 
     splitWhen f xs = [ fromList l | l <- splitWhen f do otoList xs ]
+
+instance LiftType.T a => LiftType.LiftType (Bag a) where
+    liftType _ = [t|Bag $(LiftType.liftType do Proxy @a)|]

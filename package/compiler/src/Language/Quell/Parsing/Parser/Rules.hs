@@ -7,6 +7,7 @@ import           Language.Quell.Prelude
 
 import qualified Data.List                               as List
 import qualified Language.Haskell.TH                     as TH
+import qualified Language.Haskell.TH.Syntax                     as TH
 import           Language.Parser.Ptera.TH                (eps, pattern (:*),
                                                           pattern HNil,
                                                           ruleExpr, varA,
@@ -144,7 +145,7 @@ $(Ptera.genRules
     , (TH.mkName "rdDeclBody", "decl_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdDeclItems", "decl_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdDeclItemsWithSemis0", "(decl_item lsemis)* decl_item?",
-        [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
+        [t|(Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)|])
     , (TH.mkName "rdDeclItem", "decl_item", [t|Ast.Decl AstParsed.T|])
 
     , (TH.mkName "rdTypeSigDecl", "typesig_decl", [t|Ast.Decl AstParsed.T|])
@@ -229,9 +230,8 @@ $(Ptera.genRules
 
     , (TH.mkName "rdPat", "pat", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatUnit", "pat_unit", [t|Ast.Pat AstParsed.T|])
-    , (TH.mkName "rdPatUnitsWithBars0", "(pat_infix '|')* pat_infix '|'?", [t|(Bag.T (Ast.Pat AstParsed.T), Spanned.Span)|])
+    , (TH.mkName "rdPatInfixesWithBars1", "(pat_infix '|')* pat_infix '|'?", [t|(Bag.T (Ast.Pat AstParsed.T), Spanned.Span)|])
     , (TH.mkName "rdPatInfix", "pat_infix", [t|Ast.Pat AstParsed.T|])
-    , (TH.mkName "rdPatInfix0", "(pat_apps pat_op)* pat_apps", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatOp", "pat_op", [t|(Ast.PatOp AstParsed.T, Spanned.Span)|])
     , (TH.mkName "rdPatOpBlock", "pat_op_block", [t|Ast.PatOp AstParsed.T|])
     , (TH.mkName "rdPatOpSymQualified", "pat_op_sym_qualified", [t|Ast.PatOp AstParsed.T|])
@@ -267,6 +267,9 @@ $(Ptera.genRules
     , (TH.mkName "rdMayLsemis", "lsemis?", [t|Maybe Spanned.Span|])
     , (TH.mkName "rdLsemi", "lsemi", [t|Maybe Spanned.Span|])
 
+    , (TH.mkName "rdImpBc", "imp_bc", [t|()|])
+    , (TH.mkName "rdSkip", "skip", [t|()|])
+
     , (TH.mkName "rdLiteral", "literal", [t|Ast.Lit AstParsed.T|])
     , (TH.mkName "rdMayTypeSig", "(':' type)?", [t|(Maybe (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)|])
 
@@ -281,8 +284,7 @@ $(Ptera.genRules
     , (TH.mkName "rdTokInterpStringStart", "tok_interp_string_start_without_skip", [t|Ast.InterpStringPart AstParsed.T|])
     , (TH.mkName "rdTokInterpStringCont", "tok_interp_string_cont_without_skip", [t|Ast.InterpStringPart AstParsed.T|])
     , (TH.mkName "rdTokInterpStringEnd", "tok_interp_string_end_without_skip", [t|Ast.InterpStringPart AstParsed.T|])
-
-    , (TH.mkName "rdSkip", "skip", [t|()|])
+    , (TH.mkName "rdTokNewImplicitLayout", "tok_new_implicit_layout_without_skip", [t|()|])
     ])
 
 $(Ptera.genParsePoints
@@ -299,9 +301,135 @@ type ActionTask = Ptera.ActionTask GrammarContext
 
 
 grammar :: Ptera.GrammarM GrammarContext RuleDefs Tokens Token ParsePoints
-grammar = Ptera.fixGrammar do
-    RuleDefs
-        {}
+grammar = Ptera.fixGrammar
+    do RuleDefs
+        { rdTokNewImplicitLayout = ruleSymbolRule do Proxy @"{n}"
+        , rdTokInterpStringStart = ruleSymbolRule do Proxy @"interp_string_start"
+        , rdTokInterpStringCont = ruleSymbolRule do Proxy @"interp_string_cont"
+        , rdTokInterpStringEnd = ruleSymbolRule do Proxy @"interp_string_end"
+        , rdTokOpenDBrace = ruleSymbolRule do Proxy @"{{"
+        , rdTokOpenBrace = ruleSymbolRule do Proxy @"{"
+        , rdTokOpenBrack = ruleSymbolRule do Proxy @"["
+        , rdTokOpenParen = ruleSymbolRule do Proxy @"("
+        , rdTokCloseDBrace = ruleSymbolRule do Proxy @"}}"
+        , rdTokCloseBrace = ruleSymbolRule do Proxy @"}"
+        , rdTokCloseBrack = ruleSymbolRule do Proxy @"]"
+        , rdTokCloseParen = ruleSymbolRule do Proxy @")"
+        , rdMayTypeSig = undefined
+        , rdLiteral = rLiteral
+        , rdSkip = rSkip
+        , rdImpBc = rImpBc
+        , rdLsemi = rLsemi
+        , rdMayLsemis = rMayLsemis
+        , rdLsemis = rLsemis
+        , rdDeclOp = undefined
+        , rdDeclVar = undefined
+        , rdDeclConOp = undefined
+        , rdDeclCon = undefined
+        , rdVarSymExt = undefined
+        , rdConSymExt = undefined
+        , rdVar = undefined
+        , rdCon = undefined
+        , rdConOpQualified = undefined
+        , rdConQualified = undefined
+        , rdActualBindVar = undefined
+        , rdBindVars0 = undefined
+        , rdBindVar = undefined
+        , rdDoBody = undefined
+        , rdGuardedAlts = undefined
+        , rdCaseAltBody = undefined
+        , rdLetBindItem = undefined
+        , rdLetBinds = undefined
+        , rdPatAtomics0 = rPatAtomics0
+        , rdPatAtomic = undefined
+        , rdPatApps0 = undefined
+        , rdPatApps = rPatApps
+        , rdPatOpSymQualified = rPatOpSymQualified
+        , rdPatOpBlock = rPatOpBlock
+        , rdPatOp = rPatOp
+        , rdPatInfix = rPatInfix
+        , rdPatInfixesWithBars1 = rPatInfixesWithBars1
+        , rdPatUnit = rPatUnit
+        , rdPat = rPat
+        , rdExprSimpleRecordItem = rExprSimpleRecordItem
+        , rdExprSimpleRecordItemsWithCommas0 = rExprSimpleRecordItemsWithCommas0
+        , rdExprSimpleRecordItems = rExprSimpleRecordItems
+        , rdExprsWithCommas2 = rExprsWithCommas2
+        , rdExprsWithCommas0 = rExprsWithCommas0
+        , rdExprArrayItems = rExprArrayItems
+        , rdExprTupleItems = rExprTupleItems
+        , rdExprMatchItems = rExprMatchItems
+        , rdExprInterpStringContParts = rExprInterpStringContParts
+        , rdExprInterpString = rExprInterpString
+        , rdExprBlockItem = rExprBlockItem
+        , rdExprBlockBody = rExprBlockBody
+        , rdExprLiteral = rExprLiteral
+        , rdExprAtomic = rExprAtomic
+        , rdExprBlock = rExprBlock
+        , rdExprQualified = rExprQualified
+        , rdExprApp = rExprApp
+        , rdExprApps1 = rExprApps1
+        , rdExprApps = rExprApps
+        , rdExprOpSymQualified = rExprOpSymQualified
+        , rdExprOpBlock = rExprOpBlock
+        , rdExprOp = rExprOp
+        , rdExprInfix = rExprInfix
+        , rdExpr = rExpr
+        , rdSigItem = rSigItem
+        , rdTypesWithCommas0 = rTypesWithCommas0
+        , rdTypesWithCommas2 = rTypesWithCommas2
+        , rdTypeSimpleRecordItem = rTypeSimpleRecordItem
+        , rdTypeSimpleRecordItemsWithCommas0 = rTypeSimpleRecordItemsWithCommas0
+        , rdTypeSimpleRecordItems = rTypeSimpleRecordItems
+        , rdTypeArrayItems = rTypeArrayItems
+        , rdTypeTupleItems = rTypeTupleItems
+        , rdTypeBlockItem = rTypeBlockItem
+        , rdTypeBlockBody = rTypeBlockBody
+        , rdTypeLiteral = rTypeLiteral
+        , rdTypeAtomic = rTypeAtomic
+        , rdTypeBlock = rTypeBlock
+        , rdTypeQualifieds0 = rTypeQualifieds0
+        , rdTypeQualified = rTypeQualified
+        , rdTypeApp = rTypeApp
+        , rdTypeApps1 = rTypeApps1
+        , rdTypeApps0 = rTypeApps0
+        , rdTypeApps = rTypeApps
+        , rdTypeOpSymQualified = rTypeOpSymQualified
+        , rdTypeOpBlock = rTypeOpBlock
+        , rdTypeOp = rTypeOp
+        , rdTypeInfix = rTypeInfix
+        , rdType = rType
+        , rdDeclVarExpr = rDeclVarExpr
+        , rdConType = rConType
+        , rdDeclType = rDeclType
+        , rdValDeclWhereItem = rValDeclWhereItem
+        , rdValDeclWhereItemsWithSemis0 = rValDeclWhereItemsWithSemis0
+        , rdValDeclWhereBody = rValDeclWhereBody
+        , rdValDecl = rValDecl
+        , rdConTypesWithBars0 = undefined
+        , rdAlgDataTypeItems = rAlgDataTypeItems
+        , rdAlgDataType = rAlgDataType
+        , rdDataDeclItem = rDataDeclItem
+        , rdDataDeclItemsWithSemis0 = rDataDeclItemsWithSemis0
+        , rdDataDeclItems = rDataDeclItems
+        , rdValDeclWhereItems = rValDeclWhereItems
+        , rdDataDeclBody = rDataDeclBody
+        , rdDataDecl = rDataDecl
+        , rdTypeDeclWhereItem = rTypeDeclWhereItem
+        , rdTypeDeclWhereItemsWithSemis0 = rTypeDeclWhereItemsWithSemis0
+        , rdTypeDeclWhereItems = rTypeDeclWhereItems
+        , rdTypeDeclWhereBody = rTypeDeclWhereBody
+        , rdTypeDecl = rTypeDecl
+        , rdConSigDecl = rConSigDecl
+        , rdValSigDecl = rValSigDecl
+        , rdTypeSigDecl = rTypeSigDecl
+        , rdDeclItem = rDeclItem
+        , rdDeclItemsWithSemis0 = rDeclItemsWithSemis0
+        , rdDeclItems = rDeclItems
+        , rdDeclBody = rDeclBody
+        , rdProgram = rProgram
+        , rdProgramEos = rProgramEos
+        }
 
 
 rProgramEos :: RuleExpr (Ast.Program AstParsed.T)
@@ -314,65 +442,69 @@ rProgramEos = ruleExpr
 rProgram :: RuleExpr (Ast.Program AstParsed.T)
 rProgram = ruleExpr
     [ varA @"decl_body"
-        <:> \(declBody :* HNil) ->
-            [||case $$(declBody) of
-                (declItems, ms) -> Ast.Program declItems ms
-            ||]
+        <:> \(body :* HNil) ->
+            [||case $$(body) of { (items, msItems) ->
+                Ast.Program items msItems
+            }||]
     ]
 
 
 rDeclBody :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rDeclBody = ruleExpr
     [ tokVarA @"{{" <^> varA @"decl_items" <^> tokVarA @"}}"
-        <:> \(_ :* kodbrace :* declItems :* _ :* kcdbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kodbrace), ms, $$(kcdbrace))
+        <:> \(_ :* kodbrace :* itemsE :* _ :* kcdbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do
+                    AstParsed.sp ($$(kodbrace) AstParsed.:<< msItems, $$(kcdbrace))
                 )
             }||]
     , tokVarA @"{" <^> varA @"decl_items" <^> tokVarA @"}"
-        <:> \(_ :* kodbrace :* declItems :* _ :* kcdbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kodbrace), ms, $$(kcdbrace))
+        <:> \(_ :* kodbrace :* itemsE :* _ :* kcdbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kodbrace) AstParsed.:<< msItems, $$(kcdbrace))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"decl_items" <^> varA @"imp_bc"
-        <:> \(impBo :* declItems :* impBc :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , AstParsed.maySp [$$(impBo), ms, $$(impBc)]
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"decl_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
     ]
 
 rDeclItems :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rDeclItems = ruleExpr
     [ varA @"lsemis?" <^> varA @"(decl_item lsemis)* decl_item?"
-        <:> \(mayLsemis :* declItems :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , AstParsed.maySp [$$(mayLsemis), ms]
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp [$$(mayLsemis), msItems]
                 )
             }||]
     ]
 
-rDeclItems0 :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
-rDeclItems0 = ruleExpr
+rDeclItemsWithSemis0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
+rDeclItemsWithSemis0 = ruleExpr
     [ varA @"decl_item" <^> varA @"lsemis" <^> varA @"(decl_item lsemis)* decl_item?"
-        <:> \(declItem :* lsemis :* declItems :* HNil) ->
-            [||case ($$(declItem), $$(lsemis), $$(declItems)) of
-                (declItem, ms1, (declItems, ms2)) ->
-                    ( declItem:declItems
-                    , AstParsed.maySp (declItem, ms1, ms2)
-                    )
-            ||]
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
+                )
+            }||]
     , varA @"decl_item"
-        <:> \(declItem :* HNil) ->
-            [||([$$(declItem)], Just do AstParsed.sp $$(declItem))||]
+        <:> \(item :* HNil) ->
+            [||
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
+                )
+            ||]
     , eps
         <:> \HNil ->
-            [||([], Nothing)||]
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
     ]
 
 rDeclItem :: RuleExpr (Ast.Decl AstParsed.T)
@@ -395,30 +527,33 @@ rDeclItem = ruleExpr
 rTypeSigDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rTypeSigDecl = ruleExpr
     [ tokA @"#type" <^> varA @"declcon" <^> tokA @":" <^> varA @"type"
-        <:> \(_ :* ktype :* declcon :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclCon) ->
-                Ast.DeclTypeSig declcon $$(ty) do
-                    AstParsed.sp ($$(ktype), spDeclCon, $$(kcolon), $$(ty))
+        <:> \(_ :* ktype :* declconE :* _ :* kcolon :* ty :* HNil) ->
+            [||case $$(declconE) of { (declcon, spDeclCon) ->
+                Ast.DeclTypeSig declcon $$(ty)
+                    do AstParsed.sp
+                        ( lexToken $$(ktype), spDeclCon
+                        , lexToken $$(kcolon), $$(ty)
+                        )
             }||]
     ]
 
 rValSigDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rValSigDecl = ruleExpr
     [ varA @"declvar" <^> tokA @":" <^> varA @"type"
-        <:> \(declvar :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declvar) of { (declvar, spDeclVar) ->
-                Ast.DeclValSig declvar $$(ty) do
-                    AstParsed.sp (spDeclVar, $$(kcolon), $$(ty))
+        <:> \(declvarE :* _ :* kcolon :* ty :* HNil) ->
+            [||case $$(declvarE) of { (declvar, spDeclVar) ->
+                Ast.DeclValSig declvar $$(ty)
+                    do AstParsed.sp (spDeclVar, lexToken $$(kcolon), $$(ty))
             }||]
     ]
 
 rConSigDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rConSigDecl = ruleExpr
     [ varA @"declcon" <^> tokA @":" <^> varA @"type"
-        <:> \(declcon :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclCon) ->
+        <:> \(declconE :* _ :* kcolon :* ty :* HNil) ->
+            [||case $$(declconE) of { (declcon, spDeclCon) ->
                 Ast.DeclConSig declcon $$(ty) do
-                    AstParsed.sp (spDeclCon, $$(kcolon), $$(ty))
+                    AstParsed.sp (spDeclCon, lexToken $$(kcolon), $$(ty))
             }||]
     ]
 
@@ -426,72 +561,72 @@ rConSigDecl = ruleExpr
 rTypeDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rTypeDecl = ruleExpr
     [ tokA @"#type" <^> varA @"decltype" <^> tokA @"=" <^> varA @"type" <^> tokA @"#where" <^> varA @"type_decl_where_body"
-        <:> \(_ :* ktype :* decltype :* _ :* keq :* ty :* _ :* kwhere :* typeDeclWhereBody :* HNil) ->
-            [||case $$(typeDeclWhereBody) of { (whereItems, ms) ->
-                Ast.DeclType $$(decltype) $$(ty) whereItems do
-                    AstParsed.sp
-                        ( $$(ktype), $$(decltype), $$(keq), $$(ty)
-                        , $$(kwhere) AstParsed.:<< ms
+        <:> \(_ :* ktype :* decltype :* _ :* keq :* ty :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(whereBody) of { (whereItems, msWhereItems) ->
+                Ast.DeclType $$(decltype) $$(ty) whereItems
+                    do AstParsed.sp
+                        ( lexToken $$(ktype), $$(decltype)
+                        , lexToken $$(keq), $$(ty)
+                        , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                         )
             }||]
     , tokA @"#type" <^> varA @"decltype" <^> tokA @"=" <^> varA @"type"
         <:> \(_ :* ktype :* decltype :* _ :* keq :* ty :* HNil) ->
             [||
-                Ast.DeclType $$(decltype) $$(ty) [] do
-                    AstParsed.sp ($$(ktype), $$(decltype), $$(keq), $$(ty))
+                Ast.DeclType $$(decltype) $$(ty) []
+                    do AstParsed.sp
+                        ( lexToken $$(ktype), $$(decltype)
+                        , lexToken $$(keq), $$(ty)
+                        )
             ||]
     ]
 
 rTypeDeclWhereBody :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rTypeDeclWhereBody = ruleExpr
     [ tokVarA @"{{" <^> varA @"type_decl_where_items" <^> tokVarA @"}}"
-        <:> \(_ :* kodbrace :* whereItems :* _ :* kcdbrace :* HNil) ->
-            [||case $$(whereItems) of { (whereItems, ms) ->
-                ( whereItems
-                , Just do AstParsed.sp ($$(kodbrace), ms AstParsed.:>> $$(kcdbrace))
+        <:> \(_ :* kodbrace :* itemsE :* _ :* kcdbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kodbrace), msItems AstParsed.:>> $$(kcdbrace))
                 )
             }||]
     , tokVarA @"{" <^> varA @"type_decl_where_items" <^> tokVarA @"}"
-        <:> \(_ :* kobrace :* whereItems :* _ :* kcbrace :* HNil) ->
-            [||case $$(whereItems) of { (whereItems, ms) ->
-                ( whereItems
-                , Just do AstParsed.sp ($$(kobrace), ms AstParsed.:>> $$(kcbrace))
+        <:> \(_ :* kobrace :* itemsE :* _ :* kcbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kobrace), msItems AstParsed.:>> $$(kcbrace))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"type_decl_where_items" <^> varA @"imp_bc"
-        <:> \(impBo :* whereItems :* impBc :* HNil) ->
-            [||case $$(whereItems) of { (whereItems, ms) ->
-                ( whereItems
-                , AstParsed.maySp ($$(impBo), ms, $$(impBc))
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"type_decl_where_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
     ]
 
 rTypeDeclWhereItems :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rTypeDeclWhereItems = ruleExpr
     [ varA @"lsemis?" <^> varA @"(type_decl_where_item lsemis)* type_decl_where_item?"
-        <:> \(mayLsemis :* whereItems :* HNil) ->
-            [||case $$(whereItems) of { (whereItems, ms) ->
-                ( otoList whereItems
-                , AstParsed.maySp ($$(mayLsemis), ms)
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp ($$(mayLsemis), msItems)
                 )
             }||]
     ]
 
-rTypeDeclWhereItems0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
-rTypeDeclWhereItems0 = ruleExpr
+rTypeDeclWhereItemsWithSemis0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
+rTypeDeclWhereItemsWithSemis0 = ruleExpr
     [ varA @"type_decl_where_item" <^> varA @"lsemis" <^> varA @"(type_decl_where_item lsemis)* type_decl_where_item?"
-        <:> \(whereItem :* lsemis :* whereItems :* HNil) ->
-            [||case $$(whereItems) of { (whereItems, ms) ->
-                ( cons $$(whereItem) whereItems
-                , AstParsed.maySp (Just $$(whereItem), $$(lsemis), ms)
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
                 )
             }||]
     , varA @"type_decl_where_item"
-        <:> \(whereItem :* HNil) ->
+        <:> \(item :* HNil) ->
             [||
-                ( pure $$(whereItem)
-                , Just do AstParsed.sp $$(whereItem)
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
@@ -517,83 +652,83 @@ rTypeDeclWhereItem = ruleExpr
 rDataDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rDataDecl = ruleExpr
     [ tokA @"#data" <^> varA @"decltype" <^> tokA @"=" <^> varA @"alg_data_type" <^> tokA @"#where" <^> varA @"type_decl_where_body"
-        <:> \(_ :* kdata :* decltype :* _ :* keq :* algDataType :* _ :* kwhere :* typeDeclWhereBody :* HNil) ->
-            [||case $$(algDataType) of { (conTypes, msConTypes) ->
-                case $$(typeDeclWhereBody) of { (whereItems, msWhereItems) ->
-                    Ast.DeclAlgDataType $$(decltype) conTypes whereItems do
-                        AstParsed.sp
-                            ( $$(kdata), $$(decltype)
-                            , $$(keq) AstParsed.:<< msConTypes
-                            , $$(kwhere) AstParsed.:<< msWhereItems
+        <:> \(_ :* kdata :* decltype :* _ :* keq :* itemsE :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                case $$(whereBody) of { (whereItems, msWhereItems) ->
+                    Ast.DeclAlgDataType $$(decltype) items whereItems
+                        do AstParsed.sp
+                            ( lexToken $$(kdata), $$(decltype)
+                            , lexToken $$(keq) AstParsed.:<< msItems
+                            , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                             )
                 }
             }||]
     , tokA @"#data" <^> varA @"decltype" <^> tokA @"=" <^> varA @"alg_data_type"
-        <:> \(_ :* kdata :* decltype :* _ :* keq :* algDataType :* HNil) ->
-            [||case $$(algDataType) of { (conTypes, msConTypes) ->
-                Ast.DeclAlgDataType $$(decltype) conTypes [] do
-                    AstParsed.sp
-                        ( $$(kdata), $$(decltype)
-                        , $$(keq) AstParsed.:<< msConTypes
+        <:> \(_ :* kdata :* decltype :* _ :* keq :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                Ast.DeclAlgDataType $$(decltype) items []
+                    do AstParsed.sp
+                        ( lexToken $$(kdata), $$(decltype)
+                        , lexToken $$(keq) AstParsed.:<< msItems
                         )
             }||]
     , tokA @"#data" <^> varA @"decltype" <^> tokA @"#where" <^> varA @"type_decl_where_body"
-        <:> \(_ :* kdata :* decltype :* _ :* kwhere :* typeDeclWhereBody :* HNil) ->
-            [||case $$(typeDeclWhereBody) of { (whereItems, msWhereItems) ->
-                Ast.DeclAlgDataType $$(decltype) [] whereItems do
-                    AstParsed.sp
-                        ( $$(kdata), $$(decltype)
-                        , $$(kwhere) AstParsed.:<< msWhereItems
+        <:> \(_ :* kdata :* decltype :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(whereBody) of { (whereItems, msWhereItems) ->
+                Ast.DeclAlgDataType $$(decltype) [] whereItems
+                    do AstParsed.sp
+                        ( lexToken $$(kdata), $$(decltype)
+                        , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                         )
             }||]
     , tokA @"#data" <^> varA @"decltype"
         <:> \(_ :* kdata :* decltype :* HNil) ->
             [||
-                Ast.DeclAlgDataType $$(decltype) [] [] do
-                    AstParsed.sp
-                        ( $$(kdata), $$(decltype)
+                Ast.DeclAlgDataType $$(decltype) [] []
+                    do AstParsed.sp
+                        ( lexToken $$(kdata), $$(decltype)
                         )
             ||]
     , tokA @"#data" <^> varA @"declcon" <^> varA @"(':' type)?" <^> tokA @"#where" <^> varA @"data_decl_body"
-        <:> \(_ :* kdata :* declcon :* mayTy :* _ :* kwhere :* dataDeclBody :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclcon) ->
-                case $$(mayTy) of { (mayTy, msMayTy) ->
-                    case $$(dataDeclBody) of { (dataDeclItems, msDataDeclItems) ->
-                        Ast.DeclDataType declcon mayTy dataDeclItems do
-                            AstParsed.sp
-                                ( $$(kdata), spDeclcon AstParsed.:<< msMayTy
-                                , $$(kwhere) AstParsed.:<< msDataDeclItems
+        <:> \(_ :* kdata :* declconE :* mayTyE :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(declconE) of { (declcon, spDeclcon) ->
+                case $$(mayTyE) of { (mayTy, msMayTy) ->
+                    case $$(whereBody) of { (whereItems, msWhereItems) ->
+                        Ast.DeclDataType declcon mayTy whereItems
+                            do AstParsed.sp
+                                ( lexToken $$(kdata), spDeclcon AstParsed.:<< msMayTy
+                                , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                                 )
                     }
                 }
             }||]
     , tokA @"#data" <^> varA @"declcon" <^> varA @"(':' type)?"
-        <:> \(_ :* kdata :* declcon :* mayTy :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclcon) ->
-                case $$(mayTy) of { (mayTy, msMayTy) ->
-                    Ast.DeclDataType declcon mayTy [] do
-                        AstParsed.sp
-                            ( $$(kdata), spDeclcon AstParsed.:<< msMayTy
+        <:> \(_ :* kdata :* declconE :* mayTyE :* HNil) ->
+            [||case $$(declconE) of { (declcon, spDeclcon) ->
+                case $$(mayTyE) of { (mayTy, msMayTy) ->
+                    Ast.DeclDataType declcon mayTy []
+                        do AstParsed.sp
+                            ( lexToken $$(kdata), spDeclcon AstParsed.:<< msMayTy
                             )
                 }
             }||]
     , tokA @"#newtype" <^> varA @"decltype" <^> tokA @"=" <^> varA @"type" <^> tokA @"#where" <^> varA @"type_decl_where_body"
-        <:> \(_ :* knewtype :* decltype :* _ :* keq :* ty :* _ :* kwhere :* typeDeclWhereBody :* HNil) ->
-            [||case $$(typeDeclWhereBody) of { (whereItems, msWhereItems) ->
-                Ast.DeclNewType $$(decltype) $$(ty) whereItems do
-                    AstParsed.sp
-                        ( $$(knewtype), $$(decltype)
-                        , $$(keq), $$(ty)
-                        , $$(kwhere) AstParsed.:<< msWhereItems
+        <:> \(_ :* knewtype :* decltype :* _ :* keq :* ty :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(whereBody) of { (whereItems, msWhereItems) ->
+                Ast.DeclNewType $$(decltype) $$(ty) whereItems
+                    do AstParsed.sp
+                        ( lexToken $$(knewtype), $$(decltype)
+                        , lexToken $$(keq), $$(ty)
+                        , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                         )
             }||]
     , tokA @"#newtype" <^> varA @"decltype" <^> tokA @"=" <^> varA @"type"
         <:> \(_ :* knewtype :* decltype :* _ :* keq :* ty :* HNil) ->
             [||
-                Ast.DeclNewType $$(decltype) $$(ty) [] do
-                    AstParsed.sp
-                        ( $$(knewtype), $$(decltype)
-                        , $$(keq), $$(ty)
+                Ast.DeclNewType $$(decltype) $$(ty) []
+                    do AstParsed.sp
+                        ( lexToken $$(knewtype), $$(decltype)
+                        , lexToken $$(keq), $$(ty)
                         )
             ||]
     ]
@@ -601,53 +736,49 @@ rDataDecl = ruleExpr
 rDataDeclBody :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rDataDeclBody = ruleExpr
     [ tokVarA @"{{" <^> varA @"data_decl_items" <^> tokVarA @"}}"
-        <:> \(_ :* kodbrace :* declItems :* _ :* kcdbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kodbrace), ms AstParsed.:>> $$(kcdbrace))
+        <:> \(_ :* kodbrace :* itemsE :* _ :* kcdbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kodbrace), msItems AstParsed.:>> $$(kcdbrace))
                 )
             }||]
     , tokVarA @"{" <^> varA @"data_decl_items" <^> tokVarA @"}"
-        <:> \(_ :* kobrace :* declItems :* _ :* kcbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kobrace), ms AstParsed.:>> $$(kcbrace))
+        <:> \(_ :* kobrace :* itemsE :* _ :* kcbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kobrace), msItems AstParsed.:>> $$(kcbrace))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"data_decl_items" <^> varA @"imp_bc"
-        <:> \(impBo :* declItems :* impBc :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , AstParsed.maySp ($$(impBo), ms, $$(impBc))
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"data_decl_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
     ]
 
 rDataDeclItems :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rDataDeclItems = ruleExpr
     [ varA @"lsemis?" <^> varA @"(data_decl_item lsemis)* data_decl_item?"
-        <:> \(mayLsemis :* declItems :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( otoList declItems
-                , AstParsed.maySp ($$(mayLsemis), ms)
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp ($$(mayLsemis), msItems)
                 )
             }||]
     ]
 
-rDataDeclItems0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
-rDataDeclItems0 = ruleExpr
+rDataDeclItemsWithSemis0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
+rDataDeclItemsWithSemis0 = ruleExpr
     [ varA @"data_decl_item" <^> varA @"lsemis" <^> varA @"(data_decl_item lsemis)* data_decl_item?"
-        <:> \(dataDeclItem :* lsemis :* declItems :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( cons $$(dataDeclItem) declItems
-                , AstParsed.maySp (Just $$(dataDeclItem), $$(lsemis), ms)
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
                 )
             }||]
     , varA @"data_decl_item"
-        <:> \(dataDeclItem :* HNil) ->
+        <:> \(item :* HNil) ->
             [||
-                ( pure $$(dataDeclItem)
-                , Just do AstParsed.sp $$(dataDeclItem)
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
@@ -675,8 +806,8 @@ rDataDeclItem = ruleExpr
 rAlgDataType :: RuleExpr ([Ast.ConType AstParsed.T], Maybe Spanned.Span)
 rAlgDataType = ruleExpr
     [ tokVarA @"(" <^> varA @"alg_data_type_items" <^> tokVarA @")"
-        <:> \(_ :* kop :* items :* _ :* kcp :* HNil) ->
-            [||case $$(items) of { (items, ms) ->
+        <:> \(_ :* kop :* itemsE :* _ :* kcp :* HNil) ->
+            [||case $$(itemsE) of { (items, ms) ->
                 ( items
                 , Just do AstParsed.sp ($$(kop) AstParsed.:<< ms, $$(kcp))
                 )
@@ -689,17 +820,17 @@ rAlgDataType = ruleExpr
 rAlgDataTypeItems :: RuleExpr ([Ast.ConType AstParsed.T], Maybe Spanned.Span)
 rAlgDataTypeItems = ruleExpr
     [ tokA @"|" <^> varA @"(contype '|')* contype?"
-        <:> \(_ :* kmid :* items :* HNil) ->
-            [||case $$(items) of { (items, ms) ->
+        <:> \(_ :* kmid :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , Just do AstParsed.sp do $$(kmid) AstParsed.:<< ms
+                , Just do AstParsed.sp do lexToken $$(kmid) AstParsed.:<< msItems
                 )
             }||]
     , varA @"(contype '|')* contype?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, ms) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , ms
+                , msItems
                 )
             }||]
     ]
@@ -707,10 +838,10 @@ rAlgDataTypeItems = ruleExpr
 rAlgDataTypeItems0 :: RuleExpr (Bag.T (Ast.ConType AstParsed.T), Maybe Spanned.Span)
 rAlgDataTypeItems0 = ruleExpr
     [ varA @"contype" <^> tokA @"|" <^> varA @"(contype '|')* contype?"
-        <:> \(item :* _ :* kmid :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(item :* _ :* kmid :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( cons $$(item) items
-                , Just do AstParsed.sp ($$(item), $$(kmid) AstParsed.:<< msItems)
+                , Just do AstParsed.sp ($$(item), lexToken $$(kmid) AstParsed.:<< msItems)
                 )
             }||]
     , varA @"contype"
@@ -720,86 +851,91 @@ rAlgDataTypeItems0 = ruleExpr
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
     ]
 
 
 rValDecl :: RuleExpr (Ast.Decl AstParsed.T)
 rValDecl = ruleExpr
     [ varA @"declvarexpr" <^> tokA @"=" <^> varA @"expr" <^> tokA @"#where" <^> varA @"val_decl_where_body"
-        <:> \(declVarExpr :* _ :* keq :* expr :* _ :* kwhere :* valDeclWhereBody :* HNil) ->
-            [||case $$(valDeclWhereBody) of { (whereItems, msWhereItems) ->
-                Ast.DeclVal $$(declVarExpr) $$(expr) whereItems do
-                    AstParsed.sp
-                        ( $$(declVarExpr)
-                        , $$(keq)
-                        , $$(expr) AstParsed.:<< msWhereItems
+        <:> \(declVarExpr :* _ :* keq :* expr :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(whereBody) of { (whereItems, msWhereItems) ->
+                Ast.DeclVal $$(declVarExpr) $$(expr) whereItems
+                    do AstParsed.sp
+                        ( $$(declVarExpr), lexToken $$(keq), $$(expr)
+                        , lexToken $$(kwhere) AstParsed.:<< msWhereItems
                         )
             }||]
     , varA @"declvarexpr" <^> tokA @"=" <^> varA @"expr"
         <:> \(declVarExpr :* _ :* keq :* expr :* HNil) ->
             [||
-                Ast.DeclVal $$(declVarExpr) $$(expr) [] do
-                    AstParsed.sp ($$(declVarExpr), $$(keq), $$(expr))
+                Ast.DeclVal $$(declVarExpr) $$(expr) []
+                    do AstParsed.sp ($$(declVarExpr), lexToken $$(keq), $$(expr))
             ||]
     ]
 
 rValBind :: RuleExpr (Ast.Decl AstParsed.T)
 rValBind = ruleExpr
     [ varA @"pat" <^> tokA @"=" <^> varA @"expr" <^> tokA @"#where" <^> varA @"val_decl_where_body"
-        <:> \(pat :* _ :* keq :* expr :* _ :* kwhere :* valDeclWhereBody :* HNil) ->
-            [||case $$(valDeclWhereBody) of { (whereItems, msWhereItems) ->
-                Ast.DeclValBind $$(pat) $$(expr) whereItems do
-                    AstParsed.sp ($$(pat), $$(keq), $$(expr) AstParsed.:<< msWhereItems)
+        <:> \(pat :* _ :* keq :* expr :* _ :* kwhere :* whereBody :* HNil) ->
+            [||case $$(whereBody) of { (whereItems, msWhereItems) ->
+                Ast.DeclValBind $$(pat) $$(expr) whereItems
+                    do AstParsed.sp
+                        ( $$(pat), lexToken $$(keq), $$(expr)
+                        , lexToken $$(kwhere) AstParsed.:<< msWhereItems
+                        )
             }||]
     , varA @"pat" <^> tokA @"=" <^> varA @"expr"
         <:> \(pat :* _ :* keq :* expr :* HNil) ->
             [||
-                Ast.DeclValBind $$(pat) $$(expr) [] do
-                    AstParsed.sp ($$(pat), $$(keq), $$(expr))
+                Ast.DeclValBind $$(pat) $$(expr) []
+                    do AstParsed.sp ($$(pat), lexToken $$(keq), $$(expr))
             ||]
     ]
 
 rValDeclWhereBody :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rValDeclWhereBody = ruleExpr
     [ tokVarA @"{{" <^> varA @"val_decl_where_items" <^> tokVarA @"}}"
-        <:> \(_ :* kodbrace :* declItems :* _ :* kcdbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kodbrace), ms AstParsed.:>> $$(kcdbrace))
+        <:> \(_ :* kodbrace :* itemsE :* _ :* kcdbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kodbrace), msItems AstParsed.:>> $$(kcdbrace))
                 )
             }||]
     , tokVarA @"{" <^> varA @"val_decl_where_items" <^> tokVarA @"}"
-        <:> \(_ :* kobrace :* declItems :* _ :* kcbrace :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , Just do AstParsed.sp ($$(kobrace), ms AstParsed.:>> $$(kcbrace))
+        <:> \(_ :* kobrace :* itemsE :* _ :* kcbrace :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kobrace), msItems AstParsed.:>> $$(kcbrace))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"val_decl_where_items" <^> varA @"imp_bc"
-        <:> \(impBo :* declItems :* impBc :* HNil) ->
-            [||case $$(declItems) of { (declItems, ms) ->
-                ( declItems
-                , AstParsed.maySp ($$(impBo), ms, $$(impBc))
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"val_decl_where_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
     ]
 
 rValDeclWhereItems :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rValDeclWhereItems = ruleExpr
     [ varA @"lsemis?" <^> varA @"(val_decl_where_item lsemis)* val_decl_where_item?"
-        <:> \(mayLsemis :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
                 , AstParsed.maySp ($$(mayLsemis), msItems)
                 )
             }||]
     ]
 
-rValDeclWhereItems0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
-rValDeclWhereItems0 = ruleExpr
+rValDeclWhereItemsWithSemis0 :: RuleExpr (Bag.T (Ast.Decl AstParsed.T), Maybe Spanned.Span)
+rValDeclWhereItemsWithSemis0 = ruleExpr
     [ varA @"val_decl_where_item" <^> varA @"lsemis" <^> varA @"(val_decl_where_item lsemis)* val_decl_where_item?"
-        <:> \(item :* lsemis :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( cons $$(item) items
                 , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
                 )
@@ -830,38 +966,26 @@ rValDeclWhereItem = ruleExpr
 
 rDeclType :: RuleExpr (Ast.DeclType AstParsed.T)
 rDeclType = ruleExpr
-    [ varA @"actual_bind_var" <^> varA @"declconop" <^> varA @"actual_bind_var" <^> tokA @":" <^> varA @"type"
-        <:> \(bindVar1 :* declconop :* bindVar2 :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declconop) of { (declconop, spDeclconop) ->
-                Ast.DeclInfixType $$(bindVar1) declconop $$(bindVar2)
-                    do Just $$(ty)
-                    do AstParsed.sp ($$(bindVar1), spDeclconop, $$(bindVar2), $$(kcolon), $$(ty))
-            }||]
-    , varA @"actual_bind_var" <^> varA @"declconop" <^> varA @"actual_bind_var"
-        <:> \(bindVar1 :* declconop :* bindVar2 :* HNil) ->
-            [||case $$(declconop) of { (declconop, spDeclconop) ->
-                Ast.DeclInfixType $$(bindVar1) declconop $$(bindVar2)
-                    do Nothing
-                    do AstParsed.sp ($$(bindVar1), spDeclconop, $$(bindVar2))
-            }||]
-    , varA @"declcon" <^> varA @"bind_var*" <^> tokA @":" <^> varA @"type"
-        <:> \(declcon :* bindVars :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclcon) ->
-                case $$(bindVars) of { (bindVars, ms) ->
-                    Ast.DeclAppType declcon
-                        do otoList bindVars
-                        do Just $$(ty)
-                        do AstParsed.sp (spDeclcon AstParsed.:<< ms, $$(kcolon), $$(ty))
+    [ varA @"actual_bind_var" <^> varA @"declconop" <^> varA @"actual_bind_var" <^> varA @"(':' type)?"
+        <:> \(bindVar1 :* declconopE :* bindVar2 :* mayTyE :* HNil) ->
+            [||case $$(declconopE) of { (declconop, spDeclconop) ->
+                case $$(mayTyE) of { (mayTy, msMayTy) ->
+                    Ast.DeclInfixType $$(bindVar1) declconop $$(bindVar2) mayTy
+                        do AstParsed.sp
+                            ($$(bindVar1), spDeclconop, $$(bindVar2) AstParsed.:<< msMayTy)
                 }
             }||]
-    , varA @"declcon" <^> varA @"bind_var*"
-        <:> \(declcon :* bindVars :* HNil) ->
-            [||case $$(declcon) of { (declcon, spDeclcon) ->
-                case $$(bindVars) of { (bindVars, ms) ->
-                    Ast.DeclAppType declcon
-                        do otoList bindVars
-                        do Nothing
-                        do AstParsed.sp do spDeclcon AstParsed.:<< ms
+    , varA @"declcon" <^> varA @"bind_var*" <^> varA @"(':' type)?"
+        <:> \(declconE :* bindVarsE :* mayTyE :* HNil) ->
+            [||case $$(declconE) of { (declcon, spDeclcon) ->
+                case $$(bindVarsE) of { (bindVars, msBindVars) ->
+                    case $$(mayTyE) of { (mayTy, msMayTy) ->
+                        Ast.DeclAppType declcon
+                            do otoList bindVars
+                            do mayTy
+                            do AstParsed.sp
+                                do spDeclcon AstParsed.:<< msBindVars AstParsed.:<< msMayTy
+                    }
                 }
             }||]
     ]
@@ -869,15 +993,15 @@ rDeclType = ruleExpr
 rConType :: RuleExpr (Ast.ConType AstParsed.T)
 rConType = ruleExpr
     [ varA @"type_qualified" <^> varA @"conop_qualified" <^> varA @"type_qualified"
-        <:> \(ty1 :* conop :* ty2 :* HNil) ->
-            [||case $$(conop) of { (conop, spConop) ->
+        <:> \(ty1 :* conopE :* ty2 :* HNil) ->
+            [||case $$(conopE) of { (conop, spConop) ->
                 Ast.ConInfixType $$(ty1) conop $$(ty2) do
                     AstParsed.sp ($$(ty1), spConop, $$(ty2))
             }||]
     , varA @"con_qualified" <^> varA @"type_app*"
-        <:> \(con :* types :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
-                case $$(types) of { (types, msTypes) ->
+        <:> \(conE :* typesE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                case $$(typesE) of { (types, msTypes) ->
                     Ast.ConAppType con
                         do otoList types
                         do AstParsed.sp do spCon AstParsed.:<< msTypes
@@ -887,38 +1011,26 @@ rConType = ruleExpr
 
 rDeclVarExpr :: RuleExpr (Ast.DeclExpr AstParsed.T)
 rDeclVarExpr = ruleExpr
-    [ varA @"actual_bind_var" <^> varA @"declop" <^> varA @"actual_bind_var" <^> tokA @":" <^> varA @"type"
-        <:> \(bindVar1 :* declop :* bindVar2 :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declop) of { (declop, spDeclop) ->
-                Ast.DeclInfixExpr $$(bindVar1) declop $$(bindVar2)
-                    do Just $$(ty)
-                    do AstParsed.sp ($$(bindVar1), spDeclop, $$(bindVar2), $$(kcolon), $$(ty))
-            }||]
-    , varA @"actual_bind_var" <^> varA @"declop" <^> varA @"actual_bind_var"
-        <:> \(bindVar1 :* declop :* bindVar2 :* HNil) ->
-            [||case $$(declop) of { (declop, spDeclop) ->
-                Ast.DeclInfixExpr $$(bindVar1) declop $$(bindVar2)
-                    do Nothing
-                    do AstParsed.sp ($$(bindVar1), spDeclop, $$(bindVar2))
-            }||]
-    , varA @"declvar" <^> varA @"bind_var*" <^> tokA @":" <^> varA @"type"
-        <:> \(declvar :* bindVars :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declvar) of { (declVar, spDeclVar) ->
-                case $$(bindVars) of { (bindVars, msBindVars) ->
-                    Ast.DeclAppExpr declVar
-                        do otoList bindVars
-                        do Just $$(ty)
-                        do AstParsed.sp (spDeclVar AstParsed.:<< msBindVars, $$(kcolon), $$(ty))
+    [ varA @"actual_bind_var" <^> varA @"declop" <^> varA @"actual_bind_var" <^> varA @"(':' type)?"
+        <:> \(bindVar1 :* declopE :* bindVar2 :* mayTyE :* HNil) ->
+            [||case $$(declopE) of { (declop, spDeclop) ->
+                case $$(mayTyE) of { (mayTy, msMayTy) ->
+                    Ast.DeclInfixExpr $$(bindVar1) declop $$(bindVar2) mayTy
+                        do AstParsed.sp
+                            ($$(bindVar1), spDeclop, $$(bindVar2) AstParsed.:<< msMayTy)
                 }
             }||]
-    , varA @"declvar" <^> varA @"bind_var*"
-        <:> \(declvar :* bindVars :* HNil) ->
-            [||case $$(declvar) of { (declVar, spDeclVar) ->
-                case $$(bindVars) of { (bindVars, msBindVars) ->
-                    Ast.DeclAppExpr declVar
-                        do otoList bindVars
-                        do Nothing
-                        do AstParsed.sp do spDeclVar AstParsed.:<< msBindVars
+    , varA @"declvar" <^> varA @"bind_var*" <^> varA @"(':' type)?"
+        <:> \(declvarE :* bindVarsE :* mayTyE :* HNil) ->
+            [||case $$(declvarE) of { (declVar, spDeclVar) ->
+                case $$(bindVarsE) of { (bindVars, msBindVars) ->
+                    case $$(mayTyE) of { (mayTy, msMayTy) ->
+                        Ast.DeclAppExpr declVar
+                            do otoList bindVars
+                            do mayTy
+                            do AstParsed.sp
+                                do spDeclVar AstParsed.:<< msBindVars AstParsed.:<< msMayTy
+                    }
                 }
             }||]
     ]
@@ -947,10 +1059,10 @@ rTypeInfix = ruleExpr
 rTypeOp :: RuleExpr (Ast.TypeExpr AstParsed.T, Spanned.Span)
 rTypeOp = ruleExpr
     [ tokA @"`" <^> varA @"type_op_block" <^> tokA @"`"
-        <:> \(_ :* kbacktick1 :* tyOp :* _ :* kbacktick2 :* HNil) ->
+        <:> \(_ :* ktick1 :* tyOp :* _ :* ktick2 :* HNil) ->
             [||
                 ( $$(tyOp)
-                , AstParsed.sp ($$(kbacktick1), $$(tyOp), $$(kbacktick2))
+                , AstParsed.sp (lexToken $$(ktick1), $$(tyOp), lexToken $$(ktick2))
                 )
             ||]
     , varA @"type_op_sym_qualified"
@@ -975,22 +1087,22 @@ rTypeOpBlock = ruleExpr
 rTypeOpSymQualified :: RuleExpr (Ast.TypeExpr AstParsed.T)
 rTypeOpSymQualified = ruleExpr
     [ varA @"con_sym_ext"
-        <:> \(conSymExt :* HNil) ->
-            [||case $$(conSymExt) of { (conSymExt, spConSymExt) ->
-                Ast.TypeCon conSymExt spConSymExt
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                Ast.TypeCon con spCon
             }||]
     , varA @"var_sym_ext"
-        <:> \(varSymExt :* HNil) ->
-            [||case $$(varSymExt) of { (varSymExt, spVarSymExt) ->
-                Ast.TypeVar varSymExt spVarSymExt
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                Ast.TypeVar var spVar
             }||]
     ]
 
 rTypeApps :: RuleExpr (Ast.TypeExpr AstParsed.T)
 rTypeApps = ruleExpr
     [ varA @"type_qualified" <^> varA @"type_app+"
-        <:> \(ty :* types :* HNil) ->
-            [||case $$(types) of { (types, spTypes) ->
+        <:> \(ty :* typesE :* HNil) ->
+            [||case $$(typesE) of { (types, spTypes) ->
                 Ast.TypeApp $$(ty)
                     do otoList types
                     do AstParsed.sp ($$(ty), spTypes)
@@ -1002,18 +1114,29 @@ rTypeApps = ruleExpr
 
 rTypeApps1 :: RuleExpr (Bag.T (Ast.AppType AstParsed.T), Spanned.Span)
 rTypeApps1 = ruleExpr
-    [ varA @"type_app" <^> varA @"type_app+"
-        <:> \(ty :* types :* HNil) ->
-            [||case $$(types) of { (types, spTypes) ->
+    [ varA @"type_app" <^> varA @"type_app*"
+        <:> \(ty :* typesE :* HNil) ->
+            [||case $$(typesE) of { (types, msTypes) ->
                 ( cons $$(ty) types
-                , AstParsed.sp ($$(ty), spTypes)
+                , AstParsed.sp do $$(ty) AstParsed.:<< msTypes
                 )
             }||]
-    , varA @"type_app"
-        <:> \(ty :* HNil) ->
+    ]
+
+rTypeApps0 :: RuleExpr (Bag.T (Ast.AppType AstParsed.T), Maybe Spanned.Span)
+rTypeApps0 = ruleExpr
+    [ varA @"type_app" <^> varA @"type_app*"
+        <:> \(ty :* typesE :* HNil) ->
+            [||case $$(typesE) of { (types, msTypes) ->
+                ( cons $$(ty) types
+                , Just do AstParsed.sp do $$(ty) AstParsed.:<< msTypes
+                )
+            }||]
+    , eps
+        <:> \HNil ->
             [||
-                ( pure $$(ty)
-                , AstParsed.sp $$(ty)
+                ( mempty
+                , Nothing
                 )
             ||]
     ]
@@ -1045,24 +1168,42 @@ rTypeQualified = ruleExpr
             ty
     ]
 
+rTypeQualifieds0 :: RuleExpr (Bag.T (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)
+rTypeQualifieds0 = ruleExpr
+    [ varA @"type_qualified" <^> varA @"type_qualified*"
+        <:> \(ty :* typesE :* HNil) ->
+            [||case $$(typesE) of { (types, msTypes) ->
+                ( cons $$(ty) types
+                , Just do AstParsed.sp do $$(ty) AstParsed.:<< msTypes
+                )
+            }||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
 rTypeBlock :: RuleExpr (Ast.TypeExpr AstParsed.T)
 rTypeBlock = ruleExpr
     [ tokA @"^" <^> varA @"bind_var*" <^> tokA @"#>" <^> varA @"type"
-        <:> \(_ :* kcaret :* bindVars :* _ :* karr :* ty :* HNil) ->
-            [||case $$(bindVars) of { (bindVars, msBindVars) ->
+        <:> \(_ :* kcaret :* bindVarsE :* _ :* karr :* ty :* HNil) ->
+            [||case $$(bindVarsE) of { (bindVars, msBindVars) ->
                 Ast.TypeForall
                     do otoList bindVars
                     do $$(ty)
                     do AstParsed.sp
-                        ( $$(kcaret) AstParsed.:<< msBindVars
-                        , $$(karr), $$(ty)
+                        ( lexToken $$(kcaret) AstParsed.:<< msBindVars
+                        , lexToken $$(karr), $$(ty)
                         )
             }||]
     , tokA @"##" <^> varA @"type_block_body"
         <:> \(_ :* kblock :* body :* HNil) ->
             [||case $$(body) of { (ty, spBody) ->
                 Ast.TypeAnn ty
-                    do AstParsed.sp ($$(kblock), spBody)
+                    do AstParsed.sp (lexToken $$(kblock), spBody)
             }||]
     , varA @"type_atomic"
         <:> \(ty :* HNil) ->
@@ -1072,26 +1213,26 @@ rTypeBlock = ruleExpr
 rTypeAtomic :: RuleExpr (Ast.TypeExpr AstParsed.T)
 rTypeAtomic = ruleExpr
     [ tokVarA @"(" <^> varA @"type" <^> tokA @":" <^> varA @"type" <^> tokVarA @")"
-        <:> \(_ :* kparenl :* ty1 :* _ :* kcolon :* ty2 :* _ :* kparenr :* HNil) ->
-            [||Ast.TypeSig $$(ty1) $$(ty2) do
-                AstParsed.sp ($$(kparenl), $$(ty1), $$(kcolon), $$(ty2), $$(kparenr))
+        <:> \(_ :* kop :* ty :* _ :* kcolon :* tySig :* _ :* kcp :* HNil) ->
+            [||Ast.TypeSig $$(ty) $$(tySig)
+                do AstParsed.sp ($$(kop), $$(ty), lexToken $$(kcolon), $$(tySig), $$(kcp))
             ||]
     , tokVarA @"(" <^> varA @"type" <^> tokVarA @")"
-        <:> \(_ :* kparenl :* ty :* _ :* kparenr :* HNil) ->
-            [||Ast.TypeAnn $$(ty) do
-                AstParsed.sp ($$(kparenl), $$(ty), $$(kparenr))
+        <:> \(_ :* kop :* ty :* _ :* kcp :* HNil) ->
+            [||Ast.TypeAnn $$(ty)
+                do AstParsed.sp ($$(kop), $$(ty), $$(kcp))
             ||]
     , varA @"type_literal"
         <:> \(ty :* HNil) ->
             ty
     , varA @"con"
-        <:> \(con :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
                 Ast.TypeCon con spCon
             }||]
     , varA @"var"
-        <:> \(var :* HNil) ->
-            [||case $$(var) of { (var, spVar) ->
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
                 Ast.TypeVar var spVar
             }||]
     ]
@@ -1139,13 +1280,9 @@ rTypeBlockBody = ruleExpr
                 , AstParsed.sp ($$(kodbrace), spItem, $$(kcdbrace))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"type_block_item" <^> varA @"imp_bc"
-        <:> \(impBo :* item :* impBc :* HNil) ->
-            [||case $$(item) of { (ty, spItem) ->
-                ( ty
-                , AstParsed.sp ($$(impBo), spItem, $$(impBc))
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"type_block_item" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* item :* _ :* HNil) ->
+            item
     ]
 
 rTypeBlockItem :: RuleExpr (Ast.TypeExpr AstParsed.T, Spanned.Span)
@@ -1162,15 +1299,15 @@ rTypeBlockItem = ruleExpr
 rTypeTupleItems :: RuleExpr ([Ast.TypeExpr AstParsed.T], Spanned.Span)
 rTypeTupleItems = ruleExpr
     [ tokA @"," <^> varA @"(type ',')+ type ','?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( otoList items
-                , AstParsed.sp ($$(kcomma), spItems)
+                , AstParsed.sp (lexToken $$(kcomma), spItems)
                 )
             }||]
     , varA @"(type ',')+ type ','?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( otoList items
                 , spItems
                 )
@@ -1180,24 +1317,24 @@ rTypeTupleItems = ruleExpr
 rTypesWithCommas2 :: RuleExpr (Bag.T (Ast.TypeExpr AstParsed.T), Spanned.Span)
 rTypesWithCommas2 = ruleExpr
     [ varA @"type" <^> tokA @"," <^> varA @"(type ',')+ type ','?"
-        <:> \(ty :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(ty :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( cons $$(ty) items
-                , AstParsed.sp ($$(ty), $$(kcomma), spItems)
+                , AstParsed.sp ($$(ty), lexToken $$(kcomma), spItems)
                 )
             }||]
     , varA @"type" <^> tokA @"," <^> varA @"type" <^> tokA @","
         <:> \(ty1 :* _ :* kcomma1 :* ty2 :* _ :* kcomma2 :* HNil) ->
             [||
                 ( cons $$(ty1) do pure $$(ty2)
-                , AstParsed.sp ($$(ty1), $$(kcomma1), $$(ty2), $$(kcomma2))
+                , AstParsed.sp ($$(ty1), lexToken $$(kcomma1), $$(ty2), lexToken $$(kcomma2))
                 )
             ||]
     , varA @"type" <^> tokA @"," <^> varA @"type"
         <:> \(ty1 :* _ :* kcomma1 :* ty2 :* HNil) ->
             [||
                 ( cons $$(ty1) do pure $$(ty2)
-                , AstParsed.sp ($$(ty1), $$(kcomma1), $$(ty2))
+                , AstParsed.sp ($$(ty1), lexToken $$(kcomma1), $$(ty2))
                 )
             ||]
     ]
@@ -1205,15 +1342,15 @@ rTypesWithCommas2 = ruleExpr
 rTypeArrayItems :: RuleExpr ([Ast.TypeExpr AstParsed.T], Maybe Spanned.Span)
 rTypeArrayItems = ruleExpr
     [ tokA @"," <^> varA @"(type ',')* type?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , Just do AstParsed.sp do $$(kcomma) AstParsed.:>> msItems
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msItems
                 )
             }||]
     , varA @"(type ',')* type?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
                 , msItems
                 )
@@ -1223,10 +1360,10 @@ rTypeArrayItems = ruleExpr
 rTypesWithCommas0 :: RuleExpr (Bag.T (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)
 rTypesWithCommas0 = ruleExpr
     [ varA @"type" <^> tokA @"," <^> varA @"(type ',')* type?"
-        <:> \(ty :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(ty :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( cons $$(ty) items
-                , Just do AstParsed.sp ($$(ty), $$(kcomma) AstParsed.:<< msItems)
+                , Just do AstParsed.sp ($$(ty), lexToken $$(kcomma) AstParsed.:<< msItems)
                 )
             }||]
     , varA @"type"
@@ -1248,35 +1385,35 @@ rTypesWithCommas0 = ruleExpr
 rTypeSimpleRecordItems :: RuleExpr ([Ast.TypeRecordItem AstParsed.T], Maybe Spanned.Span)
 rTypeSimpleRecordItems = ruleExpr
     [ tokA @"," <^> varA @"(type_simplrecord_item ',')* type_simplrecord_item?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , Just do AstParsed.sp do $$(kcomma) AstParsed.:<< msItems
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msItems
                 )
             }||]
     , varA @"(type_simplrecord_item ',')* type_simplrecord_item?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
                 , msItems
                 )
             }||]
     ]
 
-rTypeSimpleRecordItems0 :: RuleExpr (Bag.T (Ast.TypeRecordItem AstParsed.T), Maybe Spanned.Span)
-rTypeSimpleRecordItems0 = ruleExpr
+rTypeSimpleRecordItemsWithCommas0 :: RuleExpr (Bag.T (Ast.TypeRecordItem AstParsed.T), Maybe Spanned.Span)
+rTypeSimpleRecordItemsWithCommas0 = ruleExpr
     [ varA @"type_simplrecord_item" <^> tokA @"," <^> varA @"(type_simplrecord_item ',')* type_simplrecord_item?"
-        <:> \(recordItem :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
-                ( cons $$(recordItem) items
-                , Just do AstParsed.sp ($$(recordItem), $$(kcomma) AstParsed.:<< msItems)
+        <:> \(item :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp ($$(item), lexToken $$(kcomma) AstParsed.:<< msItems)
                 )
             }||]
     , varA @"type_simplrecord_item"
         <:> \(item :* HNil) ->
             [||
                 ( pure $$(item)
-                , Just do AstParsed.sp item
+                , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
@@ -1291,10 +1428,10 @@ rTypeSimpleRecordItems0 = ruleExpr
 rTypeSimpleRecordItem :: RuleExpr (Ast.TypeRecordItem AstParsed.T)
 rTypeSimpleRecordItem = ruleExpr
     [ varA @"declvar" <^> tokA @":" <^> varA @"type"
-        <:> \(declvar :* _ :* kcolon :* ty :* HNil) ->
-            [||case $$(declvar) of { (declvar, spDeclVar) ->
+        <:> \(declvarE :* _ :* kcolon :* ty :* HNil) ->
+            [||case $$(declvarE) of { (declvar, spDeclVar) ->
                 Ast.TypeRecordItem declvar $$(ty) do
-                    AstParsed.sp (spDeclVar, $$(kcolon), $$(ty))
+                    AstParsed.sp (spDeclVar, lexToken $$(kcolon), $$(ty))
             }||]
     ]
 
@@ -1318,7 +1455,7 @@ rExpr = ruleExpr
     [ varA @"expr_infix" <^> tokA @":" <^> varA @"type"
         <:> \(expr :* _ :* kcolon :* ty :* HNil) ->
             [||Ast.ExprSig $$(expr) $$(ty) do
-                AstParsed.sp ($$(expr), $$(kcolon), $$(ty))
+                AstParsed.sp ($$(expr), lexToken $$(kcolon), $$(ty))
             ||]
     , varA @"expr_infix"
         <:> \(expr :* HNil) ->
@@ -1328,8 +1465,8 @@ rExpr = ruleExpr
 rExprInfix :: RuleExpr (Ast.Expr AstParsed.T)
 rExprInfix = ruleExpr
     [ varA @"expr_apps" <^> varA @"expr_op" <^> varA @"expr_infix"
-        <:> \(expr1 :* op :* expr2 :* HNil) ->
-            [||case $$(op) of { (op, spOp) ->
+        <:> \(expr1 :* opE :* expr2 :* HNil) ->
+            [||case $$(opE) of { (op, spOp) ->
                 Ast.ExprInfix $$(expr1) op $$(expr2) do
                     AstParsed.sp ($$(expr1), spOp, $$(expr2))
             }||]
@@ -1341,10 +1478,10 @@ rExprInfix = ruleExpr
 rExprOp :: RuleExpr (Ast.Expr AstParsed.T, Spanned.Span)
 rExprOp = ruleExpr
     [ tokA @"`" <^> varA @"expr_op_block" <^> tokA @"`"
-        <:> \(_ :* kbacktick1 :* expr :* _ :* kbacktick2 :* HNil) ->
+        <:> \(_ :* ktick1 :* expr :* _ :* ktick2 :* HNil) ->
             [||
                 ( $$(expr)
-                , AstParsed.sp ($$(kbacktick1), $$(expr), $$(kbacktick2))
+                , AstParsed.sp (lexToken $$(ktick1), $$(expr), lexToken $$(ktick2))
                 )
             ||]
     , varA @"expr_op_sym_qualified"
@@ -1369,13 +1506,13 @@ rExprOpBlock = ruleExpr
 rExprOpSymQualified :: RuleExpr (Ast.Expr AstParsed.T)
 rExprOpSymQualified = ruleExpr
     [ varA @"con_sym_ext"
-        <:> \(con :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
                 Ast.ExprCon con spCon
             }||]
     , varA @"var_sym_ext"
-        <:> \(var :* HNil) ->
-            [||case $$(var) of { (var, spVar) ->
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
                 Ast.ExprVar var spVar
             }||]
     ]
@@ -1383,8 +1520,8 @@ rExprOpSymQualified = ruleExpr
 rExprApps :: RuleExpr (Ast.Expr AstParsed.T)
 rExprApps = ruleExpr
     [ varA @"expr_qualified" <^> varA @"expr_app+"
-        <:> \(expr :* exprs :* HNil) ->
-            [||case $$(exprs) of { (exprs, spExprs) ->
+        <:> \(expr :* exprsE :* HNil) ->
+            [||case $$(exprsE) of { (exprs, spExprs) ->
                 Ast.ExprApp $$(expr)
                     do otoList exprs
                     do AstParsed.sp ($$(expr), spExprs)
@@ -1397,8 +1534,8 @@ rExprApps = ruleExpr
 rExprApps1 :: RuleExpr (Bag.T (Ast.AppExpr AstParsed.T), Spanned.Span)
 rExprApps1 = ruleExpr
     [ varA @"expr_app" <^> varA @"expr_app+"
-        <:> \(expr :* exprs :* HNil) ->
-            [||case $$(exprs) of { (exprs, spExprs) ->
+        <:> \(expr :* exprsE :* HNil) ->
+            [||case $$(exprsE) of { (exprs, spExprs) ->
                 ( cons $$(expr) exprs
                 , AstParsed.sp ($$(expr), spExprs)
                 )
@@ -1417,13 +1554,13 @@ rExprApp = ruleExpr
     [ tokA @"@" <^> varA @"type_qualified"
         <:> \(_ :* kat :* ty :* HNil) ->
             [||Ast.UnivAppExpr $$(ty) do
-                AstParsed.sp ($$(kat), $$(ty))
+                AstParsed.sp (lexToken $$(kat), $$(ty))
             ||]
     , tokA @"#@" <^> varA @"type_block_body"
         <:> \(_ :* kat :* body :* HNil) ->
             [||case $$(body) of { (ty, spBody) ->
                 Ast.UnivAppExpr ty do
-                    AstParsed.sp ($$(kat), spBody)
+                    AstParsed.sp (lexToken $$(kat), spBody)
             }||]
     , varA @"expr_qualified"
         <:> \(expr :* HNil) ->
@@ -1442,51 +1579,50 @@ rExprQualified = ruleExpr
 rExprBlock :: RuleExpr (Ast.Expr AstParsed.T)
 rExprBlock = ruleExpr
     [ tokA @"\\" <^> varA @"pat_atomic*" <^> varA @"guarded_alts"
-        <:> \(_ :* kbackslash :* pats :* alts :* HNil) ->
-            [||case $$(pats) of { (pats, msPats) ->
-                case $$(alts) of { (alts, msAlts) ->
-                    let msAlt = AstParsed.maySp (msPats, msAlts)
-                    in Ast.ExprLambda
+        <:> \(_ :* kbackslash :* patsE :* altsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                case $$(altsE) of { (alts, spAlts) ->
+                    let spAlt = AstParsed.sp do msPats AstParsed.:>> spAlts in
+                    Ast.ExprLambda
                         [ Ast.CaseAlt
                             do otoList pats
-                            alts msAlt
+                            alts spAlt
                         ]
-                        do AstParsed.sp
-                            do $$(kbackslash) AstParsed.:<< msAlt
+                        do AstParsed.sp (lexToken $$(kbackslash), spAlt)
                 }
             }||]
     , tokA @"#case" <^> varA @"case_alt_body"
-        <:> \(_ :* kcase :* alts :* HNil) ->
-            [||case $$(alts) of { (alts, msAlts) ->
-                Ast.ExprLambda alts do
-                    AstParsed.sp do $$(kcase) AstParsed.:<< msAlts
+        <:> \(_ :* kcase :* altsE :* HNil) ->
+            [||case $$(altsE) of { (alts, msAlts) ->
+                Ast.ExprLambda alts
+                    do AstParsed.sp do lexToken $$(kcase) AstParsed.:<< msAlts
             }||]
     , tokA @"#letrec" <^> varA @"let_binds" <^> tokA @"#in" <^> varA @"expr"
-        <:> \(_ :* kletrec :* binds :* _ :* kin :* expr :* HNil) ->
-            [||case $$(binds) of { (binds, msBinds) ->
+        <:> \(_ :* kletrec :* bindsE :* _ :* kin :* expr :* HNil) ->
+            [||case $$(bindsE) of { (binds, msBinds) ->
                 Ast.ExprLetrec binds $$(expr) do
                     AstParsed.sp
-                        ( $$(kletrec) AstParsed.:<< msBinds
-                        , $$(kin), $$(expr)
+                        ( lexToken $$(kletrec) AstParsed.:<< msBinds
+                        , lexToken $$(kin), $$(expr)
                         )
             }||]
     , tokA @"#let" <^> varA @"let_binds" <^> tokA @"#in" <^> varA @"expr"
-        <:> \(_ :* klet :* binds :* _ :* kin :* expr :* HNil) ->
-            [||case $$(binds) of { (binds, msBinds) ->
+        <:> \(_ :* klet :* bindsE :* _ :* kin :* expr :* HNil) ->
+            [||case $$(bindsE) of { (binds, msBinds) ->
                 Ast.ExprLetrec binds $$(expr) do
                     AstParsed.sp
-                        ( $$(klet) AstParsed.:<< msBinds
-                        , $$(kin), $$(expr)
+                        ( lexToken $$(klet) AstParsed.:<< msBinds
+                        , lexToken $$(kin), $$(expr)
                         )
             }||]
     , tokA @"#match" <^> varA @"expr_match_items" <^> tokA @"#with" <^> varA @"case_alt_body"
-        <:> \(_ :* kmatch :* exprs :* _ :* kwith :* alts :* HNil) ->
-            [||case $$(exprs) of { (exprs, msExprs) ->
-                case $$(alts) of { (alts, msAlts) ->
+        <:> \(_ :* kmatch :* exprsE :* _ :* kwith :* altsE :* HNil) ->
+            [||case $$(exprsE) of { (exprs, msExprs) ->
+                case $$(altsE) of { (alts, msAlts) ->
                     Ast.ExprMatch exprs alts do
                         AstParsed.sp
-                            ( $$(kmatch) AstParsed.:<< msExprs
-                            , $$(kwith) AstParsed.:<< msAlts
+                            ( lexToken $$(kmatch) AstParsed.:<< msExprs
+                            , lexToken $$(kwith) AstParsed.:<< msAlts
                             )
                 }
             }||]
@@ -1494,13 +1630,13 @@ rExprBlock = ruleExpr
         <:> \(_ :* kdo :* doBody :* HNil) ->
             [||case $$(doBody) of { (stmts, expr, spBody) ->
                 Ast.ExprDo stmts expr do
-                    AstParsed.sp ($$(kdo), spBody)
+                    AstParsed.sp (lexToken $$(kdo), spBody)
             }||]
     , tokA @"##" <^> varA @"expr_block_body"
         <:> \(_ :* kblock :* body :* HNil) ->
             [||case $$(body) of { (expr, spBody) ->
                 Ast.ExprAnn expr do
-                    AstParsed.sp ($$(kblock), spBody)
+                    AstParsed.sp (lexToken $$(kblock), spBody)
             }||]
     , varA @"expr_atomic"
         <:> \(expr :* HNil) ->
@@ -1510,8 +1646,8 @@ rExprBlock = ruleExpr
 rPatAtomics0 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)
 rPatAtomics0 = ruleExpr
     [ varA @"pat_atomic" <^> varA @"pat_atomic*"
-        <:> \(pat :* pats :* HNil) ->
-            [||case $$(pats) of { (pats, msPats) ->
+        <:> \(pat :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
                 ( cons $$(pat) pats
                 , Just do AstParsed.sp do $$(pat) AstParsed.:<< msPats
                 )
@@ -1536,13 +1672,13 @@ rExprAtomic = ruleExpr
         <:> \(expr :* HNil) ->
             expr
     , varA @"con"
-        <:> \(con :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
                 Ast.ExprCon con spCon
             }||]
     , varA @"var"
-        <:> \(var :* HNil) ->
-            [||case $$(var) of { (var, spVar) ->
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
                 Ast.ExprVar var spVar
             }||]
     ]
@@ -1558,20 +1694,20 @@ rExprLiteral = ruleExpr
         <:> \(expr :* HNil) ->
             expr
     , tokVarA @"(" <^> varA @"expr_tuple_items" <^> tokVarA @")"
-        <:> \(_ :* kparenl :* items :* _ :* kparenr :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(_ :* kparenl :* itemsE :* _ :* kparenr :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 Ast.ExprTuple items
                     do AstParsed.sp ($$(kparenl), spItems, $$(kparenr))
             }||]
     , tokVarA @"[" <^> varA @"expr_array_items" <^> tokVarA @"]"
-        <:> \(_ :* kbrackl :* items :* _ :* kbrackr :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kbrackl :* itemsE :* _ :* kbrackr :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 Ast.ExprArray items do
                     AstParsed.sp ($$(kbrackl), msItems AstParsed.:>> $$(kbrackr))
             }||]
     , tokVarA @"{" <^> varA @"expr_simplrecord_items" <^> tokVarA @"}"
-        <:> \(_ :* kbracel :* items :* _ :* kbracer :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kbracel :* itemsE :* _ :* kbracer :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 Ast.ExprRecord items do
                     AstParsed.sp ($$(kbracel), msItems AstParsed.:>> $$(kbracer))
             }||]
@@ -1593,13 +1729,9 @@ rExprBlockBody = ruleExpr
                 , AstParsed.sp ($$(kbraceo), spItem, $$(kbracec))
                 )
             }||]
-    , varA @"imp_bo" <^> varA @"expr_block_item" <^> varA @"imp_bc"
-        <:> \(impBo :* item :* impBc :* HNil) ->
-            [||case $$(item) of { (expr, spItem) ->
-                ( expr
-                , AstParsed.sp ($$(impBo), spItem, $$(impBc))
-                )
-            }||]
+    , tokVarA @"{n}" <^> varA @"expr_block_item" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* item :* _ :* HNil) ->
+            item
     ]
 
 rExprBlockItem :: RuleExpr (Ast.Expr AstParsed.T, Spanned.Span)
@@ -1623,8 +1755,8 @@ rExprInterpString = ruleExpr
                     do AstParsed.sp litPart
             ||]
     , tokVarA @"interp_string_start" <^> varA @"expr" <^> varA @"(interp_string_cont expr)* interp_string_end"
-        <:> \(_ :* part :* expr :* parts :* HNil) ->
-            [||case $$(parts) of { (parts, spParts) ->
+        <:> \(_ :* part :* expr :* partsE :* HNil) ->
+            [||case $$(partsE) of { (parts, spParts) ->
                 let exprPart = interpStringExpr $$(expr) in
                 Ast.ExprInterpString
                     do $$(part) :| exprPart : otoList parts
@@ -1635,8 +1767,8 @@ rExprInterpString = ruleExpr
 rExprInterpStringContParts :: RuleExpr (Bag.T (Ast.InterpStringPart AstParsed.T), Spanned.Span)
 rExprInterpStringContParts = ruleExpr
     [ tokVarA @"interp_string_cont" <^> varA @"expr" <^> varA @"(interp_string_cont expr)* interp_string_end"
-        <:> \(_ :* part :* expr :* parts :* HNil) ->
-            [||case $$(parts) of { (parts, spParts) ->
+        <:> \(_ :* part :* expr :* partsE :* HNil) ->
+            [||case $$(partsE) of { (parts, spParts) ->
                 let exprPart = interpStringExpr $$(expr)
                 in
                     ( cons $$(part) do cons exprPart parts
@@ -1655,15 +1787,15 @@ rExprInterpStringContParts = ruleExpr
 rExprMatchItems :: RuleExpr ([Ast.Expr AstParsed.T], Maybe Spanned.Span)
 rExprMatchItems = ruleExpr
     [ tokA @"," <^> varA @"(expr ',')* expr?"
-        <:> \(_ :* kcomma :* exprs :* HNil) ->
-            [||case $$(exprs) of { (exprs, msExprs) ->
+        <:> \(_ :* kcomma :* exprsE :* HNil) ->
+            [||case $$(exprsE) of { (exprs, msExprs) ->
                 ( otoList exprs
-                , Just do AstParsed.sp do $$(kcomma) AstParsed.:<< msExprs
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msExprs
                 )
             }||]
     , varA @"(expr ',')* expr?"
-        <:> \(exprs :* HNil) ->
-            [||case $$(exprs) of { (exprs, msExprs) ->
+        <:> \(exprsE :* HNil) ->
+            [||case $$(exprsE) of { (exprs, msExprs) ->
                 ( otoList exprs
                 , msExprs
                 )
@@ -1673,15 +1805,15 @@ rExprMatchItems = ruleExpr
 rExprTupleItems :: RuleExpr ([Ast.Expr AstParsed.T], Spanned.Span)
 rExprTupleItems = ruleExpr
     [ tokA @"," <^> varA @"(expr ',')+ expr ','?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( otoList items
-                , AstParsed.sp ($$(kcomma), spItems)
+                , AstParsed.sp (lexToken $$(kcomma), spItems)
                 )
             }||]
     , varA @"(expr ',')+ expr ','?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( otoList items
                 , spItems
                 )
@@ -1691,28 +1823,28 @@ rExprTupleItems = ruleExpr
 rExprArrayItems :: RuleExpr ([Ast.Expr AstParsed.T], Maybe Spanned.Span)
 rExprArrayItems = ruleExpr
     [ tokA @"," <^> varA @"(expr ',')* expr?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , Just do AstParsed.sp do $$(kcomma) AstParsed.:<< msItems
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msItems
                 )
             }||]
     , varA @"(expr ',')* expr?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
                 , msItems
                 )
             }||]
     ]
 
-rExprs0 :: RuleExpr (Bag.T (Ast.Expr AstParsed.T), Maybe Spanned.Span)
-rExprs0 = ruleExpr
+rExprsWithCommas0 :: RuleExpr (Bag.T (Ast.Expr AstParsed.T), Maybe Spanned.Span)
+rExprsWithCommas0 = ruleExpr
     [ varA @"expr" <^> tokA @"," <^> varA @"(expr ',')* expr?"
-        <:> \(expr :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(expr :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( cons $$(expr) items
-                , Just do AstParsed.sp ($$(expr), $$(kcomma) AstParsed.:<< msItems)
+                , Just do AstParsed.sp ($$(expr), lexToken $$(kcomma) AstParsed.:<< msItems)
                 )
             }||]
     , varA @"expr"
@@ -1731,27 +1863,27 @@ rExprs0 = ruleExpr
             ||]
     ]
 
-rExprs2 :: RuleExpr (Bag.T (Ast.Expr AstParsed.T), Spanned.Span)
-rExprs2 = ruleExpr
+rExprsWithCommas2 :: RuleExpr (Bag.T (Ast.Expr AstParsed.T), Spanned.Span)
+rExprsWithCommas2 = ruleExpr
     [ varA @"expr" <^> tokA @"," <^> varA @"(expr ',')+ expr ','?"
-        <:> \(expr :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, spItems) ->
+        <:> \(expr :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
                 ( cons $$(expr) items
-                , AstParsed.sp ($$(expr), $$(kcomma), spItems)
+                , AstParsed.sp ($$(expr), lexToken $$(kcomma), spItems)
                 )
             }||]
     , varA @"expr" <^> tokA @"," <^> varA @"expr" <^> tokA @","
         <:> \(expr1 :* _ :* kcomma1 :* expr2 :* _ :* kcomma2 :* HNil) ->
             [||
                 ( cons $$(expr1) do pure $$(expr2)
-                , AstParsed.sp ($$(expr1), $$(kcomma1), $$(expr2), $$(kcomma2))
+                , AstParsed.sp ($$(expr1), lexToken $$(kcomma1), $$(expr2), lexToken $$(kcomma2))
                 )
             ||]
     , varA @"expr" <^> tokA @"," <^> varA @"expr"
         <:> \(expr1 :* _ :* kcomma1 :* expr2 :* HNil) ->
             [||
                 ( cons $$(expr1) do pure $$(expr2)
-                , AstParsed.sp ($$(expr1), $$(kcomma1), $$(expr2))
+                , AstParsed.sp ($$(expr1), lexToken $$(kcomma1), $$(expr2))
                 )
             ||]
     ]
@@ -1759,28 +1891,28 @@ rExprs2 = ruleExpr
 rExprSimpleRecordItems :: RuleExpr ([Ast.ExprRecordItem AstParsed.T], Maybe Spanned.Span)
 rExprSimpleRecordItems = ruleExpr
     [ tokA @"," <^> varA @"(expr_simplrecord_item ',')* expr_simplrecord_item?"
-        <:> \(_ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
-                , Just do AstParsed.sp do $$(kcomma) AstParsed.:<< msItems
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msItems
                 )
             }||]
     , varA @"(expr_simplrecord_item ',')* expr_simplrecord_item?"
-        <:> \(items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( otoList items
                 , msItems
                 )
             }||]
     ]
 
-rExprSimpleRecordItems0 :: RuleExpr (Bag.T (Ast.ExprRecordItem AstParsed.T), Maybe Spanned.Span)
-rExprSimpleRecordItems0 = ruleExpr
+rExprSimpleRecordItemsWithCommas0 :: RuleExpr (Bag.T (Ast.ExprRecordItem AstParsed.T), Maybe Spanned.Span)
+rExprSimpleRecordItemsWithCommas0 = ruleExpr
     [ varA @"expr_simplrecord_item" <^> tokA @"," <^> varA @"(expr_simplrecord_item ',')* expr_simplrecord_item?"
-        <:> \(item :* _ :* kcomma :* items :* HNil) ->
-            [||case $$(items) of { (items, msItems) ->
+        <:> \(item :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
                 ( cons $$(item) items
-                , Just do AstParsed.sp ($$(item), $$(kcomma) AstParsed.:<< msItems)
+                , Just do AstParsed.sp ($$(item), lexToken $$(kcomma) AstParsed.:<< msItems)
                 )
             }||]
     , varA @"expr_simplrecord_item"
@@ -1805,7 +1937,7 @@ rExprSimpleRecordItem = ruleExpr
         <:> \(declvar :* _ :* keq :* expr :* HNil) ->
             [||case $$(declvar) of { (declVar, spDeclVar) ->
                 Ast.ExprRecordItem declVar $$(expr) do
-                    AstParsed.sp (spDeclVar, $$(keq), $$(expr))
+                    AstParsed.sp (spDeclVar, lexToken $$(keq), $$(expr))
             }||]
     ]
 
@@ -1815,7 +1947,7 @@ rPat = ruleExpr
     [ varA @"pat_unit" <^> tokA @":" <^> varA @"type"
         <:> \(pat :* _ :* kcolon :* ty :* HNil) ->
             [||Ast.PatSig $$(pat) $$(ty) do
-                AstParsed.sp ($$(pat), $$(kcolon), $$(ty))
+                AstParsed.sp ($$(pat), lexToken $$(kcolon), $$(ty))
             ||]
     , varA @"pat_unit"
         <:> \(pat :* HNil) ->
@@ -1825,28 +1957,28 @@ rPat = ruleExpr
 rPatUnit :: RuleExpr (Ast.Pat AstParsed.T)
 rPatUnit = ruleExpr
     [ tokA @"|" <^> varA @"(pat_infix '|')* pat_infix '|'?"
-        <:> \(_ :* kor :* pats :* HNil) ->
-            [||case $$(pats) of { (pats, spPats) ->
+        <:> \(_ :* kor :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, spPats) ->
                 Ast.PatOr
                     do otoList pats
-                    do AstParsed.sp ($$(kor), spPats)
+                    do AstParsed.sp (lexToken $$(kor), spPats)
             }||]
     ]
 
-rPatInfixes1 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Spanned.Span)
-rPatInfixes1 = ruleExpr
+rPatInfixesWithBars1 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Spanned.Span)
+rPatInfixesWithBars1 = ruleExpr
     [ varA @"pat_infix" <^> tokA @"|" <^> varA @"(pat_infix '|')* pat_infix '|'?"
-        <:> \(pat :* _ :* kor :* pats :* HNil) ->
-            [||case $$(pats) of { (pats, spPats) ->
+        <:> \(pat :* _ :* kor :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, spPats) ->
                 ( cons $$(pat) pats
-                , AstParsed.sp ($$(pat), $$(kor), spPats)
+                , AstParsed.sp ($$(pat), lexToken $$(kor), spPats)
                 )
             }||]
     , varA @"pat_infix" <^> tokA @"|"
         <:> \(pat :* _ :* kor :* HNil) ->
             [||
                 ( pure $$(pat)
-                , AstParsed.sp ($$(pat), $$(kor))
+                , AstParsed.sp ($$(pat), lexToken $$(kor))
                 )
             ||]
     , varA @"pat_infix"
@@ -1861,8 +1993,8 @@ rPatInfixes1 = ruleExpr
 rPatInfix :: RuleExpr (Ast.Pat AstParsed.T)
 rPatInfix = ruleExpr
     [ varA @"pat_apps" <^> varA @"pat_op" <^> varA @"pat_infix"
-        <:> \(pat1 :* op :* pat2 :* HNil) ->
-            [||case $$(op) of { (op, spOp) ->
+        <:> \(pat1 :* opE :* pat2 :* HNil) ->
+            [||case $$(opE) of { (op, spOp) ->
                 Ast.PatInfix $$(pat1) op $$(pat2) do
                     AstParsed.sp ($$(pat1), spOp, $$(pat2))
             }||]
@@ -1877,7 +2009,7 @@ rPatOp = ruleExpr
         <:> \(_ :* kcaret1 :* patOp :* _ :* kcaret2 :* HNil) ->
             [||
                 ( $$(patOp)
-                , AstParsed.sp ($$(kcaret1), $$(patOp), $$(kcaret2))
+                , AstParsed.sp (lexToken $$(kcaret1), $$(patOp), lexToken $$(kcaret2))
                 )
             ||]
     , varA @"pat_op_sym_qualified"
@@ -1895,9 +2027,9 @@ rPatOpBlock = ruleExpr
         <:> \(patOp :* HNil) ->
             patOp
     , varA @"con_qualified" <^> varA @"pat_app*"
-        <:> \(con :* pats :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
-                case $$(pats) of { (pats, msPats) ->
+        <:> \(conE :* patsE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                case $$(patsE) of { (pats, msPats) ->
                     Ast.PatOpConApp con
                         do otoList pats
                         do AstParsed.sp do spCon AstParsed.:<< msPats
@@ -1908,8 +2040,8 @@ rPatOpBlock = ruleExpr
 rPatOpSymQualified :: RuleExpr (Ast.PatOp AstParsed.T)
 rPatOpSymQualified = ruleExpr
     [ varA @"con_sym_ext"
-        <:> \(con :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
                 Ast.PatOpConApp
                     do con
                     do []
@@ -1920,12 +2052,12 @@ rPatOpSymQualified = ruleExpr
 rPatApps :: RuleExpr (Ast.Pat AstParsed.T)
 rPatApps = ruleExpr
     [ varA @"con_qualified" <^> varA @"pat_app*"
-        <:> \(con :* pats :* HNil) ->
-            [||case $$(con) of { (con, spCon) ->
-                case $$(pats) of { (pats, ms) ->
+        <:> \(conE :* patsE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                case $$(patsE) of { (pats, msPats) ->
                     Ast.PatConApp con
                         do otoList pats
-                        do AstParsed.sp do spCon AstParsed.:<< ms
+                        do AstParsed.sp do spCon AstParsed.:<< msPats
                 }
             }||]
     ]
@@ -1935,14 +2067,14 @@ rLsemis :: RuleExpr (Maybe Spanned.Span)
 rLsemis = ruleExpr
     [ varA @"lsemi" <^> varA @"lsemis?"
         <:> \(lsemi :* mayLsemis :* HNil) ->
-            [||AstParsed.maySp (lsemi, mayLsemis)||]
+            [||AstParsed.maySp ($$(lsemi), $$(mayLsemis))||]
     ]
 
 rMayLsemis :: RuleExpr (Maybe Spanned.Span)
 rMayLsemis = ruleExpr
     [ varA @"lsemi" <^> varA @"lsemis?"
         <:> \(lsemi :* mayLsemis :* HNil) ->
-            [||AstParsed.maySp (lsemi, mayLsemis)||]
+            [||AstParsed.maySp ($$(lsemi), $$(mayLsemis))||]
     , eps
         <:> \HNil ->
             [||Nothing||]
@@ -1950,25 +2082,62 @@ rMayLsemis = ruleExpr
 
 rLsemi :: RuleExpr (Maybe Spanned.Span)
 rLsemi = ruleExpr
-    [ Ptera.tokA @"<n>"
-        <::> \(t :* HNil) ->
-            [||case $$(t) of { Layout.Newline lpos1 -> do
-                ctx <- Ptera.getAction
-                case layoutStack ctx of
-                    ImplicitLayout lpos2:_ | lpos1 == lpos2 ->
-                        pure Nothing
-                    ExplicitScopedLayout lpos2:_ | lpos1 == lpos2 ->
-                        pure Nothing
-                    NoLayout:_ ->
-                        Ptera.failAction
-                    [] ->
-                        Ptera.failAction
-            }||]
+    [ tokA @"<n>"
+        <::> \(_ :* t :* HNil) ->
+            [||case $$(t) of
+                Layout.Newline newPos -> do
+                    ctx <- Ptera.getAction
+                    case layoutStack ctx of
+                        ImplicitLayout curPos:_ | curPos == newPos ->
+                            pure Nothing
+                        ExplicitScopedLayout curPos:_ | curPos == newPos ->
+                            pure Nothing
+                        _ ->
+                            Ptera.failAction
+                _ ->
+                    error "unreachable: expect a newline token."
+            ||]
     , tokA @";"
         <:> \(_ :* t :* HNil) ->
-            [||case $$(t) of { Layout.Token t ->
-                Just do Spanned.getSpan t
-            }||]
+            [||Just do AstParsed.sp do lexToken $$(t)||]
+    ]
+
+
+rImpBc :: RuleExpr ()
+rImpBc = ruleExpr
+    [ eps
+        <::> \HNil ->
+            [||popImplicitLayout||]
+    ]
+
+rSkip :: RuleExpr ()
+rSkip = ruleExpr
+    [ Ptera.tokA @"<n>"
+        <::> \(t :* HNil) ->
+            [||case $$(t) of
+                Layout.Newline newPos -> do
+                    ctx <- Ptera.getAction
+                    case layoutStack ctx of
+                        ImplicitLayout curPos:_ -> if
+                            | curPos < newPos ->
+                                pure ()
+                            | otherwise ->
+                                Ptera.failAction
+                        ExplicitScopedLayout curPos:_ -> if
+                            | curPos < newPos ->
+                                pure ()
+                            | otherwise ->
+                                Ptera.failAction
+                        NoLayout:_ ->
+                            pure ()
+                        [] ->
+                            pure ()
+                _ ->
+                    error "unreachable: expect a newline token."
+            ||]
+    , eps
+        <:> \HNil ->
+            [||()||]
     ]
 
 
@@ -2051,8 +2220,18 @@ class
     , Ptera.TokensMember Tokens t
     ) => RuleSymbolAction t where
 
-    ruleSymbolActionM :: proxy t
-        -> Spanned.Spanned Token.LexToken -> ActionTask (RuleSymbolReturnType t)
+    ruleSymbolActionM :: proxy t -> Token -> ActionTask (RuleSymbolReturnType t)
+
+ruleSymbolRule :: forall t proxy.
+    KnownSymbol t => RuleSymbolAction t => proxy t -> RuleExpr (RuleSymbolReturnType t)
+ruleSymbolRule p = ruleExpr
+    [ Ptera.tokA @t
+        <::> \(tok :* HNil) ->
+            [||ruleSymbolActionM $$(pt) $$(tok)||]
+    ]
+    where
+        pt :: TH.Q (TH.TExp (Proxy t))
+        pt = TH.unsafeTExpCoerce [|Proxy :: Proxy $(pure do TH.LitT do TH.StrTyLit do symbolVal p)|]
 
 tokVarA :: forall t. RuleSymbolAction t => TypedExpr '[(), RuleSymbolReturnType t]
 tokVarA = varA @"skip" <^> varA @(RuleSymbol t)
@@ -2061,70 +2240,96 @@ type instance RuleSymbol "(" = "tok_open_paren_without_skip"
 instance RuleSymbolAction "(" where
     ruleSymbolActionM _ t = do
         pushLayoutItem NoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "{" = "tok_open_brace_without_skip"
 instance RuleSymbolAction "{" where
     ruleSymbolActionM _ t = do
         pushLayoutItem NoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "[" = "tok_open_brack_without_skip"
 instance RuleSymbolAction "[" where
     ruleSymbolActionM _ t = do
         pushLayoutItem NoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "interp_string_start" = "tok_interp_string_start_without_skip"
 instance RuleSymbolAction "interp_string_start" where
     ruleSymbolActionM _ t = do
         pushLayoutItem NoLayout
-        pure do interpStringLit t
+        pure do interpStringLit do lexToken t
 
 type instance RuleSymbol ")" = "tok_close_paren_without_skip"
 instance RuleSymbolAction ")" where
     ruleSymbolActionM _ t = do
         popNoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "}" = "tok_close_brace_without_skip"
 instance RuleSymbolAction "}" where
     ruleSymbolActionM _ t = do
         popNoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "]" = "tok_close_brack_without_skip"
 instance RuleSymbolAction "]" where
     ruleSymbolActionM _ t = do
         popNoLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
 
 type instance RuleSymbol "interp_string_end" = "tok_interp_string_end_without_skip"
 instance RuleSymbolAction "interp_string_end" where
     ruleSymbolActionM _ t = do
         popNoLayout
-        pure do interpStringLit t
+        pure do interpStringLit do lexToken t
 
 type instance RuleSymbol "interp_string_cont" = "tok_interp_string_cont_without_skip"
 instance RuleSymbolAction "interp_string_cont" where
     ruleSymbolActionM _ t = do
         popNoLayout
         pushLayoutItem NoLayout
-        pure do interpStringLit t
+        pure do interpStringLit do lexToken t
 
 type instance RuleSymbol "{{" = "tok_open_dbrace_without_skip"
 instance RuleSymbolAction "{{" where
     ruleSymbolActionM _ t = do
-        let pos = Layout.PositionByCol do
-                Spanned.locCol do Spanned.beginLoc do Spanned.getSpan t
+        let sp = AstParsed.sp do lexToken t
+            pos = Layout.PositionByCol do
+                Spanned.locCol do Spanned.beginLoc sp
         pushLayoutItem do ExplicitScopedLayout pos
-        pure do AstParsed.sp t
+        pure sp
 
 type instance RuleSymbol "}}" = "tok_close_dbrace_without_skip"
 instance RuleSymbolAction "}}" where
     ruleSymbolActionM _ t = do
         popExplicitScopedLayout
-        pure do AstParsed.sp t
+        pure do AstParsed.sp do lexToken t
+
+type instance RuleSymbol "{n}" = "tok_new_implicit_layout_without_skip"
+instance RuleSymbolAction "{n}" where
+    ruleSymbolActionM _ = \case
+        Layout.ExpectNewImplicitLayout expectPos -> do
+            ctx <- Ptera.getAction
+            let newPos = case layoutStack ctx of
+                    ImplicitLayout curPos:_ -> if
+                        | curPos < expectPos ->
+                            expectPos
+                        | otherwise ->
+                            Layout.nextPosition expectPos
+                    ExplicitScopedLayout curPos:_ -> if
+                        | curPos < expectPos ->
+                            expectPos
+                        | otherwise ->
+                            Layout.nextPosition expectPos
+                    NoLayout:_ ->
+                        expectPos
+                    [] ->
+                        expectPos
+            pushLayoutItem
+                do ImplicitLayout newPos
+        _ ->
+            error "unreachable: expect a new implicit layout open token."
 
 
 pushLayoutItem :: LayoutItem -> ActionTask ()
@@ -2150,6 +2355,15 @@ popExplicitScopedLayout :: ActionTask ()
 popExplicitScopedLayout = do
     layoutStack <$> Ptera.getAction >>= \case
         ExplicitScopedLayout{}:_ ->
+            pure ()
+        _ ->
+            Ptera.failAction
+    popLayoutItem
+
+popImplicitLayout :: ActionTask ()
+popImplicitLayout = do
+    layoutStack <$> Ptera.getAction >>= \case
+        ImplicitLayout{}:_ ->
             pure ()
         _ ->
             Ptera.failAction
