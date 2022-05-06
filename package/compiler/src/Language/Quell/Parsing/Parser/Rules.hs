@@ -227,6 +227,7 @@ $(Ptera.genRules
     , (TH.mkName "rdExprSimpleRecordItem", "expr_simplrecord_item", [t|Ast.ExprRecordItem AstParsed.T|])
 
     , (TH.mkName "rdPat", "pat", [t|Ast.Pat AstParsed.T|])
+    , (TH.mkName "rdPatsWithCommas0", "(pat ',')* pat?", [t|(Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)|])
     , (TH.mkName "rdPatUnit", "pat_unit", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatInfixesWithBars1", "(pat_infix '|')* pat_infix '|'?", [t|(Bag.T (Ast.Pat AstParsed.T), Spanned.Span)|])
     , (TH.mkName "rdPatInfix", "pat_infix", [t|Ast.Pat AstParsed.T|])
@@ -244,7 +245,15 @@ $(Ptera.genRules
     , (TH.mkName "rdLetBindItem", "let_bind_item", [t|Ast.Decl AstParsed.T|])
 
     , (TH.mkName "rdCaseAltBody", "case_alt_body", [t|([Ast.CaseAlt AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdCaseAltItems", "case_alt_items", [t|([Ast.CaseAlt AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdCaseAltItemsWithSemis0", "(case_alt_item lsemis)* case_alt_item?", [t|(Bag.T (Ast.CaseAlt AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdCaseAltItem", "case_alt_item", [t|Ast.CaseAlt AstParsed.T|])
     , (TH.mkName "rdGuardedAlts", "guarded_alts", [t|([Ast.GuardedAlt AstParsed.T], Spanned.Span)|])
+    , (TH.mkName "rdGuardedAltBody", "guarded_alt_body", [t|([Ast.GuardedAlt AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdGuardedAltItems", "guarded_alt_items", [t|([Ast.GuardedAlt AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdGuardedAltItemsWithSemis0", "(guarded_alt_item lsemis)* guarded_alt_item?", [t|(Bag.T (Ast.GuardedAlt AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdGuardedAltItem", "guarded_alt_item", [t|Ast.GuardedAlt AstParsed.T|])
+    , (TH.mkName "rdGuardQual", "guard_qual", [t|Ast.Expr AstParsed.T|])
 
     , (TH.mkName "rdDoBody", "do_body", [t|([Ast.DoStmt AstParsed.T], Ast.Expr AstParsed.T, Spanned.Span)|])
     , (TH.mkName "rdDoStmtItems", "do_stmt_items", [t|([Ast.DoStmt AstParsed.T], Ast.Expr AstParsed.T, Spanned.Span)|])
@@ -340,8 +349,8 @@ grammar = Ptera.fixGrammar
         , rdBindVars0 = undefined
         , rdBindVar = undefined
         , rdDoBody = rDoBody
-        , rdGuardedAlts = undefined
-        , rdCaseAltBody = undefined
+        , rdGuardedAlts = rGuardedAlts
+        , rdCaseAltBody = rCaseAltBody
         , rdLetBindItem = rLetBindItem
         , rdLetBinds = rLetBinds
         , rdPatAtomics0 = rPatAtomics0
@@ -440,6 +449,15 @@ grammar = Ptera.fixGrammar
         , rdLetBindItemsWithSemis0 = rLetBindItemsWithSemis0
         , rdLetBindItems = rLetBindItems
         , rdValBind = rValBind
+        , rdGuardQual = rGuardQual
+        , rdGuardedAltItem = rGuardedAltItem
+        , rdGuardedAltItemsWithSemis0 = rGuardedAltItemsWithSemis0
+        , rdGuardedAltItems = rGuardedAltItems
+        , rdGuardedAltBody = rGuardedAltBody
+        , rdCaseAltItem = rCaseAltItem
+        , rdCaseAltItemsWithSemis0 = rCaseAltItemsWithSemis0
+        , rdCaseAltItems = rCaseAltItems
+        , rdPatsWithCommas0 = rPatsWithCommas0
         }
 
 
@@ -2073,6 +2091,31 @@ rPatApps = ruleExpr
             }||]
     ]
 
+rPatsWithCommas0 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)
+rPatsWithCommas0 = ruleExpr
+    [ varA @"pat" <^> tokA @"," <^> varA @"(pat ',')* pat?"
+        <:> \(pat :* _ :* kcomma :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                ( cons $$(pat) pats
+                , Just do AstParsed.sp ($$(pat), lexToken $$(kcomma) AstParsed.:<< msPats)
+                )
+            }||]
+    , varA @"pat"
+        <:> \(pat :* HNil) ->
+            [||
+                ( pure $$(pat)
+                , Just do AstParsed.sp $$(pat)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
 
 rLetBinds :: RuleExpr ([Ast.Decl AstParsed.T], Maybe Spanned.Span)
 rLetBinds = ruleExpr
@@ -2147,6 +2190,183 @@ rLetBindItem = ruleExpr
     , varA @"sig_item"
         <:> \(item :* HNil) ->
             item
+    ]
+
+
+rCaseAltBody :: RuleExpr ([Ast.CaseAlt AstParsed.T], Maybe Spanned.Span)
+rCaseAltBody = ruleExpr
+    [ tokVarA @"{{" <^> varA @"case_alt_items" <^> tokVarA @"}}"
+        <:> \(_ :* kdbraceo :* itemsE :* _ :* kdbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kdbraceo) AstParsed.:<< msItems, $$(kdbracec))
+                )
+            }||]
+    , tokVarA @"{" <^> varA @"case_alt_items" <^> tokVarA @"}"
+        <:> \(_ :* kbraceo :* itemsE :* _ :* kbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kbraceo) AstParsed.:<< msItems, $$(kbracec))
+                )
+            }||]
+    , tokVarA @"{n}" <^> varA @"case_alt_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
+    ]
+
+rCaseAltItems :: RuleExpr ([Ast.CaseAlt AstParsed.T], Maybe Spanned.Span)
+rCaseAltItems = ruleExpr
+    [ varA @"lsemis?" <^> varA @"(case_alt_item lsemis)* case_alt_item?"
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp ($$(mayLsemis), msItems)
+                )
+            }||]
+    ]
+
+rCaseAltItemsWithSemis0 :: RuleExpr (Bag.T (Ast.CaseAlt AstParsed.T), Maybe Spanned.Span)
+rCaseAltItemsWithSemis0 = ruleExpr
+    [ varA @"case_alt_item" <^> varA @"lsemis" <^> varA @"(case_alt_item lsemis)* case_alt_item?"
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
+                )
+            }||]
+    , varA @"case_alt_item"
+        <:> \(item :* HNil) ->
+            [||
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
+rCaseAltItem :: RuleExpr (Ast.CaseAlt AstParsed.T)
+rCaseAltItem = ruleExpr
+    [ tokA @"," <^> varA @"(pat ',')* pat?" <^> varA @"guarded_alts"
+        <:> \(_ :* kcomma :* patsE :* altsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                case $$(altsE) of { (alts, spAlts) ->
+                    Ast.CaseAlt
+                        do otoList pats
+                        do alts
+                        do AstParsed.sp (lexToken $$(kcomma) AstParsed.:<< msPats, spAlts)
+                }
+            }||]
+    , varA @"(pat ',')* pat?" <^> varA @"guarded_alts"
+        <:> \(patsE :* altsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                case $$(altsE) of { (alts, spAlts) ->
+                    Ast.CaseAlt
+                        do otoList pats
+                        do alts
+                        do AstParsed.sp do msPats AstParsed.:>> spAlts
+                }
+            }||]
+    ]
+
+rGuardedAlts :: RuleExpr ([Ast.GuardedAlt AstParsed.T], Spanned.Span)
+rGuardedAlts = ruleExpr
+    [ tokA @"#>" <^> varA @"expr"
+        <:> \(_ :* karr :* expr :* HNil) ->
+            [||
+                ( pure
+                    do Ast.GuardedAlt Nothing $$(expr)
+                        do AstParsed.sp $$(expr)
+                , AstParsed.sp (lexToken $$(karr), $$(expr))
+                )
+            ||]
+    , tokA @"#when" <^> varA @"guarded_alt_body"
+        <:> \(_ :* kwhen :* body :* HNil) ->
+            [||case $$(body) of { (items, msItems) ->
+                ( items
+                , AstParsed.sp do lexToken $$(kwhen) AstParsed.:<< msItems
+                )
+            }||]
+    ]
+
+rGuardedAltBody :: RuleExpr ([Ast.GuardedAlt AstParsed.T], Maybe Spanned.Span)
+rGuardedAltBody = ruleExpr
+    [ tokVarA @"{{" <^> varA @"guarded_alt_items" <^> tokVarA @"}}"
+        <:> \(_ :* kdbraceo :* itemsE :* _ :* kdbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kdbraceo) AstParsed.:<< msItems, $$(kdbracec))
+                )
+            }||]
+    , tokVarA @"{" <^> varA @"guarded_alt_items" <^> tokVarA @"}"
+        <:> \(_ :* kbraceo :* itemsE :* _ :* kbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( items
+                , Just do AstParsed.sp ($$(kbraceo) AstParsed.:<< msItems, $$(kbracec))
+                )
+            }||]
+    , tokVarA @"{n}" <^> varA @"guarded_alt_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
+    ]
+
+rGuardedAltItems :: RuleExpr ([Ast.GuardedAlt AstParsed.T], Maybe Spanned.Span)
+rGuardedAltItems = ruleExpr
+    [ varA @"lsemis?" <^> varA @"(guarded_alt_item lsemis)* guarded_alt_item?"
+        <:> \(mayLsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , AstParsed.maySp ($$(mayLsemis), msItems)
+                )
+            }||]
+    ]
+
+rGuardedAltItemsWithSemis0 :: RuleExpr (Bag.T (Ast.GuardedAlt AstParsed.T), Maybe Spanned.Span)
+rGuardedAltItemsWithSemis0 = ruleExpr
+    [ varA @"guarded_alt_item" <^> varA @"lsemis" <^> varA @"(guarded_alt_item lsemis)* guarded_alt_item?"
+        <:> \(item :* lsemis :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< $$(lsemis) AstParsed.:<< msItems
+                )
+            }||]
+    , varA @"guarded_alt_item"
+        <:> \(item :* HNil) ->
+            [||
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
+rGuardedAltItem :: RuleExpr (Ast.GuardedAlt AstParsed.T)
+rGuardedAltItem = ruleExpr
+    [ varA @"guard_qual" <^> tokA @"#>" <^> varA @"expr"
+        <:> \(qual :* _ :* karr :* expr :* HNil) ->
+            [||Ast.GuardedAlt
+                do Just $$(qual)
+                do $$(expr)
+                do AstParsed.sp ($$(qual), lexToken $$(karr), $$(expr))
+            ||]
+    ]
+
+rGuardQual :: RuleExpr (Ast.Expr AstParsed.T)
+rGuardQual = ruleExpr
+    [ varA @"expr"
+        <:> \(expr :* HNil) ->
+            expr
     ]
 
 
