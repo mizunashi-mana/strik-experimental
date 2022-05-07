@@ -478,25 +478,25 @@ TODO: module support
     pat_op_sym_qualified : con_sym_ext
     pat_apps: con_qualified pat_app*
             : pat_qualified pat_univ_app*
-    pat_univ_app    : "@" type_qualified
-                    : "#@" type_block_body
     pat_app : pat_univ_app
             : pat_qualified
-            : con_qualified
+    pat_univ_app    : "@" type_qualified
+                    : "#@" type_block_body
     pat_qualified: pat_block
     pat_block   : "##" pat_block_body
                 : pat_atomic
     pat_atomic  : "(" pat ")"
                 : pat_literal
+                : con
                 : var
     pat_literal : literal
                 : "(" pat_tuple_items ")"
                 : "[" pat_array_items "]"
                 : "{" pat_simplrecord_items "}"
-    pat_block_body  : "{" pat_block_item "}"
-                    : "{{" pat_block_item "}}"
-                    : '{' pat_block_item '}'
-    pat_block_item  : lsemis? pat lsemis?
+    pat_block_body  : "{" pat_block_items "}"
+                    : "{{" pat_block_items "}}"
+                    : '{' pat_block_items '}'
+    pat_block_items : lsemis? pat lsemis?
     pat_tuple_items: ","? (pat ",")+ pat ","?
     pat_array_items: ","? (pat ",")* pat?
     pat_simplrecord_items: ","? (pat_simplrecord_item ",")* pat_simplrecord_item?

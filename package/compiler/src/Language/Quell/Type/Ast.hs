@@ -121,6 +121,9 @@ module Language.Quell.Type.Ast (
     XAppPat,
     XUnivAppPat,
 
+    PatRecordItem (..),
+    XPatRecordItem,
+
     Name,
     mkName,
     primNameUnit,
@@ -513,7 +516,7 @@ data Pat c
     | PatLit (Lit c) (XPatLit c)
     | PatTuple [Pat c] (XPatTuple c)
     | PatArray [Pat c] (XPatArray c)
-    | PatRecord [(Name, Pat c)] (XPatRecord c)
+    | PatRecord [PatRecordItem c] (XPatRecord c)
     | PatAnn (Pat c) (XPatAnn c)
 
 type family XPatSig c :: Type
@@ -589,6 +592,24 @@ deriving instance XShow c => Show (AppPat c)
 
 instance LiftType.T c => LiftType.LiftType (AppPat c) where
     liftType _ = [t|AppPat $(LiftType.liftType do Proxy @c)|]
+
+
+data PatRecordItem c
+    = PatRecordItem Name (Pat c) (XPatRecordItem c)
+
+type family XPatRecordItem c :: Type
+
+type XCPatRecordItem :: (Type -> Constraint) -> Type -> Constraint
+type XCPatRecordItem f c =
+    (
+        f (XPatRecordItem c)
+    )
+
+deriving instance XEq c => Eq (PatRecordItem c)
+deriving instance XShow c => Show (PatRecordItem c)
+
+instance LiftType.T c => LiftType.LiftType (PatRecordItem c) where
+    liftType _ = [t|PatRecordItem $(LiftType.liftType do Proxy @c)|]
 
 
 data Lit c
@@ -692,6 +713,8 @@ type XC f c =
         XCBindVar f c,
         XCLit f c,
         XCTypeExpr f c,
+        XCAppType f c,
+        XCTypeRecordItem f c,
         XCDecl f c,
         XCExpr f c,
         XCInterpStringPart f c,
@@ -701,9 +724,8 @@ type XC f c =
         XCDoStmt f c,
         XCPat f c,
         XCPatOp f c,
-        XCAppType f c,
-        XCTypeRecordItem f c,
         XCAppPat f c,
+        XCPatRecordItem f c,
         XCDeclExpr f c,
         XCGuardedAlt f c,
         XCCaseAlt f c

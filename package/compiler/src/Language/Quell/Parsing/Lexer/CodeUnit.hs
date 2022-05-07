@@ -501,117 +501,102 @@ fromChar c = case fromEnum c of
 
 catFormat :: EnumSet.EnumSet CodeUnit
 catFormat = EnumSet.fromList
-    [
-        LcU200E, LcU200F,
-        LcOtherCatCf
+    [ LcU200E, LcU200F
+    , LcOtherCatCf
     ]
 
 catLowercaseLetter :: EnumSet.EnumSet CodeUnit
 catLowercaseLetter = EnumSet.fromList
-    [
-        LcU0061, LcU0062, LcU0063, LcU0064, LcU0065,
-        LcU0066, LcU0067, LcU0068, LcU0069, LcU006A,
-        LcU006B, LcU006C, LcU006D, LcU006E, LcU006F,
-        LcU0070, LcU0071, LcU0072, LcU0073, LcU0074,
-        LcU0075, LcU0076, LcU0077, LcU0078, LcU0079,
-        LcU007A, LcU03BB,
-        LcOtherCatLl
+    [ LcU0061, LcU0062, LcU0063, LcU0064, LcU0065
+    , LcU0066, LcU0067, LcU0068, LcU0069, LcU006A
+    , LcU006B, LcU006C, LcU006D, LcU006E, LcU006F
+    , LcU0070, LcU0071, LcU0072, LcU0073, LcU0074
+    , LcU0075, LcU0076, LcU0077, LcU0078, LcU0079
+    , LcU007A, LcU03BB
+    , LcOtherCatLl
     ]
 
 catModifierLetter :: EnumSet.EnumSet CodeUnit
 catModifierLetter = EnumSet.fromList
-    [
-        LcOtherCatLm
+    [ LcOtherCatLm
     ]
 
 catOtherLetter :: EnumSet.EnumSet CodeUnit
 catOtherLetter = EnumSet.fromList
-    [
-        LcOtherCatLo
+    [ LcOtherCatLo
     ]
 
 catTitlecaseLetter :: EnumSet.EnumSet CodeUnit
 catTitlecaseLetter = EnumSet.fromList
-    [
-        LcOtherCatLt
+    [ LcOtherCatLt
     ]
 
 catUppercaseLetter :: EnumSet.EnumSet CodeUnit
 catUppercaseLetter = EnumSet.fromList
-    [
-        LcU0041, LcU0042, LcU0043, LcU0044, LcU0045,
-        LcU0046, LcU0047, LcU0048, LcU0049, LcU004A,
-        LcU004B, LcU004C, LcU004D, LcU004E, LcU004F,
-        LcU0050, LcU0051, LcU0052, LcU0053, LcU0054,
-        LcU0055, LcU0056, LcU0057, LcU0058, LcU0059,
-        LcU005A,
-        LcOtherCatLu
+    [ LcU0041, LcU0042, LcU0043, LcU0044, LcU0045
+    , LcU0046, LcU0047, LcU0048, LcU0049, LcU004A
+    , LcU004B, LcU004C, LcU004D, LcU004E, LcU004F
+    , LcU0050, LcU0051, LcU0052, LcU0053, LcU0054
+    , LcU0055, LcU0056, LcU0057, LcU0058, LcU0059
+    , LcU005A
+    , LcOtherCatLu
     ]
 
 catMark :: EnumSet.EnumSet CodeUnit
 catMark = EnumSet.fromList
-    [
-        LcOtherCatM
+    [ LcOtherCatM
     ]
 
 catDecimalNumber :: EnumSet.EnumSet CodeUnit
 catDecimalNumber = EnumSet.fromList
-    [
-        LcU0030, LcU0031, LcU0032, LcU0033, LcU0034,
-        LcU0035, LcU0036, LcU0037, LcU0038, LcU0039,
-        LcOtherCatNd
+    [ LcU0030, LcU0031, LcU0032, LcU0033, LcU0034
+    , LcU0035, LcU0036, LcU0037, LcU0038, LcU0039
+    , LcOtherCatNd
     ]
 
 catLetterNumber :: EnumSet.EnumSet CodeUnit
 catLetterNumber = EnumSet.fromList
-    [
-        LcOtherCatNl
+    [ LcOtherCatNl
     ]
 
 catOtherNumber :: EnumSet.EnumSet CodeUnit
 catOtherNumber = EnumSet.fromList
-    [
-        LcOtherCatNo
+    [ LcOtherCatNo
     ]
 
 catConnectorPunctuation :: EnumSet.EnumSet CodeUnit
 catConnectorPunctuation = EnumSet.fromList
-    [
-        LcU005F,
-        LcOtherCatPc
+    [ LcU005F
+    , LcOtherCatPc
     ]
 
 catDashPunctuation :: EnumSet.EnumSet CodeUnit
 catDashPunctuation = EnumSet.fromList
-    [
-        LcU002D,
-        LcOtherCatPd
+    [ LcU002D
+    , LcOtherCatPd
     ]
 
 catClosePunctuation :: EnumSet.EnumSet CodeUnit
 catClosePunctuation = EnumSet.fromList
-    [
-        LcU0029, LcU005D, LcU007D, LcU2775, LcU2984,
-        LcOtherCatPe
+    [ LcU0029, LcU005D, LcU007D, LcU2775, LcU2984
+    , LcOtherCatPe
     ]
 
 catFinalPunctuation :: EnumSet.EnumSet CodeUnit
 catFinalPunctuation = EnumSet.fromList
-    [
-        LcOtherCatPf
+    [ LcOtherCatPf
     ]
 
 catInitialPunctuation :: EnumSet.EnumSet CodeUnit
 catInitialPunctuation = EnumSet.fromList
-    [
-        LcOtherCatPi
+    [ LcOtherCatPi
     ]
 
 catOtherPunctuation :: EnumSet.EnumSet CodeUnit
 catOtherPunctuation = EnumSet.fromList
     [ LcU0021, LcU0022, LcU0023, LcU0027, LcU002C
     , LcU002E, LcU002F, LcU003A, LcU003B, LcU003F
-    , LcU0040, LcU005C, LcU2026, LcUFE5F
+    , LcU0040, LcU005C, LcU2021, LcU2026, LcUFE5F
     , LcOtherCatPo
     ]
 
@@ -623,39 +608,35 @@ catOpenPunctuation = EnumSet.fromList
 
 catPunctuation :: EnumSet.EnumSet CodeUnit
 catPunctuation = mconcat
-    [
-        catClosePunctuation,
-        catConnectorPunctuation,
-        catDashPunctuation,
-        catFinalPunctuation,
-        catInitialPunctuation,
-        catOpenPunctuation,
-        catOtherPunctuation
+    [ catClosePunctuation
+    , catConnectorPunctuation
+    , catDashPunctuation
+    , catFinalPunctuation
+    , catInitialPunctuation
+    , catOpenPunctuation
+    , catOtherPunctuation
     ]
 
 catSymbol :: EnumSet.EnumSet CodeUnit
 catSymbol = EnumSet.fromList
-    [
-        LcU0024, LcU002B, LcU003C, LcU003D, LcU003E,
-        LcU005E, LcU0060, LcU007C, LcU007E, LcU2200,
-        LcOtherCatS
+    [ LcU0024, LcU002B, LcU003C, LcU003D, LcU003E
+    , LcU005E, LcU0060, LcU007C, LcU007E, LcU2200
+    , LcU29CF, LcU29D0
+    , LcOtherCatS
     ]
 
 catLineSeparator :: EnumSet.EnumSet CodeUnit
 catLineSeparator = EnumSet.fromList
-    [
-        LcOtherCatZl
+    [ LcOtherCatZl
     ]
 
 catParagraphSeparator :: EnumSet.EnumSet CodeUnit
 catParagraphSeparator = EnumSet.fromList
-    [
-        LcOtherCatZp
+    [ LcOtherCatZp
     ]
 
 catSpaceSeparator :: EnumSet.EnumSet CodeUnit
 catSpaceSeparator = EnumSet.fromList
-    [
-        LcU0020,
-        LcOtherCatZs
+    [ LcU0020
+    , LcOtherCatZs
     ]

@@ -237,9 +237,20 @@ $(Ptera.genRules
     , (TH.mkName "rdPatOpBlock", "pat_op_block", [t|Ast.PatOp AstParsed.T|])
     , (TH.mkName "rdPatOpSymQualified", "pat_op_sym_qualified", [t|Ast.PatOp AstParsed.T|])
     , (TH.mkName "rdPatApps", "pat_apps", [t|Ast.Pat AstParsed.T|])
+    , (TH.mkName "rdPatApp", "pat_app", [t|Ast.AppPat AstParsed.T|])
     , (TH.mkName "rdPatApps0", "pat_app*", [t|(Bag.T (Ast.AppPat AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatUnivApp", "pat_univ_app", [t|(Ast.TypeExpr AstParsed.T, Spanned.Span)|])
+    , (TH.mkName "rdPatUnivApps0", "pat_univ_app*", [t|(Bag.T (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatQualified", "pat_qualified", [t|Ast.Pat AstParsed.T|])
+    , (TH.mkName "rdPatBlock", "pat_block", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatAtomic", "pat_atomic", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatAtomics0", "pat_atomic*", [t|(Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatLiteral", "pat_literal", [t|Ast.Pat AstParsed.T|])
+    , (TH.mkName "rdPatBlockBody", "pat_block_body", [t|(Ast.Pat AstParsed.T, Spanned.Span)|])
+    , (TH.mkName "rdPatBlockItems", "pat_block_items", [t|(Ast.Pat AstParsed.T, Spanned.Span)|])
+    , (TH.mkName "rdPatTupleItems", "pat_tuple_items", [t|([Ast.Pat AstParsed.T], Spanned.Span)|])
+    , (TH.mkName "rdPatArrayItems", "pat_array_items", [t|([Ast.Pat AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatSimpleRecordItems", "pat_simplrecord_items", [t|([Ast.PatRecordItem AstParsed.T], Maybe Spanned.Span)|])
 
     , (TH.mkName "rdLetBinds", "let_binds", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdLetBindItems", "let_bind_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
@@ -273,6 +284,7 @@ $(Ptera.genRules
     , (TH.mkName "rdConQualified", "con_qualified", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConOpQualified", "conop_qualified", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdCon", "con", [t|(Ast.Name, Spanned.Span)|])
+    , (TH.mkName "rdConOp", "conop", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVar", "var", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConIdExt", "con_id_ext", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConSymExt", "con_sym_ext", [t|(Ast.Name, Spanned.Span)|])
@@ -351,8 +363,8 @@ grammar = Ptera.fixGrammar
         , rdConSymExt = rConSymExt
         , rdVar = rVar
         , rdCon = rCon
-        , rdConOpQualified = undefined
-        , rdConQualified = undefined
+        , rdConOpQualified = rConOpQualified
+        , rdConQualified = rConQualified
         , rdActualBindVar = rActualBindVar
         , rdBindVars0 = rBindVars0
         , rdBindVar = rBindVar
@@ -362,8 +374,8 @@ grammar = Ptera.fixGrammar
         , rdLetBindItem = rLetBindItem
         , rdLetBinds = rLetBinds
         , rdPatAtomics0 = rPatAtomics0
-        , rdPatAtomic = undefined
-        , rdPatApps0 = undefined
+        , rdPatAtomic = rPatAtomic
+        , rdPatApps0 = rPatApps0
         , rdPatApps = rPatApps
         , rdPatOpSymQualified = rPatOpSymQualified
         , rdPatOpBlock = rPatOpBlock
@@ -472,6 +484,18 @@ grammar = Ptera.fixGrammar
         , rdBlockBindVarItem = rBlockBindVarItem
         , rdVarIdExt = rVarIdExt
         , rdConIdExt = rConIdExt
+        , rdConOp = rConOp
+        , rdPatQualified = rPatQualified
+        , rdPatUnivApps0 = rPatUnivApps0
+        , rdPatUnivApp = rPatUnivApp
+        , rdPatApp = rPatApp
+        , rdPatBlock = rPatBlock
+        , rdPatBlockBody = rPatBlockBody
+        , rdPatLiteral = rPatLiteral
+        , rdPatBlockItems = rPatBlockItems
+        , rdPatSimpleRecordItems = undefined
+        , rdPatArrayItems = undefined
+        , rdPatTupleItems = undefined
         }
 
 
@@ -1997,6 +2021,31 @@ rPat = ruleExpr
             pat
     ]
 
+rPatsWithCommas0 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)
+rPatsWithCommas0 = ruleExpr
+    [ varA @"pat" <^> tokA @"," <^> varA @"(pat ',')* pat?"
+        <:> \(pat :* _ :* kcomma :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                ( cons $$(pat) pats
+                , Just do AstParsed.sp ($$(pat), lexToken $$(kcomma) AstParsed.:<< msPats)
+                )
+            }||]
+    , varA @"pat"
+        <:> \(pat :* HNil) ->
+            [||
+                ( pure $$(pat)
+                , Just do AstParsed.sp $$(pat)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
 rPatUnit :: RuleExpr (Ast.Pat AstParsed.T)
 rPatUnit = ruleExpr
     [ tokA @"|" <^> varA @"(pat_infix '|')* pat_infix '|'?"
@@ -2103,29 +2152,180 @@ rPatApps = ruleExpr
                         do AstParsed.sp do spCon AstParsed.:<< msPats
                 }
             }||]
+    , varA @"pat_qualified" <^> varA @"pat_univ_app*"
+        <:> \(pat :* typesE :* HNil) ->
+            [||case $$(typesE) of { (types, msTypes) ->
+                Ast.PatUnivApp $$(pat)
+                    do otoList types
+                    do AstParsed.sp do $$(pat) AstParsed.:<< msTypes
+            }||]
     ]
 
-rPatsWithCommas0 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)
-rPatsWithCommas0 = ruleExpr
-    [ varA @"pat" <^> tokA @"," <^> varA @"(pat ',')* pat?"
-        <:> \(pat :* _ :* kcomma :* patsE :* HNil) ->
+rPatApp :: RuleExpr (Ast.AppPat AstParsed.T)
+rPatApp = ruleExpr
+    [ varA @"pat_univ_app"
+        <:> \(tyAppE :* HNil) ->
+            [||case $$(tyAppE) of { (ty, spTyApp) ->
+                Ast.UnivAppPat ty spTyApp
+            }||]
+    , varA @"pat_qualified"
+        <:> \(pat :* HNil) ->
+            [||Ast.AppPat $$(pat) do AstParsed.sp $$(pat)||]
+    ]
+
+rPatApps0 :: RuleExpr (Bag.T (Ast.AppPat AstParsed.T), Maybe Spanned.Span)
+rPatApps0 = ruleExpr
+    [ varA @"pat_app" <^> varA @"pat_app*"
+        <:> \(pat :* patsE :* HNil) ->
             [||case $$(patsE) of { (pats, msPats) ->
                 ( cons $$(pat) pats
-                , Just do AstParsed.sp ($$(pat), lexToken $$(kcomma) AstParsed.:<< msPats)
+                , Just do AstParsed.sp do $$(pat) AstParsed.:<< msPats
                 )
             }||]
-    , varA @"pat"
-        <:> \(pat :* HNil) ->
-            [||
-                ( pure $$(pat)
-                , Just do AstParsed.sp $$(pat)
-                )
-            ||]
     , eps
         <:> \HNil ->
             [||
                 ( mempty
                 , Nothing
+                )
+            ||]
+    ]
+
+rPatUnivApp :: RuleExpr (Ast.TypeExpr AstParsed.T, Spanned.Span)
+rPatUnivApp = ruleExpr
+    [ tokA @"@" <^> varA @"type_qualified"
+        <:> \(_ :* kat :* ty :* HNil) ->
+            [||
+                ( $$(ty)
+                , AstParsed.sp (lexToken $$(kat), $$(ty))
+                )
+            ||]
+    , tokA @"#@" <^> varA @"type_block_body"
+        <:> \(_ :* kat :* body :* HNil) ->
+            [||case $$(body) of { (ty, spTy) ->
+                ( ty
+                , AstParsed.sp (lexToken $$(kat), spTy)
+                )
+            }||]
+    ]
+
+rPatUnivApps0 :: RuleExpr (Bag.T (Ast.TypeExpr AstParsed.T), Maybe Spanned.Span)
+rPatUnivApps0 = ruleExpr
+    [ varA @"pat_univ_app" <^> varA @"pat_univ_app*"
+        <:> \(itemE :* itemsE :* HNil) ->
+            [||case $$(itemE) of { (item, spItem) ->
+                case $$(itemsE) of { (items, msItems) ->
+                    ( cons item items
+                    , Just do AstParsed.sp do spItem AstParsed.:<< msItems
+                    )
+                }
+            }||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
+rPatQualified :: RuleExpr (Ast.Pat AstParsed.T)
+rPatQualified = ruleExpr
+    [ varA @"pat_block"
+        <:> \(pat :* HNil) ->
+            pat
+    ]
+
+rPatBlock :: RuleExpr (Ast.Pat AstParsed.T)
+rPatBlock = ruleExpr
+    [ tokA @"##" <^> varA @"pat_block_body"
+        <:> \(_ :* kblock :* body :* HNil) ->
+            [||case $$(body) of { (pat, spBody) ->
+                Ast.PatAnn pat
+                    do AstParsed.sp (lexToken $$(kblock), spBody)
+            }||]
+    , varA @"pat_atomic"
+        <:> \(pat :* HNil) ->
+            pat
+    ]
+
+rPatAtomic :: RuleExpr (Ast.Pat AstParsed.T)
+rPatAtomic = ruleExpr
+    [ tokVarA @"(" <^> varA @"pat" <^> tokVarA @")"
+        <:> \(_ :* kop :* pat :* _ :* kcp :* HNil) ->
+            [||Ast.PatAnn $$(pat)
+                do AstParsed.sp ($$(kop), $$(pat), $$(kcp))
+            ||]
+    , varA @"pat_literal"
+        <:> \(pat :* HNil) ->
+            pat
+    , varA @"con"
+        <:> \(conE :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                Ast.PatConApp con [] spCon
+            }||]
+    , varA @"var"
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                Ast.PatVar var spVar
+            }||]
+    ]
+
+rPatLiteral :: RuleExpr (Ast.Pat AstParsed.T)
+rPatLiteral = ruleExpr
+    [ varA @"literal"
+        <:> \(lit :* HNil) ->
+            [||Ast.PatLit $$(lit)
+                do AstParsed.sp $$(lit)
+            ||]
+    , tokVarA @"(" <^> varA @"pat_tuple_items" <^> tokVarA @")"
+        <:> \(_ :* kop :* itemsE :* _ :* kcp :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
+                Ast.PatTuple items
+                    do AstParsed.sp ($$(kop), spItems, $$(kcp))
+            }||]
+    , tokVarA @"[" <^> varA @"pat_array_items" <^> tokVarA @"]"
+        <:> \(_ :* kop :* itemsE :* _ :* kcp :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                Ast.PatArray items
+                    do AstParsed.sp ($$(kop) AstParsed.:<< msItems, $$(kcp))
+            }||]
+    , tokVarA @"{" <^> varA @"pat_simplrecord_items" <^> tokVarA @"}"
+        <:> \(_ :* kop :* itemsE :* _ :* kcp :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                Ast.PatRecord items
+                    do AstParsed.sp ($$(kop) AstParsed.:<< msItems, $$(kcp))
+            }||]
+    ]
+
+rPatBlockBody :: RuleExpr (Ast.Pat AstParsed.T, Spanned.Span)
+rPatBlockBody = ruleExpr
+    [ tokVarA @"{{" <^> varA @"pat_block_items" <^> tokVarA @"}}"
+        <:> \(_ :* kdbraceo :* itemsE :* _ :* kdbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
+                ( items
+                , AstParsed.sp ($$(kdbraceo), spItems, $$(kdbracec))
+                )
+            }||]
+    , tokVarA @"{" <^> varA @"pat_block_items" <^> tokVarA @"}"
+        <:> \(_ :* kbraceo :* itemsE :* _ :* kbracec :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
+                ( items
+                , AstParsed.sp ($$(kbraceo), spItems, $$(kbracec))
+                )
+            }||]
+    , tokVarA @"{n}" <^> varA @"pat_block_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
+    ]
+
+rPatBlockItems :: RuleExpr (Ast.Pat AstParsed.T, Spanned.Span)
+rPatBlockItems = ruleExpr
+    [ varA @"lsemis?" <^> varA @"pat" <^> varA @"lsemis?"
+        <:> \(mlsemis1 :* pat :* mlsemis2 :* HNil) ->
+            [||
+                ( $$(pat)
+                , AstParsed.sp do $$(mlsemis1) AstParsed.:>> $$(pat) AstParsed.:<< $$(mlsemis2)
                 )
             ||]
     ]
@@ -2605,6 +2805,20 @@ rBlockBindVarItem = ruleExpr
             }||]
     ]
 
+rConQualified :: RuleExpr (Ast.Name, Spanned.Span)
+rConQualified = ruleExpr
+    [ varA @"con"
+        <:> \(con :* HNil) ->
+            con
+    ]
+
+rConOpQualified :: RuleExpr (Ast.Name, Spanned.Span)
+rConOpQualified = ruleExpr
+    [ varA @"conop"
+        <:> \(conOp :* HNil) ->
+            conOp
+    ]
+
 rCon :: RuleExpr (Ast.Name, Spanned.Span)
 rCon = ruleExpr
     [ tokVarA @"(" <^> varA @"con_sym_ext" <^> tokVarA @")"
@@ -2622,6 +2836,27 @@ rCon = ruleExpr
                 )
             }||]
     , varA @"con_id_ext"
+        <:> \(con :* HNil) ->
+            con
+    ]
+
+rConOp :: RuleExpr (Ast.Name, Spanned.Span)
+rConOp = ruleExpr
+    [ tokA @"`" <^> varA @"con_sym_ext" <^> tokA @"`"
+        <:> \(_ :* kt1 :* conE :* _ :* kt2 :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                ( con
+                , AstParsed.sp (lexToken $$(kt1), spCon, lexToken $$(kt2))
+                )
+            }||]
+    , tokA @"`" <^> varA @"con_id_ext" <^> tokA @"`"
+        <:> \(_ :* kt1 :* conE :* _ :* kt2 :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                ( con
+                , AstParsed.sp (lexToken $$(kt1), spCon, lexToken $$(kt2))
+                )
+            }||]
+    , varA @"con_sym_ext"
         <:> \(con :* HNil) ->
             con
     ]
