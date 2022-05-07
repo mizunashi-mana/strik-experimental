@@ -74,10 +74,14 @@ data LexToken
     | SymTilde
     | SymUnderscore
     | SymUnknown
+    | SymBind
+    | SymBlock
+    | SymThen
+    | SymTypeBlock
+    | SymArrow
+    | SymDerive
 
     | SpBackquote
-    | SpBind
-    | SpBlock
     | SpBrackOpen
     | SpBrackClose
     | SpComma
@@ -90,8 +94,6 @@ data LexToken
     | SpParenOpen
     | SpParenClose
     | SpSemi
-    | SpThen
-    | SpTypeBlock
 
     | IdConId TextId.T
     | IdConSym TextId.T
@@ -164,11 +166,16 @@ instance Pretty LexToken where
         SymTilde                        -> pretty "~"
         SymUnderscore                   -> pretty "_"
         SymUnknown                      -> pretty "?"
+        SymBind                         -> pretty "#<"
+        SymBlock                        -> pretty "##"
+        SymThen                         -> pretty "#>"
+        SymTypeBlock                    -> pretty "#@"
+        SymArrow                        -> pretty "#->"
+        SymDerive                       -> pretty "#=>"
         SpBackquote                     -> pretty "`"
         SpBrackOpen                     -> pretty "["
         SpBrackClose                    -> pretty "]"
         SpComma                         -> pretty ","
-        SpBind                          -> pretty "#<"
         SpBraceOpen                     -> pretty "{"
         SpBraceClose                    -> pretty "}"
         SpDBraceOpen                    -> pretty "{{"
@@ -178,9 +185,6 @@ instance Pretty LexToken where
         SpParenOpen                     -> pretty "("
         SpParenClose                    -> pretty ")"
         SpSemi                          -> pretty ";"
-        SpBlock                         -> pretty "##"
-        SpThen                          -> pretty "#>"
-        SpTypeBlock                     -> pretty "#@"
         IdConId v                       -> pretty v
         IdConSym v                      -> pretty v
         IdVarId v                       -> pretty v

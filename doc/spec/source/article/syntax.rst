@@ -96,9 +96,9 @@ Lexical Syntax
                         : "#yield"
                         : "#Default"
                         : "#Self"
+                        : '_'
     reserved_sym    : reserved_sym_unit ! sym_char
-    reserved_sym_unit   : "_"
-                        : "!"
+    reserved_sym_unit   : "!"
                         : "="
                         : "?"
                         : "@"
@@ -107,6 +107,12 @@ Lexical Syntax
                         : "|"
                         : "~"
                         : ":"
+                        : "##" / "﹟"
+                        : "#@" / "‡"
+                        : "#>" / "⧐"
+                        : "#<" / "⧏"
+                        : "#=>"
+                        : "#->"
     special : "("
             : ")"
             : ","
@@ -114,12 +120,6 @@ Lexical Syntax
             : "]"
             : "`"
             : ";"
-            : "##" / "﹟"
-            : "#@" / "⧥"
-            : "#>" / "⧐"
-            : "#<" / "⧏"
-            : "#=>"
-            : "#->"
             : ".." / "…"
             : "."
     brace   : "{{" / "}}" / "❴" / "❵"
@@ -269,10 +269,11 @@ Specifications for Lexical Nonterminals
 These nonterminals must be disjoint:
 
 * ``whitespace``
-* ``var_id``
-* ``var_sym``
+* ``! ('_' ! sym_char) var_id``
+* ``! reserved_sym var_sym``
 * ``con_id``
-* ``reserved_sym / con_sym``
+* ``! reserved_sym con_sym``
+* ``reserved_sym``
 * ``reserved_id``
 * ``special``
 * ``brace``
@@ -298,8 +299,8 @@ These nonterminals must be disjoint:
 These expressions must be empty:
 
 * ``(! ANY+) (lexeme / whitespace)``
-* ``(! ('#' (small / large) (small / large / digit / other)*)) reserved_id``
-* ``(! ('_' / symbol (symbol / other)*)) reserved_sym``
+* ``(! ('_' / '#' id_char*)) reserved_id``
+* ``(! (('#' / symbol) sym_char*)) reserved_sym``
 * ``(! other_special*) brace``
 * ``(! ("+" / "-" / digit / "'" / other_special)) literal``
 * ``(! comment_open) (multiline_comment / doc_comment / pragma_comment / nested_comment)``
@@ -542,7 +543,7 @@ TODO: module support
             : actual_bind_var
     actual_bind_var : "##" block_bind_var
                     : simple_bind_var
-    simple_bind_var : "(" block_bin_var_item ")"
+    simple_bind_var : "(" block_bind_var_item ")"
                     : var_id_ext
     block_bind_var  : "{{" block_bind_var_items "}}"
                     : "{" block_bind_var_items "}"

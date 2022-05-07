@@ -218,6 +218,12 @@ reservedSymRules = do
     initialRule (stringP "|")           [||withLexToken Token.SymOr||]
     initialRule (stringP "~")           [||withLexToken Token.SymTilde||]
     initialRule (stringP ":")           [||withLexToken Token.SymColon||]
+    initialRule (stringsP ["##", "﹟"])  [||withLexToken Token.SymBlock||]
+    initialRule (stringsP ["#<", "⧏"])  [||withLexToken Token.SymBind||]
+    initialRule (stringsP ["#>", "⧐"])  [||withLexToken Token.SymThen||]
+    initialRule (stringsP ["#@", "‡"])  [||withLexToken Token.SymTypeBlock||]
+    initialRule (stringsP ["#->"])      [||withLexToken Token.SymArrow||]
+    initialRule (stringsP ["#=>"])      [||withLexToken Token.SymDerive||]
 
 specialRules :: ScannerBuilder ()
 specialRules = do
@@ -230,10 +236,6 @@ specialRules = do
     initialRule (stringP ";")           [||withLexToken Token.SpSemi||]
     initialRule (stringsP ["..", "…"])  [||withLexToken Token.SpDots||]
     initialRule (stringP ".")           [||withLexToken Token.SpDot||]
-    initialRule (stringsP ["##", "﹟"])  [||withLexToken Token.SpBlock||]
-    initialRule (stringsP ["#<", "⧏"])  [||withLexToken Token.SpBind||]
-    initialRule (stringsP ["#>", "⧐"])  [||withLexToken Token.SpThen||]
-    initialRule (stringP "#@")          [||withLexToken Token.SpTypeBlock||]
 
 specialCs = charsCs ['(', ')', ',', '[', ']', '`', ';', '﹟']
 

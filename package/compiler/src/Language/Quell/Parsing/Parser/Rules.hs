@@ -74,10 +74,14 @@ $(Ptera.genGrammarToken (TH.mkName "Tokens") [t|Token|]
     , ("~",             [p|LexToken Token.SymTilde|])
     , ("_",             [p|LexToken Token.SymUnderscore|])
     , ("?",             [p|LexToken Token.SymUnknown|])
+    , ("#<",            [p|LexToken Token.SymBind|])
+    , ("#>",            [p|LexToken Token.SymThen|])
+    , ("##",            [p|LexToken Token.SymBlock|])
+    , ("#@",            [p|LexToken Token.SymTypeBlock|])
+    , ("#->",           [p|LexToken Token.SymArrow|])
+    , ("#=>",           [p|LexToken Token.SymDerive|])
 
     , ("`",             [p|LexToken Token.SpBackquote|])
-    , ("#<",            [p|LexToken Token.SpBind|])
-    , ("##",            [p|LexToken Token.SpBlock|])
     , ("[",             [p|LexToken Token.SpBrackOpen|])
     , ("]",             [p|LexToken Token.SpBrackClose|])
     , (",",             [p|LexToken Token.SpComma|])
@@ -90,8 +94,6 @@ $(Ptera.genGrammarToken (TH.mkName "Tokens") [t|Token|]
     , ("(",             [p|LexToken Token.SpParenOpen|])
     , (")",             [p|LexToken Token.SpParenClose|])
     , (";",             [p|LexToken Token.SpSemi|])
-    , ("#>",            [p|LexToken Token.SpThen|])
-    , ("#@",            [p|LexToken Token.SpTypeBlock|])
 
     , ("con_id",        [p|LexToken Token.IdConId{}|])
     , ("con_sym",       [p|LexToken Token.IdConSym{}|])
@@ -264,11 +266,16 @@ $(Ptera.genRules
     , (TH.mkName "rdBindVar", "bind_var", [t|Ast.BindVar AstParsed.T|])
     , (TH.mkName "rdBindVars0", "bind_var*", [t|(Bag.T (Ast.BindVar AstParsed.T), Maybe Spanned.Span)|])
     , (TH.mkName "rdActualBindVar", "actual_bind_var", [t|Ast.BindVar AstParsed.T|])
+    , (TH.mkName "rdSimpleBindVar", "simple_bind_var", [t|(Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)|])
+    , (TH.mkName "rdBlockBindVar", "block_bind_var", [t|(Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)|])
+    , (TH.mkName "rdBlockBindVarItems", "block_bind_var_items", [t|(Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)|])
+    , (TH.mkName "rdBlockBindVarItem", "block_bind_var_item", [t|(Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)|])
     , (TH.mkName "rdConQualified", "con_qualified", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConOpQualified", "conop_qualified", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdCon", "con", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVar", "var", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConSymExt", "con_sym_ext", [t|(Ast.Name, Spanned.Span)|])
+    , (TH.mkName "rdVarIdExt", "var_id_ext", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVarSymExt", "var_sym_ext", [t|(Ast.Name, Spanned.Span)|])
 
     , (TH.mkName "rdDeclCon", "declcon", [t|(Ast.Name, Spanned.Span)|])
@@ -339,15 +346,15 @@ grammar = Ptera.fixGrammar
         , rdDeclVar = rDeclVar
         , rdDeclConOp = rDeclConOp
         , rdDeclCon = rDeclCon
-        , rdVarSymExt = undefined
-        , rdConSymExt = undefined
+        , rdVarSymExt = rVarSymExt
+        , rdConSymExt = rConSymExt
         , rdVar = undefined
         , rdCon = undefined
         , rdConOpQualified = undefined
         , rdConQualified = undefined
-        , rdActualBindVar = undefined
-        , rdBindVars0 = undefined
-        , rdBindVar = undefined
+        , rdActualBindVar = rActualBindVar
+        , rdBindVars0 = rBindVars0
+        , rdBindVar = rBindVar
         , rdDoBody = rDoBody
         , rdGuardedAlts = rGuardedAlts
         , rdCaseAltBody = rCaseAltBody
@@ -419,7 +426,7 @@ grammar = Ptera.fixGrammar
         , rdValDeclWhereItemsWithSemis0 = rValDeclWhereItemsWithSemis0
         , rdValDeclWhereBody = rValDeclWhereBody
         , rdValDecl = rValDecl
-        , rdConTypesWithBars0 = undefined
+        , rdConTypesWithBars0 = rConTypesWithBars0
         , rdAlgDataTypeItems = rAlgDataTypeItems
         , rdAlgDataType = rAlgDataType
         , rdDataDeclItem = rDataDeclItem
@@ -458,6 +465,11 @@ grammar = Ptera.fixGrammar
         , rdCaseAltItemsWithSemis0 = rCaseAltItemsWithSemis0
         , rdCaseAltItems = rCaseAltItems
         , rdPatsWithCommas0 = rPatsWithCommas0
+        , rdSimpleBindVar = rSimpleBindVar
+        , rdBlockBindVar = rBlockBindVar
+        , rdBlockBindVarItems = rBlockBindVarItems
+        , rdBlockBindVarItem = rBlockBindVarItem
+        , rdVarIdExt = rVarIdExt
         }
 
 
@@ -864,8 +876,8 @@ rAlgDataTypeItems = ruleExpr
             }||]
     ]
 
-rAlgDataTypeItems0 :: RuleExpr (Bag.T (Ast.ConType AstParsed.T), Maybe Spanned.Span)
-rAlgDataTypeItems0 = ruleExpr
+rConTypesWithBars0 :: RuleExpr (Bag.T (Ast.ConType AstParsed.T), Maybe Spanned.Span)
+rConTypesWithBars0 = ruleExpr
     [ varA @"contype" <^> tokA @"|" <^> varA @"(contype '|')* contype?"
         <:> \(item :* _ :* kmid :* itemsE :* HNil) ->
             [||case $$(itemsE) of { (items, msItems) ->
@@ -2473,6 +2485,188 @@ rDoYieldItem = ruleExpr
     ]
 
 
+rBindVar :: RuleExpr (Ast.BindVar AstParsed.T)
+rBindVar = ruleExpr
+    [ tokA @"#@" <^> varA @"block_bind_var"
+        <:> \(_ :* kat :* bindVar :* HNil) ->
+            [||case $$(bindVar) of { (n, mayTy, spBindVar) ->
+                Ast.BindVar n mayTy
+                    do AstParsed.sp (lexToken $$(kat), spBindVar)
+            }||]
+    , tokA @"@" <^> varA @"simple_bind_var"
+        <:> \(_ :* kat :* bindVar :* HNil) ->
+            [||case $$(bindVar) of { (n, mayTy, spBindVar) ->
+                Ast.BindVar n mayTy
+                    do AstParsed.sp (lexToken $$(kat), spBindVar)
+            }||]
+    , varA @"actual_bind_var"
+        <:> \(bindVar :* HNil) ->
+            bindVar
+    ]
+
+rBindVars0 :: RuleExpr (Bag.T (Ast.BindVar AstParsed.T), Maybe Spanned.Span)
+rBindVars0 = ruleExpr
+    [ varA @"bind_var" <^> varA @"bind_var*"
+        <:> \(item :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp do $$(item) AstParsed.:<< msItems
+                )
+            }||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
+                )
+            ||]
+    ]
+
+rActualBindVar :: RuleExpr (Ast.BindVar AstParsed.T)
+rActualBindVar = ruleExpr
+    [ tokA @"##" <^> varA @"block_bind_var"
+        <:> \(_ :* kblock :* bindVar :* HNil) ->
+            [||case $$(bindVar) of { (n, mayTy, spBindVar) ->
+                Ast.BindVar n mayTy
+                    do AstParsed.sp (lexToken $$(kblock), spBindVar)
+            }||]
+    , varA @"simple_bind_var"
+        <:> \(bindVar :* HNil) ->
+            [||case $$(bindVar) of { (n, mayTy, spBindVar) ->
+                Ast.BindVar n mayTy spBindVar
+            }||]
+    ]
+
+rSimpleBindVar :: RuleExpr (Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)
+rSimpleBindVar = ruleExpr
+    [ tokVarA @"(" <^> varA @"block_bind_var_item" <^> tokVarA @")"
+        <:> \(_ :* kop :* item :* _ :* kcp :* HNil) ->
+            [||case $$(item) of { (n, mayTy, spItem) ->
+                ( n, mayTy
+                , AstParsed.sp ($$(kop), spItem, $$(kcp))
+                )
+            }||]
+    , varA @"var_id_ext"
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                ( var, Nothing, spVar )
+            }||]
+    ]
+
+rBlockBindVar :: RuleExpr (Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)
+rBlockBindVar = ruleExpr
+    [ tokVarA @"{{" <^> varA @"block_bind_var_items" <^> tokVarA @"}}"
+        <:> \(_ :* kdbraceo :* itemsE :* _ :* kdbracec :* HNil) ->
+            [||case $$(itemsE) of { (n, mayTy, spItems) ->
+                ( n, mayTy
+                , AstParsed.sp ($$(kdbraceo), spItems, $$(kdbracec))
+                )
+            }||]
+    , tokVarA @"{" <^> varA @"block_bind_var_items" <^> tokVarA @"}"
+        <:> \(_ :* kbraceo :* itemsE :* _ :* kbracec :* HNil) ->
+            [||case $$(itemsE) of { (n, mayTy, spItems) ->
+                ( n, mayTy
+                , AstParsed.sp ($$(kbraceo), spItems, $$(kbracec))
+                )
+            }||]
+    , tokVarA @"{n}" <^> varA @"block_bind_var_items" <^> varA @"imp_bc"
+        <:> \(_ :* _ :* items :* _ :* HNil) ->
+            items
+    ]
+
+rBlockBindVarItems :: RuleExpr (Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)
+rBlockBindVarItems = ruleExpr
+    [ varA @"lsemis?" <^> varA @"block_bind_var_item" <^> varA @"lsemis?"
+        <:> \(mayLsemis1 :* itemE :* mayLsemis2 :* HNil) ->
+            [||case $$(itemE) of { (n, mayTy, spItem) ->
+                ( n, mayTy
+                , AstParsed.sp do $$(mayLsemis1) AstParsed.:>> spItem AstParsed.:<< $$(mayLsemis2)
+                )
+            }||]
+    ]
+
+rBlockBindVarItem :: RuleExpr (Ast.Name, Maybe (Ast.TypeExpr AstParsed.T), Spanned.Span)
+rBlockBindVarItem = ruleExpr
+    [ varA @"var_id_ext" <^> tokA @":" <^> varA @"type"
+        <:> \(varE :* _ :* kcolon :* ty :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                ( var, Just $$(ty)
+                , AstParsed.sp (spVar, lexToken $$(kcolon), $$(ty))
+                )
+            }||]
+    , varA @"var_id_ext"
+        <:> \(varE :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                ( var, Nothing
+                , spVar
+                )
+            }||]
+    ]
+
+rConSymExt :: RuleExpr (Ast.Name, Spanned.Span)
+rConSymExt = ruleExpr
+    [ tokA @"#->"
+        <:> \(_ :* karr :* HNil) ->
+            [||
+                ( Ast.primNameArrow
+                , AstParsed.sp do lexToken $$(karr)
+                )
+            ||]
+    , tokA @"#=>"
+        <:> \(_ :* karr :* HNil) ->
+            [||
+                ( Ast.primNameDerive
+                , AstParsed.sp do lexToken $$(karr)
+                )
+            ||]
+    , tokA @"con_sym"
+        <:> \(_ :* t :* HNil) ->
+            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+                Token.IdConSym n ->
+                    ( n
+                    , AstParsed.sp st
+                    )
+                _ ->
+                    error "unreachable: expect a con_sym token."
+            ||]
+    ]
+
+rVarIdExt :: RuleExpr (Ast.Name, Spanned.Span)
+rVarIdExt = ruleExpr
+    [ tokA @"_"
+        <:> \(_ :* kwildcard :* HNil) ->
+            [||
+                ( Ast.primNameWildcard
+                , AstParsed.sp do lexToken $$(kwildcard)
+                )
+            ||]
+    , tokA @"var_id"
+        <:> \(_ :* t :* HNil) ->
+            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+                Token.IdVarId n ->
+                    ( n
+                    , AstParsed.sp st
+                    )
+                _ ->
+                    error "unreachable: expect a var_id token."
+            ||]
+    ]
+
+rVarSymExt :: RuleExpr (Ast.Name, Spanned.Span)
+rVarSymExt = ruleExpr
+    [ tokA @"var_sym"
+        <:> \(_ :* t :* HNil) ->
+            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+                Token.IdVarSym n ->
+                    ( n
+                    , AstParsed.sp st
+                    )
+                _ ->
+                    error "unreachable: expect a var_sym token."
+            ||]
+    ]
+
+
 rDeclCon :: RuleExpr (Ast.Name, Spanned.Span)
 rDeclCon = ruleExpr
     [ tokVarA @"(" <^> tokA @"con_sym" <^> tokVarA @")"
@@ -2483,7 +2677,7 @@ rDeclCon = ruleExpr
                     , AstParsed.sp ($$(kop), st, $$(kcp))
                     )
                 _ ->
-                    error "unreachable: expect a con sym token."
+                    error "unreachable: expect a con_sym token."
             ||]
     , tokVarA @"(" <^> tokA @"con_id" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
@@ -2493,7 +2687,7 @@ rDeclCon = ruleExpr
                     , AstParsed.sp ($$(kop), st, $$(kcp))
                     )
                 _ ->
-                    error "unreachable: expect a con id token."
+                    error "unreachable: expect a con_id token."
             ||]
     , tokA @"con_id"
         <:> \(_ :* t :* HNil) ->
@@ -2503,7 +2697,7 @@ rDeclCon = ruleExpr
                     , AstParsed.sp st
                     )
                 _ ->
-                    error "unreachable: expect a con id token."
+                    error "unreachable: expect a con_id token."
             ||]
     ]
 
@@ -2517,7 +2711,7 @@ rDeclConOp = ruleExpr
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
                     )
                 _ ->
-                    error "unreachable: expect a con sym token."
+                    error "unreachable: expect a con_sym token."
             ||]
     , tokA @"`" <^> tokA @"con_id" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
@@ -2527,7 +2721,7 @@ rDeclConOp = ruleExpr
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
                     )
                 _ ->
-                    error "unreachable: expect a con sym token."
+                    error "unreachable: expect a con_sym token."
             ||]
     , tokA @"con_sym"
         <:> \(_ :* t :* HNil) ->
@@ -2537,7 +2731,7 @@ rDeclConOp = ruleExpr
                     , AstParsed.sp st
                     )
                 _ ->
-                    error "unreachable: expect a con sym token."
+                    error "unreachable: expect a con_sym token."
             ||]
     ]
 
@@ -2551,7 +2745,7 @@ rDeclVar = ruleExpr
                     , AstParsed.sp ($$(kop), st, $$(kcp))
                     )
                 _ ->
-                    error "unreachable: expect a var sym token."
+                    error "unreachable: expect a var_sym token."
             ||]
     , tokVarA @"(" <^> tokA @"var_id" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
@@ -2561,7 +2755,7 @@ rDeclVar = ruleExpr
                     , AstParsed.sp ($$(kop), st, $$(kcp))
                     )
                 _ ->
-                    error "unreachable: expect a var id token."
+                    error "unreachable: expect a var_id token."
             ||]
     , tokA @"var_id"
         <:> \(_ :* t :* HNil) ->
@@ -2571,7 +2765,7 @@ rDeclVar = ruleExpr
                     , AstParsed.sp st
                     )
                 _ ->
-                    error "unreachable: expect a var id token."
+                    error "unreachable: expect a var_id token."
             ||]
     ]
 
@@ -2585,7 +2779,7 @@ rDeclOp = ruleExpr
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
                     )
                 _ ->
-                    error "unreachable: expect a var sym token."
+                    error "unreachable: expect a var_sym token."
             ||]
     , tokA @"`" <^> tokA @"var_id" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
@@ -2595,7 +2789,7 @@ rDeclOp = ruleExpr
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
                     )
                 _ ->
-                    error "unreachable: expect a var id token."
+                    error "unreachable: expect a var_id token."
             ||]
     , tokA @"var_sym"
         <:> \(_ :* t :* HNil) ->
@@ -2605,7 +2799,7 @@ rDeclOp = ruleExpr
                     , AstParsed.sp st
                     )
                 _ ->
-                    error "unreachable: expect a var sym token."
+                    error "unreachable: expect a var_sym token."
             ||]
     ]
 

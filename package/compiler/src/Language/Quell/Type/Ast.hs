@@ -125,6 +125,7 @@ module Language.Quell.Type.Ast (
     mkName,
     primNameUnit,
     primNameArrow,
+    primNameDerive,
     primNameWildcard,
 
     XEq,
@@ -675,6 +676,9 @@ primNameUnit = TextId.primTextId TextId.PrimTextUnit
 
 primNameArrow :: Name
 primNameArrow = TextId.primTextId TextId.PrimTextArrow
+
+primNameDerive :: Name
+primNameDerive = TextId.primTextId TextId.PrimTextDerive
 
 primNameWildcard :: Name
 primNameWildcard = TextId.primTextId TextId.PrimTextWildcard

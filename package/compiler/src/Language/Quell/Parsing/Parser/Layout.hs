@@ -98,15 +98,15 @@ preParse = go1 where
 
 isLayoutKeyword :: Token.LexToken -> Bool
 isLayoutKeyword = \case
-    Token.KwCase      -> True
-    Token.KwLet       -> True
-    Token.KwLetrec    -> True
-    Token.KwWith      -> True
-    Token.KwWhen      -> True
-    Token.KwWhere     -> True
-    Token.SpBlock     -> True
-    Token.SpTypeBlock -> True
-    _                 -> False
+    Token.KwCase        -> True
+    Token.KwLet         -> True
+    Token.KwLetrec      -> True
+    Token.KwWith        -> True
+    Token.KwWhen        -> True
+    Token.KwWhere       -> True
+    Token.SymBlock      -> True
+    Token.SymTypeBlock  -> True
+    _                   -> False
 
 isExplicitOpenBrace :: Token.LexToken -> Bool
 isExplicitOpenBrace = \case

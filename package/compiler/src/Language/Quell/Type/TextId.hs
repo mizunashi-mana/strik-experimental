@@ -28,13 +28,15 @@ instance LiftType.LiftType TextId where
 data PrimTextId
     = PrimTextUnit
     | PrimTextArrow
+    | PrimTextDerive
     | PrimTextWildcard
     deriving (Eq, Show, Ord, Enum, Bounded)
 
 primTextId :: PrimTextId -> TextId
 primTextId = \case
     PrimTextUnit     -> stringLit "()"
-    PrimTextArrow    -> stringLit "->"
+    PrimTextArrow    -> stringLit "#->"
+    PrimTextDerive   -> stringLit "#=>"
     PrimTextWildcard -> stringLit "_"
 
 textId :: Text -> TextId
