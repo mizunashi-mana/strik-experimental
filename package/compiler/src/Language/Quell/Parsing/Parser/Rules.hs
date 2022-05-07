@@ -274,6 +274,7 @@ $(Ptera.genRules
     , (TH.mkName "rdConOpQualified", "conop_qualified", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdCon", "con", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVar", "var", [t|(Ast.Name, Spanned.Span)|])
+    , (TH.mkName "rdConIdExt", "con_id_ext", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdConSymExt", "con_sym_ext", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVarIdExt", "var_id_ext", [t|(Ast.Name, Spanned.Span)|])
     , (TH.mkName "rdVarSymExt", "var_sym_ext", [t|(Ast.Name, Spanned.Span)|])
@@ -348,8 +349,8 @@ grammar = Ptera.fixGrammar
         , rdDeclCon = rDeclCon
         , rdVarSymExt = rVarSymExt
         , rdConSymExt = rConSymExt
-        , rdVar = undefined
-        , rdCon = undefined
+        , rdVar = rVar
+        , rdCon = rCon
         , rdConOpQualified = undefined
         , rdConQualified = undefined
         , rdActualBindVar = rActualBindVar
@@ -470,6 +471,7 @@ grammar = Ptera.fixGrammar
         , rdBlockBindVarItems = rBlockBindVarItems
         , rdBlockBindVarItem = rBlockBindVarItem
         , rdVarIdExt = rVarIdExt
+        , rdConIdExt = rConIdExt
         }
 
 
@@ -2601,6 +2603,69 @@ rBlockBindVarItem = ruleExpr
                 , spVar
                 )
             }||]
+    ]
+
+rCon :: RuleExpr (Ast.Name, Spanned.Span)
+rCon = ruleExpr
+    [ tokVarA @"(" <^> varA @"con_sym_ext" <^> tokVarA @")"
+        <:> \(_ :* kop :* conE :* _ :* kcp :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                ( con
+                , AstParsed.sp ($$(kop), spCon, $$(kcp))
+                )
+            }||]
+    , tokVarA @"(" <^> varA @"con_id_ext" <^> tokVarA @")"
+        <:> \(_ :* kop :* conE :* _ :* kcp :* HNil) ->
+            [||case $$(conE) of { (con, spCon) ->
+                ( con
+                , AstParsed.sp ($$(kop), spCon, $$(kcp))
+                )
+            }||]
+    , varA @"con_id_ext"
+        <:> \(con :* HNil) ->
+            con
+    ]
+
+rVar :: RuleExpr (Ast.Name, Spanned.Span)
+rVar = ruleExpr
+    [ tokVarA @"(" <^> varA @"var_sym_ext" <^> tokVarA @")"
+        <:> \(_ :* kop :* varE :* _ :* kcp :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                ( var
+                , AstParsed.sp ($$(kop), spVar, $$(kcp))
+                )
+            }||]
+    , tokVarA @"(" <^> varA @"var_id_ext" <^> tokVarA @")"
+        <:> \(_ :* kop :* varE :* _ :* kcp :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                ( var
+                , AstParsed.sp ($$(kop), spVar, $$(kcp))
+                )
+            }||]
+    , varA @"var_id_ext"
+        <:> \(var :* HNil) ->
+            var
+    ]
+
+rConIdExt :: RuleExpr (Ast.Name, Spanned.Span)
+rConIdExt = ruleExpr
+    [ tokA @"(" <^> tokA @")"
+        <:> \(_ :* kop :* _ :* kcp :* HNil) ->
+            [||
+                ( Ast.primNameUnit
+                , AstParsed.sp (lexToken $$(kop), lexToken $$(kcp))
+                )
+            ||]
+    , tokA @"con_id"
+        <:> \(_ :* t :* HNil) ->
+            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+                Token.IdConId n ->
+                    ( n
+                    , AstParsed.sp st
+                    )
+                _ ->
+                    error "unreachable: expect a con_id token."
+            ||]
     ]
 
 rConSymExt :: RuleExpr (Ast.Name, Spanned.Span)

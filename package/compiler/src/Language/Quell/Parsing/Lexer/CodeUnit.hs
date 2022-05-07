@@ -88,7 +88,6 @@ data CodeUnit
     | LcU0022 -- '"'
     | LcU0023 -- '#'
     | LcU0024 -- '$'
-    | LcU0026 -- '&'
     | LcU0027 -- '\''
     | LcU0028 -- '('
     | LcU0029 -- ')'
@@ -371,7 +370,6 @@ fromChar c = case fromEnum c of
     0x0022 -> LcU0022
     0x0023 -> LcU0023
     0x0024 -> LcU0024
-    0x0026 -> LcU0026
     0x0027 -> LcU0027
     0x0028 -> LcU0028
     0x0029 -> LcU0029
@@ -611,18 +609,16 @@ catInitialPunctuation = EnumSet.fromList
 
 catOtherPunctuation :: EnumSet.EnumSet CodeUnit
 catOtherPunctuation = EnumSet.fromList
-    [
-        LcU0021, LcU0022, LcU0023, LcU0026, LcU0027,
-        LcU002C, LcU002E, LcU002F, LcU003A, LcU003B,
-        LcU003F, LcU0040, LcU005C, LcU2026, LcUFE5F,
-        LcOtherCatPo
+    [ LcU0021, LcU0022, LcU0023, LcU0027, LcU002C
+    , LcU002E, LcU002F, LcU003A, LcU003B, LcU003F
+    , LcU0040, LcU005C, LcU2026, LcUFE5F
+    , LcOtherCatPo
     ]
 
 catOpenPunctuation :: EnumSet.EnumSet CodeUnit
 catOpenPunctuation = EnumSet.fromList
-    [
-        LcU0028, LcU005B, LcU007B, LcU2774, LcU2983,
-        LcOtherCatPs
+    [ LcU0028, LcU005B, LcU007B, LcU2774, LcU2983
+    , LcOtherCatPs
     ]
 
 catPunctuation :: EnumSet.EnumSet CodeUnit
