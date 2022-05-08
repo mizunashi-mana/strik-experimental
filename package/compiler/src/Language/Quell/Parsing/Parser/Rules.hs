@@ -230,6 +230,7 @@ $(Ptera.genRules
 
     , (TH.mkName "rdPat", "pat", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatsWithCommas0", "(pat ',')* pat?", [t|(Bag.T (Ast.Pat AstParsed.T), Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatsWithCommas2", "(pat ',')+ pat ','?", [t|(Bag.T (Ast.Pat AstParsed.T), Spanned.Span)|])
     , (TH.mkName "rdPatUnit", "pat_unit", [t|Ast.Pat AstParsed.T|])
     , (TH.mkName "rdPatInfixesWithBars1", "(pat_infix '|')* pat_infix '|'?", [t|(Bag.T (Ast.Pat AstParsed.T), Spanned.Span)|])
     , (TH.mkName "rdPatInfix", "pat_infix", [t|Ast.Pat AstParsed.T|])
@@ -251,6 +252,8 @@ $(Ptera.genRules
     , (TH.mkName "rdPatTupleItems", "pat_tuple_items", [t|([Ast.Pat AstParsed.T], Spanned.Span)|])
     , (TH.mkName "rdPatArrayItems", "pat_array_items", [t|([Ast.Pat AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdPatSimpleRecordItems", "pat_simplrecord_items", [t|([Ast.PatRecordItem AstParsed.T], Maybe Spanned.Span)|])
+    , (TH.mkName "rdPatSimpleRecordItem", "pat_simplrecord_item", [t|Ast.PatRecordItem AstParsed.T|])
+    , (TH.mkName "rdPatSimpleRecordItemsWithCommas0", "(pat_simplrecord_item ',')* pat_simplrecord_item?", [t|(Bag.T (Ast.PatRecordItem AstParsed.T), Maybe Spanned.Span)|])
 
     , (TH.mkName "rdLetBinds", "let_binds", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
     , (TH.mkName "rdLetBindItems", "let_bind_items", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
@@ -493,9 +496,12 @@ grammar = Ptera.fixGrammar
         , rdPatBlockBody = rPatBlockBody
         , rdPatLiteral = rPatLiteral
         , rdPatBlockItems = rPatBlockItems
-        , rdPatSimpleRecordItems = undefined
-        , rdPatArrayItems = undefined
-        , rdPatTupleItems = undefined
+        , rdPatSimpleRecordItems = rPatSimpleRecordItems
+        , rdPatArrayItems = rPatArrayItems
+        , rdPatTupleItems = rPatTupleItems
+        , rdPatSimpleRecordItemsWithCommas0 = rPatSimpleRecordItemsWithCommas0
+        , rdPatSimpleRecordItem = rPatSimpleRecordItem
+        , rdPatsWithCommas2 = rPatsWithCommas2
         }
 
 
@@ -2046,6 +2052,38 @@ rPatsWithCommas0 = ruleExpr
             ||]
     ]
 
+rPatsWithCommas2 :: RuleExpr (Bag.T (Ast.Pat AstParsed.T), Spanned.Span)
+rPatsWithCommas2 = ruleExpr
+    [ varA @"pat" <^> tokA @"," <^> varA @"(pat ',')+ pat ','?"
+        <:> \(item :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, spItems) ->
+                ( cons $$(item) items
+                , AstParsed.sp
+                    ( $$(item), lexToken $$(kcomma), spItems )
+                )
+            }||]
+    , varA @"pat" <^> tokA @"," <^> varA @"pat" <^> tokA @","
+        <:> \(item1 :* _ :* kcomma1 :* item2 :* _ :* kcomma2 :* HNil) ->
+            [||
+                ( cons $$(item1) do pure $$(item2)
+                , AstParsed.sp
+                    ( $$(item1), lexToken $$(kcomma1)
+                    , $$(item2), lexToken $$(kcomma2)
+                    )
+                )
+            ||]
+    , varA @"pat" <^> tokA @"," <^> varA @"pat"
+        <:> \(item1 :* _ :* kcomma :* item2 :* HNil) ->
+            [||
+                ( cons $$(item1) do pure $$(item2)
+                , AstParsed.sp
+                    ( $$(item1), lexToken $$(kcomma)
+                    , $$(item2)
+                    )
+                )
+            ||]
+    ]
+
 rPatUnit :: RuleExpr (Ast.Pat AstParsed.T)
 rPatUnit = ruleExpr
     [ tokA @"|" <^> varA @"(pat_infix '|')* pat_infix '|'?"
@@ -2326,6 +2364,95 @@ rPatBlockItems = ruleExpr
             [||
                 ( $$(pat)
                 , AstParsed.sp do $$(mlsemis1) AstParsed.:>> $$(pat) AstParsed.:<< $$(mlsemis2)
+                )
+            ||]
+    ]
+
+rPatTupleItems :: RuleExpr ([Ast.Pat AstParsed.T], Spanned.Span)
+rPatTupleItems = ruleExpr
+    [ tokA @"," <^> varA @"(pat ',')+ pat ','?"
+        <:> \(_ :* kcomma :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, spPats) ->
+                ( otoList pats
+                , AstParsed.sp (lexToken $$(kcomma), spPats)
+                )
+            }||]
+    , varA @"(pat ',')+ pat ','?"
+        <:> \(patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, spPats) ->
+                ( otoList pats
+                , spPats
+                )
+            }||]
+    ]
+
+rPatArrayItems :: RuleExpr ([Ast.Pat AstParsed.T], Maybe Spanned.Span)
+rPatArrayItems = ruleExpr
+    [ tokA @"," <^> varA @"(pat ',')* pat?"
+        <:> \(_ :* kcomma :* patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                ( otoList pats
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msPats
+                )
+            }||]
+    , varA @"(pat ',')* pat?"
+        <:> \(patsE :* HNil) ->
+            [||case $$(patsE) of { (pats, msPats) ->
+                ( otoList pats
+                , msPats
+                )
+            }||]
+    ]
+
+rPatSimpleRecordItems :: RuleExpr ([Ast.PatRecordItem AstParsed.T], Maybe Spanned.Span)
+rPatSimpleRecordItems = ruleExpr
+    [ tokA @"," <^> varA @"(pat_simplrecord_item ',')* pat_simplrecord_item?"
+        <:> \(_ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , Just do AstParsed.sp do lexToken $$(kcomma) AstParsed.:<< msItems
+                )
+            }||]
+    , varA @"(pat_simplrecord_item ',')* pat_simplrecord_item?"
+        <:> \(itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( otoList items
+                , msItems
+                )
+            }||]
+    ]
+
+rPatSimpleRecordItem :: RuleExpr (Ast.PatRecordItem AstParsed.T)
+rPatSimpleRecordItem = ruleExpr
+    [ varA @"declvar" <^> tokA @"=" <^> varA @"pat"
+        <:> \(varE :* _ :* keq :* pat :* HNil) ->
+            [||case $$(varE) of { (var, spVar) ->
+                Ast.PatRecordItem var $$(pat)
+                    do AstParsed.sp (spVar, lexToken $$(keq), $$(pat))
+            }||]
+    ]
+
+rPatSimpleRecordItemsWithCommas0 :: RuleExpr (Bag.T (Ast.PatRecordItem AstParsed.T), Maybe Spanned.Span)
+rPatSimpleRecordItemsWithCommas0 = ruleExpr
+    [ varA @"pat_simplrecord_item" <^> tokA @"," <^> varA @"(pat_simplrecord_item ',')* pat_simplrecord_item?"
+        <:> \(item :* _ :* kcomma :* itemsE :* HNil) ->
+            [||case $$(itemsE) of { (items, msItems) ->
+                ( cons $$(item) items
+                , Just do AstParsed.sp ($$(item), lexToken $$(kcomma) AstParsed.:<< msItems)
+                )
+            }||]
+    , varA @"pat_simplrecord_item"
+        <:> \(item :* HNil) ->
+            [||
+                ( pure $$(item)
+                , Just do AstParsed.sp $$(item)
+                )
+            ||]
+    , eps
+        <:> \HNil ->
+            [||
+                ( mempty
+                , Nothing
                 )
             ||]
     ]
