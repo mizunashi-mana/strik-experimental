@@ -4,6 +4,10 @@ module Language.Quell.Pipeline.Source2Ast (
     source2Type,
     source2Expr,
     source2Tokens,
+    source2LexTokens,
+    lexTokens2Program,
+    lexTokens2Type,
+    lexTokens2Expr,
 ) where
 
 import           Language.Quell.Prelude
@@ -29,30 +33,28 @@ data Source i m = Source
 
 source2Program :: Lexer.LexerMonad s m
     => Source i m -> Pipeline i m Ast.Program
-source2Program s = source2Tokens s
-    Conduit..| skipWsToken
-    Conduit..| Layout.preParseForProgram
-    Conduit..| Parser.parseProgram
+source2Program s = source2LexTokens s
+    Conduit..| lexTokens2Program
 
 source2Type :: Lexer.LexerMonad s m
     => Source i m -> Pipeline i m Ast.TypeExpr
-source2Type s = source2Tokens s
-    Conduit..| skipWsToken
-    Conduit..| Layout.preParseForPart
-    Conduit..| Parser.parseType
+source2Type s = source2LexTokens s
+    Conduit..| lexTokens2Type
 
 source2Expr :: Lexer.LexerMonad s m
     => Source i m -> Pipeline i m Ast.Expr
-source2Expr s = source2Tokens s
-    Conduit..| skipWsToken
-    Conduit..| Layout.preParseForPart
-    Conduit..| Parser.parseExpr
+source2Expr s = source2LexTokens s
+    Conduit..| lexTokens2Expr
 
 source2Tokens :: Lexer.LexerMonad s m
     => Source i m -> Conduit.ConduitT i (Spanned.T Token.T) m ()
-source2Tokens s
-    =           sourceConduit s
+source2Tokens s = sourceConduit s
     Conduit..|  Lexer.lexerConduit do sourceEncoding s
+
+source2LexTokens :: Lexer.LexerMonad s m
+    => Source i m -> Conduit.ConduitT i (Spanned.T Token.LexToken) m ()
+source2LexTokens = source2Tokens
+    Conduit..| skipWsToken
 
 skipWsToken :: Monad m
     => Conduit.ConduitT (Spanned.T Token.T) (Spanned.T Token.LexToken) m ()
@@ -66,3 +68,18 @@ skipWsToken = Conduit.await >>= \case
             Token.TokWhiteSpace{} ->
                 pure ()
         skipWsToken
+
+lexTokens2Program :: Monad m
+    => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.Program)
+lexTokens2Program = Layout.preParseForProgram
+    Conduit..| Parser.parseProgram
+
+lexTokens2Type :: Monad m
+    => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.TypeExpr)
+lexTokens2Type = Layout.preParseForPart
+    Conduit..| Parser.parseType
+
+lexTokens2Expr :: Monad m
+    => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.Expr)
+lexTokens2Expr = Layout.preParseForPart
+    Conduit..| Parser.parseExpr
