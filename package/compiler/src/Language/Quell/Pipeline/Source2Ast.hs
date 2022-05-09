@@ -49,11 +49,11 @@ source2Expr s = source2LexTokens s
 source2Tokens :: Lexer.LexerMonad s m
     => Source i m -> Conduit.ConduitT i (Spanned.T Token.T) m ()
 source2Tokens s = sourceConduit s
-    Conduit..|  Lexer.lexerConduit do sourceEncoding s
+    Conduit..| Lexer.lexerConduit do sourceEncoding s
 
 source2LexTokens :: Lexer.LexerMonad s m
     => Source i m -> Conduit.ConduitT i (Spanned.T Token.LexToken) m ()
-source2LexTokens = source2Tokens
+source2LexTokens s = source2Tokens s
     Conduit..| skipWsToken
 
 skipWsToken :: Monad m
