@@ -3,10 +3,12 @@
 module Language.Quell.Data.Bag (
     T,
     Bag,
+    empty,
+    singleton,
     fromList,
 ) where
 
-import           Language.Quell.Prelude
+import           Language.Quell.Prelude hiding (empty, singleton)
 
 import qualified Data.Foldable          as Foldable
 import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
@@ -20,6 +22,12 @@ data Bag a
     | List [a]
     | Append (Bag a) (Bag a)
     deriving (Show, Functor, Foldable.Foldable, Traversable)
+
+empty :: Bag a
+empty = Empty
+
+singleton :: a -> Bag a
+singleton x = Unit x
 
 type instance Element (Bag a) = a
 
@@ -49,13 +57,13 @@ instance Semigroup (Bag a) where
     b1      <> b2       = Append b1 b2
 
 instance Monoid (Bag a) where
-    mempty = Empty
+    mempty = empty
 
 instance Applicative Bag where
-    pure x = Unit x
+    pure x = singleton x
 
-    Empty          <*> _      = mempty
-    _              <*> Empty  = mempty
+    Empty          <*> _      = empty
+    _              <*> Empty  = empty
     Unit f         <*> mx     = fmap f mx
     mf             <*> Unit x = fmap (\f -> f x) mf
     List fs        <*> mx     = ofoldMap (\f -> fmap f mx) fs
@@ -63,7 +71,7 @@ instance Applicative Bag where
 
 instance Monad Bag where
     mx >>= f = case mx of
-        Empty          -> mempty
+        Empty          -> empty
         Unit x         -> f x
         List xs        -> ofoldMap (\x -> f x) xs
         Append mx1 mx2 -> (mx1 >>= f) <> (mx2 >>= f)
@@ -122,7 +130,7 @@ instance SemiSequence (Bag a) where
             do Unit x
 
 instance MonoPointed (Bag a) where
-    opoint = pure
+    opoint = singleton
 
 instance IsSequence (Bag a) where
     fromList xs = ofoldr

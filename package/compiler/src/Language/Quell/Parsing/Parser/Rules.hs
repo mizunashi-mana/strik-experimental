@@ -19,6 +19,7 @@ import qualified Language.Quell.Parsing.Parser.Layout    as Layout
 import qualified Language.Quell.Parsing.Spanned          as Spanned
 import qualified Language.Quell.Type.Ast                 as Ast
 import qualified Language.Quell.Type.Token               as Token
+import           Language.Quell.Parsing.Parser.RulesLib
 
 
 type Token = Layout.TokenWithL
@@ -119,17 +120,6 @@ $(Ptera.genGrammarToken (TH.mkName "Tokens") [t|Token|]
     , ("{n}",           [p|Layout.ExpectNewImplicitLayout{}|])
     , ("<n>",           [p|Layout.Newline{}|])
     ])
-
-data GrammarContext = GrammarContext
-    { layoutStack :: [LayoutItem]
-    }
-    deriving (Eq, Show)
-
-data LayoutItem
-    = NoLayout
-    | ImplicitLayout Layout.Position
-    | ExplicitScopedLayout Layout.Position
-    deriving (Eq, Show)
 
 $(Ptera.genRules
     do TH.mkName "RuleDefs"
@@ -327,6 +317,8 @@ $(Ptera.genParsePoints
     do TH.mkName "ParsePoints"
     do TH.mkName "RuleDefs"
     [ "program EOS"
+    , "type"
+    , "expr"
     ])
 
 type RuleExpr = Ptera.RuleExprM GrammarContext RuleDefs Tokens Token
@@ -567,14 +559,14 @@ rDeclItemsWithSemis0 = ruleExpr
     , varA @"decl_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -698,14 +690,14 @@ rTypeDeclWhereItemsWithSemis0 = ruleExpr
     , varA @"type_decl_where_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -850,14 +842,14 @@ rDataDeclItemsWithSemis0 = ruleExpr
     , varA @"data_decl_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -920,14 +912,14 @@ rConTypesWithBars0 = ruleExpr
     , varA @"contype"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1016,14 +1008,14 @@ rValDeclWhereItemsWithSemis0 = ruleExpr
     , varA @"val_decl_where_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1208,7 +1200,7 @@ rTypeApps0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1253,7 +1245,7 @@ rTypeQualifieds0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1442,14 +1434,14 @@ rTypesWithCommas0 = ruleExpr
     , varA @"type"
         <:> \(ty :* HNil) ->
             [||
-                ( pure $$(ty)
+                ( Bag.singleton $$(ty)
                 , Just do AstParsed.sp $$(ty)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1485,14 +1477,14 @@ rTypeSimpleRecordItemsWithCommas0 = ruleExpr
     , varA @"type_simplrecord_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1616,7 +1608,7 @@ rExprApps1 = ruleExpr
     , varA @"expr_app"
         <:> \(expr :* HNil) ->
             [||
-                ( pure $$(expr)
+                ( Bag.singleton $$(expr)
                 , AstParsed.sp $$(expr)
                 )
             ||]
@@ -1728,7 +1720,7 @@ rPatAtomics0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1851,7 +1843,7 @@ rExprInterpStringContParts = ruleExpr
     , tokVarA @"interp_string_end"
         <:> \(_ :* part :* HNil) ->
             [||
-                ( pure $$(part)
+                ( Bag.singleton $$(part)
                 , AstParsed.sp $$(part)
                 )
             ||]
@@ -1923,14 +1915,14 @@ rExprsWithCommas0 = ruleExpr
     , varA @"expr"
         <:> \(expr :* HNil) ->
             [||
-                ( pure $$(expr)
+                ( Bag.singleton $$(expr)
                 , Just do AstParsed.sp $$(expr)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -1991,14 +1983,14 @@ rExprSimpleRecordItemsWithCommas0 = ruleExpr
     , varA @"expr_simplrecord_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2039,14 +2031,14 @@ rPatsWithCommas0 = ruleExpr
     , varA @"pat"
         <:> \(pat :* HNil) ->
             [||
-                ( pure $$(pat)
+                ( Bag.singleton $$(pat)
                 , Just do AstParsed.sp $$(pat)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2107,14 +2099,14 @@ rPatInfixesWithBars1 = ruleExpr
     , varA @"pat_infix" <^> tokA @"|"
         <:> \(pat :* _ :* kor :* HNil) ->
             [||
-                ( pure $$(pat)
+                ( Bag.singleton $$(pat)
                 , AstParsed.sp ($$(pat), lexToken $$(kor))
                 )
             ||]
     , varA @"pat_infix"
         <:> \(pat :* HNil) ->
             [||
-                ( pure $$(pat)
+                ( Bag.singleton $$(pat)
                 , AstParsed.sp $$(pat)
                 )
             ||]
@@ -2223,7 +2215,7 @@ rPatApps0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2261,7 +2253,7 @@ rPatUnivApps0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2444,14 +2436,14 @@ rPatSimpleRecordItemsWithCommas0 = ruleExpr
     , varA @"pat_simplrecord_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2504,14 +2496,14 @@ rLetBindItemsWithSemis0 = ruleExpr
     , varA @"let_bind_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2578,14 +2570,14 @@ rCaseAltItemsWithSemis0 = ruleExpr
     , varA @"case_alt_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2679,14 +2671,14 @@ rGuardedAltItemsWithSemis0 = ruleExpr
     , varA @"guarded_alt_item"
         <:> \(item :* HNil) ->
             [||
-                ( pure $$(item)
+                ( Bag.singleton $$(item)
                 , Just do AstParsed.sp $$(item)
                 )
             ||]
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -2757,7 +2749,7 @@ rDoStmtItemsWithSemis1 = ruleExpr
     , varA @"do_yield_item" <^> varA @"lsemis?"
         <:> \(yieldItem :* mayLsemis :* HNil) ->
             [||case $$(yieldItem) of { (expr, spItem) ->
-                ( mempty
+                ( Bag.empty
                 , expr
                 , AstParsed.sp do spItem AstParsed.:<< $$(mayLsemis)
                 )
@@ -2845,7 +2837,7 @@ rBindVars0 = ruleExpr
     , eps
         <:> \HNil ->
             [||
-                ( mempty
+                ( Bag.empty
                 , Nothing
                 )
             ||]
@@ -3020,7 +3012,7 @@ rConIdExt = ruleExpr
             ||]
     , tokA @"con_id"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConId n ->
                     ( n
                     , AstParsed.sp st
@@ -3048,7 +3040,7 @@ rConSymExt = ruleExpr
             ||]
     , tokA @"con_sym"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConSym n ->
                     ( n
                     , AstParsed.sp st
@@ -3069,7 +3061,7 @@ rVarIdExt = ruleExpr
             ||]
     , tokA @"var_id"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarId n ->
                     ( n
                     , AstParsed.sp st
@@ -3083,7 +3075,7 @@ rVarSymExt :: RuleExpr (Ast.Name, Spanned.Span)
 rVarSymExt = ruleExpr
     [ tokA @"var_sym"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarSym n ->
                     ( n
                     , AstParsed.sp st
@@ -3098,7 +3090,7 @@ rDeclCon :: RuleExpr (Ast.Name, Spanned.Span)
 rDeclCon = ruleExpr
     [ tokVarA @"(" <^> tokA @"con_sym" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConSym n ->
                     ( n
                     , AstParsed.sp ($$(kop), st, $$(kcp))
@@ -3108,7 +3100,7 @@ rDeclCon = ruleExpr
             ||]
     , tokVarA @"(" <^> tokA @"con_id" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConId n ->
                     ( n
                     , AstParsed.sp ($$(kop), st, $$(kcp))
@@ -3118,7 +3110,7 @@ rDeclCon = ruleExpr
             ||]
     , tokA @"con_id"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConId n ->
                     ( n
                     , AstParsed.sp st
@@ -3132,7 +3124,7 @@ rDeclConOp :: RuleExpr (Ast.Name, Spanned.Span)
 rDeclConOp = ruleExpr
     [ tokA @"`" <^> tokA @"con_sym" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConSym n ->
                     ( n
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
@@ -3142,7 +3134,7 @@ rDeclConOp = ruleExpr
             ||]
     , tokA @"`" <^> tokA @"con_id" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConId n ->
                     ( n
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
@@ -3152,7 +3144,7 @@ rDeclConOp = ruleExpr
             ||]
     , tokA @"con_sym"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdConSym n ->
                     ( n
                     , AstParsed.sp st
@@ -3166,7 +3158,7 @@ rDeclVar :: RuleExpr (Ast.Name, Spanned.Span)
 rDeclVar = ruleExpr
     [ tokVarA @"(" <^> tokA @"var_sym" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarSym n ->
                     ( n
                     , AstParsed.sp ($$(kop), st, $$(kcp))
@@ -3176,7 +3168,7 @@ rDeclVar = ruleExpr
             ||]
     , tokVarA @"(" <^> tokA @"var_id" <^> tokVarA @")"
         <:> \(_ :* kop :* _ :* t :* _ :* kcp :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarId n ->
                     ( n
                     , AstParsed.sp ($$(kop), st, $$(kcp))
@@ -3186,7 +3178,7 @@ rDeclVar = ruleExpr
             ||]
     , tokA @"var_id"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarId n ->
                     ( n
                     , AstParsed.sp st
@@ -3200,7 +3192,7 @@ rDeclOp :: RuleExpr (Ast.Name, Spanned.Span)
 rDeclOp = ruleExpr
     [ tokA @"`" <^> tokA @"var_sym" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarSym n ->
                     ( n
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
@@ -3210,7 +3202,7 @@ rDeclOp = ruleExpr
             ||]
     , tokA @"`" <^> tokA @"var_id" <^> tokA @"`"
         <:> \(_ :* ktick1 :* _ :* t :* _ :* ktick2 :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarId n ->
                     ( n
                     , AstParsed.sp (lexToken $$(ktick1), st, lexToken $$(ktick2))
@@ -3220,7 +3212,7 @@ rDeclOp = ruleExpr
             ||]
     , tokA @"var_sym"
         <:> \(_ :* t :* HNil) ->
-            [||let st = lexToken $$(t) in case Spanned.unSpanned st of
+            [||let st = lexToken $$(t) in case unSpanned st of
                 Token.IdVarSym n ->
                     ( n
                     , AstParsed.sp st
@@ -3314,7 +3306,7 @@ rLiteral = ruleExpr
     [ tokA @"bytechar"
         <:> \(_ :* bytechar :* HNil) ->
             [||let t = lexToken $$(bytechar) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitByteChar v ->
                         Ast.LitByteChar v do AstParsed.sp t
                     _ ->
@@ -3323,7 +3315,7 @@ rLiteral = ruleExpr
     , tokA @"bytestring"
         <:> \(_ :* bytestring :* HNil) ->
             [||let t = lexToken $$(bytestring) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitByteString v ->
                         Ast.LitByteString v do AstParsed.sp t
                     _ ->
@@ -3332,7 +3324,7 @@ rLiteral = ruleExpr
     , tokA @"integer"
         <:> \(_ :* integer :* HNil) ->
             [||let t = lexToken $$(integer) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitInteger v ->
                         Ast.LitInteger v do AstParsed.sp t
                     _ ->
@@ -3341,7 +3333,7 @@ rLiteral = ruleExpr
     , tokA @"rational"
         <:> \(_ :* rational :* HNil) ->
             [||let t = lexToken $$(rational) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitRational v ->
                         Ast.LitRational v do AstParsed.sp t
                     _ ->
@@ -3350,7 +3342,7 @@ rLiteral = ruleExpr
     , tokA @"char"
         <:> \(_ :* char :* HNil) ->
             [||let t = lexToken $$(char) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitChar v ->
                         Ast.LitChar v do AstParsed.sp t
                     _ ->
@@ -3359,7 +3351,7 @@ rLiteral = ruleExpr
     , tokA @"string"
         <:> \(_ :* string :* HNil) ->
             [||let t = lexToken $$(string) in
-                case Spanned.unSpanned t of
+                case unSpanned t of
                     Token.LitString v ->
                         Ast.LitString v do AstParsed.sp t
                     _ ->
@@ -3389,13 +3381,6 @@ rMayTypeSig = ruleExpr
 tokA :: forall t.
     Ptera.TokensMember Tokens t => TypedExpr '[(), Token]
 tokA = varA @"skip" <^> Ptera.tokA @t
-
-lexToken :: Token -> Spanned.Spanned Token.LexToken
-lexToken = \case
-    Layout.Token st ->
-        st
-    _ ->
-        error "unreachable: expect lexed token, but actually a layout token is given."
 
 type family RuleSymbol (t :: Symbol) :: Symbol
 type RuleSymbolReturnType t = Ptera.RuleExprReturnType RuleDefs (RuleSymbol t)
@@ -3520,12 +3505,12 @@ instance RuleSymbolAction "{n}" where
 
 pushLayoutItem :: LayoutItem -> ActionTask ()
 pushLayoutItem item = Ptera.modifyAction \ctx -> ctx
-    { layoutStack = item:layoutStack ctx
+    { gctxLayoutStack = item:layoutStack ctx
     }
 
 popLayoutItem :: ActionTask ()
 popLayoutItem = Ptera.modifyAction \ctx -> ctx
-    { layoutStack = List.tail do layoutStack ctx
+    { gctxLayoutStack = List.tail do layoutStack ctx
     }
 
 popNoLayout :: ActionTask ()
@@ -3554,24 +3539,3 @@ popImplicitLayout = do
         _ ->
             Ptera.failAction
     popLayoutItem
-
-
-interpStringLit :: Spanned.Spanned Token.LexToken -> Ast.InterpStringPart AstParsed.T
-interpStringLit t = case Spanned.unSpanned t of
-    Token.InterpStringWithoutInterp txt ->
-        Ast.InterpStringLit txt do
-            AstParsed.sp t
-    Token.InterpStringStart txt ->
-        Ast.InterpStringLit txt do
-            AstParsed.sp t
-    Token.InterpStringContinue txt ->
-        Ast.InterpStringLit txt do
-            AstParsed.sp t
-    Token.InterpStringEnd txt ->
-        Ast.InterpStringLit txt do
-            AstParsed.sp t
-    _ ->
-        error "unreachable: expected interp string literal token, but actually the other token is given"
-
-interpStringExpr :: Ast.Expr AstParsed.T -> Ast.InterpStringPart AstParsed.T
-interpStringExpr e = Ast.InterpStringExpr e do AstParsed.sp e

@@ -121,6 +121,7 @@ common general
         tlex-core,
         ptera,
         ptera-th,
+        membership,
 
     autogen-modules:
         Paths_quell_compiler
@@ -192,6 +193,8 @@ library
         Language.Quell.Parsing.Parser.Error
         Language.Quell.Parsing.Parser.AstParsed
         Language.Quell.Parsing.Parser.Rules
+        Language.Quell.Parsing.Parser.RulesLib
+        Language.Quell.Data.BufferedConduitT
         Language.Quell.Pipeline.Source2Ast
     other-modules:
         Language.Quell.Prelude.Core

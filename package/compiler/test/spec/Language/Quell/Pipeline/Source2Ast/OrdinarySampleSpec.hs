@@ -13,6 +13,8 @@ import qualified Language.Quell.Parsing.Lexer as Lexer
 import qualified Language.Quell.Parsing.Spanned as Spanned
 import qualified Language.Quell.Type.Token as Token
 import qualified Language.Quell.Type.TextId as TextId
+import qualified Language.Quell.Parsing.Parser.Layout  as Layout
+import qualified Language.Quell.Parsing.Parser.Layout.TokenWithLForTests as TokenWithLForTests
 
 
 sampleSource :: Lexer.LexerMonad s m => Source () m
@@ -1032,3 +1034,183 @@ spec = do
                     , unSpanned = Token.TokLexeme (Token.IdVarId (TextId.stringLit "i2"))
                     }
                 ]
+
+    describe "source2LexTokens .| Layout.preParseForProgram" do
+        it "should convert the sample source" do
+            let (reports, tokens) = TestRunner.runTestRunner
+                    do Conduit.sourceToList
+                        do source2LexTokens sampleSource
+                            Conduit..| Layout.preParseForProgram
+            otoList reports `shouldBe` []
+            [ TokenWithLForTests.fromTokenWithL t | t <- tokens ] `shouldBe`
+                [ TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 0)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token Token.KwType
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "T"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Type"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Type"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token Token.KwType
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "T"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token Token.SpParenOpen
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpComma
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpParenClose
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token Token.KwData
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.SymOr
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D1"))
+                , TokenWithLForTests.Token Token.SpParenOpen
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpParenClose
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.SymOr
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D2"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpParenOpen
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpParenClose
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.SymOr
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D3"))
+                , TokenWithLForTests.Token Token.SpParenOpen
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "IA"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SpParenClose
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.KwWhere
+                , TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 6)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 6)
+                , TokenWithLForTests.Token Token.KwType
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "IA"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token Token.KwData
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Type"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Type"))
+                , TokenWithLForTests.Token Token.KwWhere
+                , TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 2)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R1"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R2"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "D"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R3"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "IA"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "R"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.KwType
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "IA"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "a"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "f"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Maybe"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "->"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token Token.KwCase
+                , TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 2)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.LitInteger 0)
+                , TokenWithLForTests.Token Token.SpComma
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "None"))
+                , TokenWithLForTests.Token Token.SymThen
+                , TokenWithLForTests.Token (Token.LitInteger 0)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i1"))
+                , TokenWithLForTests.Token Token.SpComma
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Some"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                , TokenWithLForTests.Token Token.KwWhen
+                , TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 6)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 6)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "=="))
+                , TokenWithLForTests.Token (Token.LitInteger 0)
+                , TokenWithLForTests.Token Token.SymThen
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i1"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 6)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "else"))
+                , TokenWithLForTests.Token Token.SymThen
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i1"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "+"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i"))
+                , TokenWithLForTests.Token Token.SymColon
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Maybe"))
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Int"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 0)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token Token.KwDo
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i1"))
+                , TokenWithLForTests.Token Token.SymBind
+                , TokenWithLForTests.Token (Token.IdConId (TextId.stringLit "Some"))
+                , TokenWithLForTests.Token (Token.LitInteger 0)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token Token.KwLet
+                , TokenWithLForTests.ExpectNewImplicitLayout (Layout.PositionByCol 12)
+                , TokenWithLForTests.Newline (Layout.PositionByCol 12)
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i3"))
+                , TokenWithLForTests.Token Token.SymEqual
+                , TokenWithLForTests.Token (Token.LitInteger 1)
+                , TokenWithLForTests.Token Token.KwIn
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i1"))
+                , TokenWithLForTests.Token (Token.IdVarSym (TextId.stringLit "+"))
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                , TokenWithLForTests.Newline (Layout.PositionByCol 2)
+                , TokenWithLForTests.Token Token.KwYield
+                , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
+                ]
+

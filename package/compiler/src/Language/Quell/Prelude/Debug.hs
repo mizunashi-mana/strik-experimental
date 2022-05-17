@@ -2,12 +2,15 @@ module Language.Quell.Prelude.Debug (
     debugTrace,
     debugTraceShow,
     debugTraceShowId,
+    require,
+    requireM,
 ) where
 
 import           Language.Quell.Prelude.Core
 import           Language.Quell.Prelude.Literal
 
 import qualified Debug.Trace                    as Debug
+import qualified Control.Exception as Exception
 
 
 debugTrace :: StringLit -> a -> a
@@ -18,3 +21,11 @@ debugTraceShow v x = Debug.traceShow v x
 
 debugTraceShowId :: Show a => a -> a
 debugTraceShowId x = Debug.traceShowId x
+
+require :: Bool -> a -> a
+require t x = Exception.assert t x
+{-# INLINE require #-}
+
+requireM :: Monad m => Bool -> m ()
+requireM t = require t do pure ()
+{-# INLINE requireM #-}
