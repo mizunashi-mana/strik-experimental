@@ -1,4 +1,5 @@
-module Language.Quell.Data.BufferedConduitT (
+module Language.Quell.Data.BufferedConduit (
+    T,
     BufferedConduitT (..),
     runConduitT,
     Context (..),
@@ -16,6 +17,8 @@ import qualified Conduit
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Data.STBuffer                as STBuffer
 
+
+type T = BufferedConduitT
 
 newtype BufferedConduitT s i o m a = BufferedConduitT
     { unBufferedConduitT :: Conduit.ConduitT i o (StateT (Context s i) m) a
@@ -171,8 +174,7 @@ setBufferMode mode = case mode of
             | needBack <= currentPosition ctx -> do
                 let consumeCount = currentPosition ctx - needBack
                 _ <- MonadST.liftST
-                    do STBuffer.consumeHeads ()
-                        do \_ _ -> ()
+                    do STBuffer.unbufferHeads
                         do buffer ctx
                         do consumeCount
                 let newCtx = ctx
@@ -204,8 +206,7 @@ setBufferMode mode = case mode of
                             | otherwise ->
                                 newNeedBack - needBack
                     _ <- MonadST.liftST
-                        do STBuffer.consumeHeads ()
-                            do \_ _ -> ()
+                        do STBuffer.unbufferHeads
                             do buffer ctx
                             do consumeCount
                     let newCtx = ctx

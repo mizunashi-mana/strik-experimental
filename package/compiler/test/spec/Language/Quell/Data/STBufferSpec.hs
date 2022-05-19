@@ -76,6 +76,24 @@ spec = do
             l2 <- stToIO do STBuffer.toList buf
             l2 `shouldBe` l0
 
+        it "be satisfied for unbufferHeads / appendHead" do
+            let l0 = [0,0,0,0,0,0,0] :: [Int]
+            buf <- stToIO do STBuffer.new l0
+            stToIO do STBuffer.appendHead 1 buf
+            stToIO do STBuffer.appendHead 2 buf
+            l1 <- stToIO do STBuffer.toList buf
+            l1 `shouldBe` 2:1:l0
+            _ <- stToIO do STBuffer.unbufferHeads buf 2
+            l2 <- stToIO do STBuffer.toList buf
+            l2 `shouldBe` l0
 
-
-
+        it "be satisfied for unbufferLasts / appendLast" do
+            let l0 = [0,0,0,0,0,0,0] :: [Int]
+            buf <- stToIO do STBuffer.new l0
+            stToIO do STBuffer.appendLast 1 buf
+            stToIO do STBuffer.appendLast 2 buf
+            l1 <- stToIO do STBuffer.toList buf
+            l1 `shouldBe` l0 <> [1,2]
+            _ <- stToIO do STBuffer.unbufferLasts buf 2
+            l2 <- stToIO do STBuffer.toList buf
+            l2 `shouldBe` l0

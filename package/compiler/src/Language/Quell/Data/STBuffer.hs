@@ -21,6 +21,8 @@ module Language.Quell.Data.STBuffer (
     consumeLasts,
     unsafeConsumeHeads,
     unsafeConsumeLasts,
+    unbufferHeads,
+    unbufferLasts,
 ) where
 
 import           Language.Quell.Prelude              hiding (index, last,
@@ -305,6 +307,30 @@ unsafeConsumeLasts f z0 buf (I# c#) = ST.ST \s0# ->
             do s0#
     in unsafeConsumeLasts# bufLen0# buf f z0 c# s1#
 
+unbufferHeads :: STBuffer s e -> Int -> ST s ()
+unbufferHeads buf (I# c#) = ST.ST \s0# ->
+    let !(# s1#, bufLen0# #) = MutInt.read#
+            do bufferLength# buf
+            do s0#
+        s2# = case c# <=# bufLen0# of
+            0# ->
+                unsafeUnbufferLasts# bufLen0# buf bufLen0# s1#
+            _ ->
+                unsafeUnbufferHeads# bufLen0# buf c# s1#
+    in (# s2#, () #)
+
+unbufferLasts :: STBuffer s e -> Int -> ST s ()
+unbufferLasts buf (I# c#) = ST.ST \s0# ->
+    let !(# s1#, bufLen0# #) = MutInt.read#
+            do bufferLength# buf
+            do s0#
+        s2# = case c# <=# bufLen0# of
+            0# ->
+                unsafeUnbufferLasts# bufLen0# buf bufLen0# s1#
+            _ ->
+                unsafeUnbufferLasts# bufLen0# buf c# s1#
+    in (# s2#, () #)
+
 toList :: STBuffer s e -> ST s [e]
 toList buf = ST.ST \s0# ->
     let !(# s1#, iH# #) = MutInt.read#
@@ -430,6 +456,39 @@ unsafeConsumeLasts# bufLen0# buf f z0 c# = \s0# ->
                     nz = f x z
                 in go# arr# arrLen# iL1# niL# nz s1#
             _  -> (# s0#, z #)
+
+unsafeUnbufferHeads#
+    :: Int# -> STBuffer s e -> Int#
+    -> State# s -> State# s
+unsafeUnbufferHeads# bufLen0# buf c# = \s0# ->
+    let !(# s1#, arr #) = readMutVar#
+            do unSTBuffer# buf
+            do s0#
+        arr# = unSTBufferArray# arr
+        arrLen# = sizeofMutableArray# arr#
+        !(# s2#, iH0# #) = MutInt.read#
+            do indexHead# buf
+            do s1#
+        iH1# = incIndex# arrLen# iH0# c#
+        s3# = MutInt.write#
+            do indexHead# buf
+            do iH1#
+            do s2#
+        s4# = MutInt.write#
+            do bufferLength# buf
+            do bufLen0# -# c#
+            do s3#
+    in s4#
+
+unsafeUnbufferLasts#
+    :: Int# -> STBuffer s e -> Int#
+    -> State# s -> State# s
+unsafeUnbufferLasts# bufLen0# buf c# = \s0# ->
+    let s1# = MutInt.write#
+            do bufferLength# buf
+            do bufLen0# -# c#
+            do s0#
+    in s1#
 
 reallocBufferArray :: MutableArray# s e -> Int# -> Int# -> e
     -> STBuffer s e -> State# s -> (# State# s, Int# #)
