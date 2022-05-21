@@ -53,7 +53,7 @@ lexerConduit enc =
                     pure ()
                 Just (s, u) -> case u of
                     Encoding.DecodeError msg -> do
-                        Conduit.lift do reportDecodeError s msg
+                        lift do reportDecodeError s msg
                         reportDecodeResultConduit
                     Encoding.DecodedChar c -> do
                         Conduit.yield (s, c)
@@ -69,7 +69,7 @@ lexerConduit enc =
                     pure ()
                 Just spu -> case Spanned.unSpanned spu of
                     Lexing.LexError err msg -> do
-                        Conduit.lift do
+                        lift do
                             reportLexError
                                 do Spanned.getSpan spu
                                 err msg

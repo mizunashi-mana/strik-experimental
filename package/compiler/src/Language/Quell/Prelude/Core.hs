@@ -50,7 +50,7 @@ import           Control.Applicative
 import           Control.Monad                    hiding (filterM, replicateM)
 import           Control.Monad.IO.Class
 import           Control.Monad.ST
-import           Control.Monad.Trans.Class        (lift)
+import           Control.Monad.Trans.Class        (MonadTrans (..))
 import           Control.Monad.Trans.Except       hiding (liftCallCC,
                                                    liftListen, liftPass)
 import           Control.Monad.Trans.Reader       hiding (liftCallCC, liftCatch)

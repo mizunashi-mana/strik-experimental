@@ -32,11 +32,14 @@ newtype BufferedConduitT s i o m a = BufferedConduitT
 
 instance MonadST.T s m => MonadST.MonadST s (BufferedConduitT s i o m) where
     type Marker (BufferedConduitT s i o m) = MonadST.Marker m
-    liftST mx = BufferedConduitT do Conduit.lift do MonadST.liftST mx
+    liftST mx = BufferedConduitT do lift do MonadST.liftST mx
+
+instance MonadTrans (BufferedConduitT s i o) where
+    lift mx = BufferedConduitT do lift do lift mx
 
 runConduitT :: MonadST.T s m => BufferedConduitT s i o m a -> Conduit.ConduitT i o m a
 runConduitT m = do
-    ictx <- Conduit.lift do MonadST.liftST buildInitialContext
+    ictx <- lift do MonadST.liftST buildInitialContext
     Conduit.evalStateC ictx do unBufferedConduitT m
     where
         buildInitialContext :: ST s (Context s i)
@@ -260,11 +263,11 @@ consumeBufferItem = do
                     pure (newCtx, mitem)
 
 getContext :: Monad m => BufferedConduitT s i o m (Context s i)
-getContext = BufferedConduitT do Conduit.lift get
+getContext = BufferedConduitT do lift get
 
 modifyContext :: MonadST.T s m => (Context s i -> ST s (Context s i, r)) -> BufferedConduitT s i o m r
 modifyContext f = BufferedConduitT do
-    oldCtx <- Conduit.lift get
-    (newCtx, res) <- Conduit.lift do MonadST.liftST do f oldCtx
-    Conduit.lift do put newCtx
+    oldCtx <- lift get
+    (newCtx, res) <- lift do MonadST.liftST do f oldCtx
+    lift do put newCtx
     pure res
