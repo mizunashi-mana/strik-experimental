@@ -195,7 +195,7 @@ library
         Language.Quell.Parsing.Parser.Rules
         Language.Quell.Parsing.Parser.RulesLib
         Language.Quell.Data.BufferedConduit
-        Language.Quell.Pipeline.Source2Ast
+        Language.Quell.Pipeline.Parse
     other-modules:
         Language.Quell.Prelude.Core
         Language.Quell.Prelude.Literal

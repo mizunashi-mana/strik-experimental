@@ -1,13 +1,13 @@
-module Language.Quell.Pipeline.Source2Ast.SomeLiteralsSpec where
+module Language.Quell.Pipeline.Parse.SomeLiteralsSpec where
 
 import           Language.Quell.Prelude
 import           Test.Hspec
 
-import           Language.Quell.Pipeline.Source2Ast
+import           Language.Quell.Pipeline.Parse
 
 import qualified Conduit
 import qualified Data.ByteString.Char8 as Char8
-import qualified Language.Quell.Pipeline.Source2Ast.TestRunner as TestRunner
+import qualified Language.Quell.Pipeline.Parse.TestRunner as TestRunner
 import qualified Language.Quell.Parsing.Lexer.Encoding as Encoding
 import qualified Language.Quell.Parsing.Lexer as Lexer
 import qualified Language.Quell.Parsing.Spanned as Spanned

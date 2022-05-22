@@ -1,4 +1,4 @@
-module Language.Quell.Pipeline.Source2Ast.TestRunner where
+module Language.Quell.Pipeline.Parse.TestRunner where
 
 import           Language.Quell.Prelude
 

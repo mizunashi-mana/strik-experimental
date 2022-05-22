@@ -129,6 +129,9 @@ $(Ptera.genRules
         , Ptera.genRulesTokenTy = [t|Token|]
         }
     [ (TH.mkName "rdProgramEos", "program EOS", [t|Ast.Program AstParsed.T|])
+    , (TH.mkName "rdExprEos", "expr EOS", [t|Ast.Expr AstParsed.T|])
+    , (TH.mkName "rdTypeEos", "type EOS", [t|Ast.TypeExpr AstParsed.T|])
+
     , (TH.mkName "rdProgram", "program", [t|Ast.Program AstParsed.T|])
 
     , (TH.mkName "rdDeclBody", "decl_body", [t|([Ast.Decl AstParsed.T], Maybe Spanned.Span)|])
@@ -317,8 +320,8 @@ $(Ptera.genParsePoints
     do TH.mkName "ParsePoints"
     do TH.mkName "RuleDefs"
     [ "program EOS"
-    , "type"
-    , "expr"
+    , "type EOS"
+    , "expr EOS"
     ])
 
 type RuleExpr = Ptera.RuleExprM GrammarContext RuleDefs Tokens Token
@@ -494,6 +497,8 @@ grammar = Ptera.fixGrammar
         , rdPatSimpleRecordItemsWithCommas0 = rPatSimpleRecordItemsWithCommas0
         , rdPatSimpleRecordItem = rPatSimpleRecordItem
         , rdPatsWithCommas2 = rPatsWithCommas2
+        , rdExprEos = rExprEos
+        , rdTypeEos = rTypeEos
         }
 
 
@@ -503,6 +508,21 @@ rProgramEos = ruleExpr
         <:> \(program :* _ :* _ :* HNil) ->
             program
     ]
+
+rExprEos :: RuleExpr (Ast.Expr AstParsed.T)
+rExprEos = ruleExpr
+    [ varA @"expr" <^> tokA @"EOS"
+        <:> \(expr :* _ :* _ :* HNil) ->
+            expr
+    ]
+
+rTypeEos :: RuleExpr (Ast.TypeExpr AstParsed.T)
+rTypeEos = ruleExpr
+    [ varA @"type" <^> tokA @"EOS"
+        <:> \(ty :* _ :* _ :* HNil) ->
+            ty
+    ]
+
 
 rProgram :: RuleExpr (Ast.Program AstParsed.T)
 rProgram = ruleExpr

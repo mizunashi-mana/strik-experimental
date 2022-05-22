@@ -1,4 +1,4 @@
-module Language.Quell.Pipeline.Source2Ast (
+module Language.Quell.Pipeline.Parse (
     Source (..),
     source2Program,
     source2Type,
@@ -20,6 +20,7 @@ import qualified Language.Quell.Parsing.Parser.Layout  as Layout
 import qualified Language.Quell.Parsing.Spanned        as Spanned
 import qualified Language.Quell.Type.Ast               as Ast
 import qualified Language.Quell.Type.Token             as Token
+import qualified Language.Quell.Data.Monad.MonadST     as MonadST
 
 
 type Pipeline i m f = Conduit.ConduitT i Conduit.Void m (Parser.Result f)
@@ -69,17 +70,17 @@ skipWsToken = Conduit.await >>= \case
                 pure ()
         skipWsToken
 
-lexTokens2Program :: Monad m
+lexTokens2Program :: MonadST.T s m
     => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.Program)
 lexTokens2Program = Layout.preParseForProgram
     Conduit..| Parser.parseProgram
 
-lexTokens2Type :: Monad m
+lexTokens2Type :: MonadST.T s m
     => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.TypeExpr)
 lexTokens2Type = Layout.preParseForPart
     Conduit..| Parser.parseType
 
-lexTokens2Expr :: Monad m
+lexTokens2Expr :: MonadST.T s m
     => Conduit.ConduitT (Spanned.T Token.LexToken) Conduit.Void m (Parser.Result Ast.Expr)
 lexTokens2Expr = Layout.preParseForPart
     Conduit..| Parser.parseExpr
