@@ -12,9 +12,9 @@ module Language.Quell.Parsing.Parser.AstParsed (
 
 import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Type.Ast        as Ast
 import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
+import qualified Language.Quell.Parsing.Spanned          as Spanned
+import qualified Language.Quell.Type.Ast                 as Ast
 
 
 class SpanBuilder s where

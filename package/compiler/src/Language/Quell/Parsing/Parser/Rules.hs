@@ -7,7 +7,7 @@ import           Language.Quell.Prelude
 
 import qualified Data.List                               as List
 import qualified Language.Haskell.TH                     as TH
-import qualified Language.Haskell.TH.Syntax                     as TH
+import qualified Language.Haskell.TH.Syntax              as TH
 import           Language.Parser.Ptera.TH                (eps, pattern (:*),
                                                           pattern HNil,
                                                           ruleExpr, varA,
@@ -16,10 +16,10 @@ import qualified Language.Parser.Ptera.TH                as Ptera
 import qualified Language.Quell.Data.Bag                 as Bag
 import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
 import qualified Language.Quell.Parsing.Parser.Layout    as Layout
+import           Language.Quell.Parsing.Parser.RulesLib
 import qualified Language.Quell.Parsing.Spanned          as Spanned
 import qualified Language.Quell.Type.Ast                 as Ast
 import qualified Language.Quell.Type.Token               as Token
-import           Language.Quell.Parsing.Parser.RulesLib
 
 
 type Token = Layout.TokenWithL

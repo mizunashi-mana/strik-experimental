@@ -3,9 +3,9 @@ module Language.Quell.Data.BufferedConduitTSpec (spec) where
 import           Language.Quell.Prelude
 import           Test.Hspec
 
-import qualified Language.Quell.Data.BufferedConduit as BufferedConduit
 import qualified Conduit
-import qualified Data.Conduit.List                     as ConduitList
+import qualified Data.Conduit.List                   as ConduitList
+import qualified Language.Quell.Data.BufferedConduit as BufferedConduit
 
 
 spec :: Spec

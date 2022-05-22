@@ -137,8 +137,8 @@ module Language.Quell.Type.Ast (
 
 import           Language.Quell.Prelude
 
-import qualified Language.Quell.Type.TextId as TextId
 import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
+import qualified Language.Quell.Type.TextId              as TextId
 
 
 data Program c = Program [Decl c] (XProgram c)

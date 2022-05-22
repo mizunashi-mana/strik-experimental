@@ -80,6 +80,7 @@ import           Data.Word                        (Word, Word8)
 import           GHC.Prim
 import           GHC.Stack                        (CallStack, HasCallStack,
                                                    callStack)
-import           GHC.TypeLits                     (KnownSymbol, Symbol, symbolVal)
+import           GHC.TypeLits                     (KnownSymbol, Symbol,
+                                                   symbolVal)
 import           GHC.Types
 import           Prettyprinter                    (Doc, Pretty (..))

@@ -9,8 +9,8 @@ module Language.Quell.Prelude.Debug (
 import           Language.Quell.Prelude.Core
 import           Language.Quell.Prelude.Literal
 
+import qualified Control.Exception              as Exception
 import qualified Debug.Trace                    as Debug
-import qualified Control.Exception as Exception
 
 
 debugTrace :: StringLit -> a -> a

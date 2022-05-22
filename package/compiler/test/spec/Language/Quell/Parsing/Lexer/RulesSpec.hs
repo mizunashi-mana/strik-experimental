@@ -5,7 +5,7 @@ import           Test.Hspec
 
 import           Language.Quell.Parsing.Lexer.Rules
 
-import qualified Data.EnumSet      as EnumSet
+import qualified Data.EnumSet                          as EnumSet
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
 
 

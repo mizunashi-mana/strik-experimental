@@ -7,14 +7,14 @@ module Language.Quell.Parsing.Parser where
 import           Language.Quell.Prelude
 
 import qualified Conduit
+import qualified Language.Parser.Ptera.TH                as Ptera
+import qualified Language.Quell.Data.BufferedConduit     as BufferedConduit
+import qualified Language.Quell.Data.Monad.MonadST       as MonadST
 import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
 import qualified Language.Quell.Parsing.Parser.Layout    as Layout
-import qualified Language.Parser.Ptera.TH                as Ptera
-import qualified Language.Quell.Type.Ast                 as Ast
 import qualified Language.Quell.Parsing.Parser.Rules     as Rules
 import           Language.Quell.Parsing.Parser.RulesLib
-import qualified Language.Quell.Data.BufferedConduit as BufferedConduit
-import qualified Language.Quell.Data.Monad.MonadST     as MonadST
+import qualified Language.Quell.Type.Ast                 as Ast
 
 
 $(Ptera.genRunner

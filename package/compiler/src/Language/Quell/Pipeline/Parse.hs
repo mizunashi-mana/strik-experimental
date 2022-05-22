@@ -13,6 +13,7 @@ module Language.Quell.Pipeline.Parse (
 import           Language.Quell.Prelude
 
 import qualified Conduit
+import qualified Language.Quell.Data.Monad.MonadST     as MonadST
 import qualified Language.Quell.Parsing.Lexer          as Lexer
 import qualified Language.Quell.Parsing.Lexer.Encoding as Encoding
 import qualified Language.Quell.Parsing.Parser         as Parser
@@ -20,7 +21,6 @@ import qualified Language.Quell.Parsing.Parser.Layout  as Layout
 import qualified Language.Quell.Parsing.Spanned        as Spanned
 import qualified Language.Quell.Type.Ast               as Ast
 import qualified Language.Quell.Type.Token             as Token
-import qualified Language.Quell.Data.Monad.MonadST     as MonadST
 
 
 type Pipeline i m f = Conduit.ConduitT i Conduit.Void m (Parser.Result f)

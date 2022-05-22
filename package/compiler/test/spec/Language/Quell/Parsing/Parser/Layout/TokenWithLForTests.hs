@@ -3,11 +3,11 @@ module Language.Quell.Parsing.Parser.Layout.TokenWithLForTests (
     fromTokenWithL,
 ) where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Type.Token as Token
 import qualified Language.Quell.Parsing.Parser.Layout as Layout
-import qualified Language.Quell.Parsing.Spanned as Spanned
+import qualified Language.Quell.Parsing.Spanned       as Spanned
+import qualified Language.Quell.Type.Token            as Token
 
 data TokenWithLForTests
     = Token Token.LexToken

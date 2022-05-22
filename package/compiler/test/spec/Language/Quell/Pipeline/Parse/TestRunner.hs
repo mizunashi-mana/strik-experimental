@@ -2,11 +2,11 @@ module Language.Quell.Pipeline.Parse.TestRunner where
 
 import           Language.Quell.Prelude
 
-import qualified Language.Quell.Data.Bag               as Bag
-import qualified Language.Quell.Parsing.Lexer.Error    as Error
-import qualified Language.Quell.Parsing.Spanned        as Spanned
-import qualified Language.Quell.Data.Monad.MonadST     as MonadST
-import qualified Language.Quell.Parsing.Lexer          as Lexer
+import qualified Language.Quell.Data.Bag            as Bag
+import qualified Language.Quell.Data.Monad.MonadST  as MonadST
+import qualified Language.Quell.Parsing.Lexer       as Lexer
+import qualified Language.Quell.Parsing.Lexer.Error as Error
+import qualified Language.Quell.Parsing.Spanned     as Spanned
 
 
 data Report

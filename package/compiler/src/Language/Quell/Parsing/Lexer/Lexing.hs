@@ -9,6 +9,7 @@ import qualified Data.ByteString.Builder                     as BSBuilder
 import qualified Data.ByteString.Lazy                        as LazyByteString
 import qualified Data.EnumSet                                as EnumSet
 import qualified Language.Lexer.Tlex                         as Tlex
+import qualified Language.Quell.Data.BufferedConduit         as BufferedConduit
 import qualified Language.Quell.Data.Monad.MonadST           as MonadST
 import qualified Language.Quell.Parsing.Lexer.CodeUnit       as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Error          as Error
@@ -17,7 +18,6 @@ import qualified Language.Quell.Parsing.Lexer.Rules          as Rules
 import qualified Language.Quell.Parsing.Spanned              as Spanned
 import qualified Language.Quell.Type.TextId                  as TextId
 import qualified Language.Quell.Type.Token                   as Token
-import qualified Language.Quell.Data.BufferedConduit         as BufferedConduit
 
 
 $(Rules.buildLexer)

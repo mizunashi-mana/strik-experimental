@@ -14,8 +14,8 @@ module Language.Quell.Data.BufferedConduit (
 import           Language.Quell.Prelude
 
 import qualified Conduit
-import qualified Language.Quell.Data.Monad.MonadST           as MonadST
-import qualified Language.Quell.Data.STBuffer                as STBuffer
+import qualified Language.Quell.Data.Monad.MonadST as MonadST
+import qualified Language.Quell.Data.STBuffer      as STBuffer
 
 
 type T = BufferedConduitT
@@ -60,8 +60,8 @@ runConduitT m = do
 -- * @@bufferMode == NeedBack i && i <= currentPosition@@ implies the head of @buffer@@ is the item at @@i@@.
 --
 data Context s i = Context
-    { bufferMode :: BufferMode
-    , buffer :: STBuffer.T s i
+    { bufferMode      :: BufferMode
+    , buffer          :: STBuffer.T s i
     , currentPosition :: Int
     }
 

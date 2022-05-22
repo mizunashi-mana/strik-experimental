@@ -12,12 +12,12 @@ module Language.Quell.Parsing.Parser.RulesLib (
 
 import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Type.Ast as Ast
-import qualified Language.Quell.Type.Token as Token
+import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
 import qualified Language.Quell.Parsing.Parser.AstParsed as AstParsed
 import qualified Language.Quell.Parsing.Parser.Layout    as Layout
-import qualified Language.Parser.Ptera.TH.Class.LiftType as LiftType
+import qualified Language.Quell.Parsing.Spanned          as Spanned
+import qualified Language.Quell.Type.Ast                 as Ast
+import qualified Language.Quell.Type.Token               as Token
 
 
 data GrammarContext = GrammarContext
