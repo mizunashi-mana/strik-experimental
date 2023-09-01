@@ -15,6 +15,8 @@ import qualified Language.Quell.Parsing.Spanned                          as Span
 import qualified Language.Quell.Pipeline.Parse.TestRunner                as TestRunner
 import qualified Language.Quell.Type.TextId                              as TextId
 import qualified Language.Quell.Type.Token                               as Token
+import qualified Language.Quell.Type.Ast as Ast
+import qualified Language.Quell.Parsing.Parser as Parser
 
 
 sampleSource :: Lexer.LexerMonad s m => Source () m
@@ -220,3 +222,15 @@ spec = do
                 , TokenWithLForTests.Token Token.SpParenClose
                 ]
 
+    describe "source2Expr" do
+        it "should convert the sample source" do
+            let (reports, result) = TestRunner.runTestRunner
+                    do Conduit.runConduit
+                        do source2Expr sampleSource
+            otoList reports `shouldBe` []
+            result `shouldBe` Parser.Parsed
+                do Ast.ExprArray []
+                    do Spanned.Span
+                        { beginLoc = Spanned.Loc {locBytesPos = 418, locLine = 26, locCol = 12}
+                        , endLoc = Spanned.Loc {locBytesPos = 420, locLine = 26, locCol = 14}
+                        }

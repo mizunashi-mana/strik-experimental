@@ -15,6 +15,8 @@ import qualified Language.Quell.Parsing.Spanned                          as Span
 import qualified Language.Quell.Pipeline.Parse.TestRunner                as TestRunner
 import qualified Language.Quell.Type.TextId                              as TextId
 import qualified Language.Quell.Type.Token                               as Token
+import qualified Language.Quell.Type.Ast as Ast
+import qualified Language.Quell.Parsing.Parser as Parser
 
 
 sampleSource :: Lexer.LexerMonad s m => Source () m
@@ -1213,4 +1215,16 @@ spec = do
                 , TokenWithLForTests.Token Token.KwYield
                 , TokenWithLForTests.Token (Token.IdVarId (TextId.stringLit "i2"))
                 ]
+
+    describe "source2Program" do
+        it "should convert the sample source" do
+            let (reports, result) = TestRunner.runTestRunner
+                    do Conduit.runConduit
+                        do source2Program sampleSource
+            otoList reports `shouldBe` []
+            result `shouldBe` Parser.Parsed
+                do Ast.Program
+                    [
+                    ]
+                    do Nothing
 

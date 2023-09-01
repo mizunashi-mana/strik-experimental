@@ -48,9 +48,13 @@ instance MonadST.T s m => Ptera.Scanner Int Layout.TokenWithL (ParserT s m) wher
     getPosMark = ParserT BufferedConduit.getCurrentPosition
     seekToPosMark i = ParserT do BufferedConduit.seekToPosition i
     scanMode = \case
-        Ptera.ScanModeNoBack ->
+        Ptera.ScanModeNoBack -> do
+            p <- Ptera.getPosMark
+            debugTraceShow ("scanMode NoBack", p) do pure ()
             ParserT do BufferedConduit.setBufferMode BufferedConduit.NoBack
-        Ptera.ScanModeNeedBack i ->
+        Ptera.ScanModeNeedBack i -> do
+            p <- Ptera.getPosMark
+            debugTraceShow ("scanMode NeedBack", i, p) do pure ()
             ParserT do BufferedConduit.setBufferMode do BufferedConduit.NeedBack i
 
 data ParseResult a

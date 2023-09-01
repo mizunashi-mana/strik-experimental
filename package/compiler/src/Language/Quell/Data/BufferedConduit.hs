@@ -191,8 +191,9 @@ setBufferMode mode = case mode of
                 pure (newCtx, ())
     NeedBack newNeedBack -> modifyContext \ctx -> case bufferMode ctx of
         NoBack
-            | newNeedBack < currentPosition ctx ->
-                error "Cannot back before buffered position."
+            | newNeedBack < currentPosition ctx -> do
+                debugTraceShow ("error", newNeedBack, currentPosition ctx) do pure ()
+                error "Cannot back before buffered position.: L.196"
             | otherwise -> do
                 let newCtx = ctx
                         { bufferMode = mode
