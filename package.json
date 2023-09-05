@@ -1,7 +1,0 @@
-{
-    "private": true,
-    "name": "quell-workspace",
-    "workspaces": [
-        "doc/spec"
-    ]
-}

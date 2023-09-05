@@ -1,19 +1,19 @@
 [tool.poetry]
 name = "quell"
 version = "0.1.0"
-description = "A description of Quell"
-
-authors = [
-    'Mizunashi Mana'
-]
-
-readme = 'README.md'  # Markdown files are supported
+description = ""
+authors = ["Mizunashi Mana <contact@mizunashi.work>"]
+readme = "README.md"
 
 [tool.poetry.dependencies]
-python = ">=3.6"
+python = ">=3.8,<4"
 
 [tool.poetry.dev-dependencies]
 sphinx = "*"
 sphinx-autobuild = "*"
 sphinxcontrib-katex = "*"
 sphinxcontrib-bibtex = "*"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

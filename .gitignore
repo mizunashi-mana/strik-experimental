@@ -10,11 +10,8 @@
 #  * etc.
 #
 
-/dist*/
-*.prof
-
 # for Node.js
-/node_modules/
+node_modules/
 
-# for VSCode
-*.vsix
+# for Python
+.venv/
