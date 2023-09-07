@@ -42,7 +42,7 @@
 	}
 }
 
-fetchAccount[logger]: (
+fetchAccount[^logger]: (
 	env: Env(logger)
 	predefUrls: PredefUrls
 	account: String
@@ -185,6 +185,6 @@ fetchAccount[logger]: (
 
 #data HList(types: List(Type)) #by {
 	HNil: HList(Nil)
-	HCons[type: Type, types: List(Type)](head: type, rest: HNil(types)): HList(Cons(type, types))
+	HCons[^type: Type, ^types: List(Type)](head: type, rest: HNil(types)): HList(Cons(type, types))
 }
 ```
