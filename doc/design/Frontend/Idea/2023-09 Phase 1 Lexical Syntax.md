@@ -23,8 +23,7 @@ Overview:
 lexical_program := (whitespace / lexeme)* EOS
 lexeme := literal_part
         / literal
-		/ brace
-		/ special
+		/ special_char
 		/ reserved_id
 		/ reserved_sym
 		/ free_id
@@ -45,15 +44,15 @@ free_id := kw_prefix_char "id" string
 
 Reserved:
 ```
-brace := "{"
-       / "}"
-       / "["
-       / "]"
-       / "("
-       / ")"
-special := ","
-         / ";"
-         / "."
+special_char := "{"
+	          / "}"
+	          / "["
+	          / "]"
+	          / "("
+	          / ")"
+              / ","
+              / ";"
+              / "."
 reserved_id := kw_prefix_char id_char* ! id_char
              / kw_prefix_char sym_char* ! sym_char
              / "_" ! id_char
@@ -138,7 +137,7 @@ comment_open := "/*"
 comment_close := "*/"
 
 any_1l_char := graphic_char / space_char
-anys := ((! (comment_open / comment_close)) any_char)*
+anys := (! (comment_open / comment_close) any_char)*
 any_char := graphic_char / white_char
 ```
 
@@ -163,11 +162,31 @@ white_char := "\v"
             / space_char
             / newline
 space_char := "\t" / "\u{200E}" / "\u{200F}"
-       / "\p{General_Category=Space_Separator}"
+            / "\p{General_Category=Space_Separator}"
 newline := "\r\n" / "\r" / "\n" / "\f"
          / "\p{General_Category=Line_Separator}"
          / "\p{General_Category=Paragraph_Separator}"
 
-small_char
+small_char := "\p{General_Category=Lowercase_Letter}"
+            / "\p{General_category=Other_Letter}"
+            / "_"
+large_char := "\p{General_Category=Uppercase_Letter}"
+            / "\p{General_Category=Titlecase_Letter}"
+symbol_char := ! (special_char / other_special_char / "_") symbol_cat_char
+symbol_cat_char := "\p{General_Category=Connector_Punctuation}"
+                 / "\p{General_Category=Dash_Punctuation}"
+                 / "\p{General_Category=Other_Punctuation}"
+                 / "\p{General_Category=Symbol}"
+digit_char := "\p{General_Category=Decimal_Number}"
+other_char := ! white_char other_cat_char
+other_cat_char := "\p{General_Category=Modifier_Letter}"
+                / "\p{General_Category=Mark}"
+                / "\p{General_Category=Letter_Number}"
+                / "\p{General_Category=Other_Number}"
+                / "\p{General_Category=Format}"
+other_special_char := "#"
+                    / '"'
+                    / "'"
+other_graphic_char := ! (symbol_cat_char / special_char / other_special_char) other_graphic_cat_char
+other_graphic_cat_char := "\p{General_Category=Punctuation}"
 ```
-## Grammar
