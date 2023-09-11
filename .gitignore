@@ -10,8 +10,14 @@
 #  * etc.
 #
 
-# for Node.js
+# for npm
 node_modules/
 
-# for Python
+# for poetry
 .venv/
+
+# for cabal
+/dist-newstyle/
+
+# for cargo
+/target/

@@ -16,6 +16,17 @@ let_type_body_items := lsemis? let_type_body_item (lsemis let_type_body_item)* l
 let_type_body_item := declvar "=" type
 ```
 
+## Where Declaration
+
+```
+where_body := "{" where_body_items "}"
+            / where_body_item
+where_body_items := lsemis? where_body_item (lsemis where_body_item)* lsemis?
+                  / lsemis?
+where_body_item := declvar (":" type)? "=" expr
+                 / local_decl
+```
+
 ## Expression
 
 ```
@@ -63,7 +74,7 @@ expr_interp_string := interp_string_start expr (interp_string_cont expr)* interp
 expr_tuple := "(" expr_tuple_items ")"
 expr_tuple_items := lsemis? expr_tuple_item (lsemis expr_tuple_item)* lsemis?
                   / lsemis?
-expr_tuple_item := declvar "=" expr
+expr_tuple_item := declvar (":" type)? "=" expr
                  / expr
                  / local_decl
 ```

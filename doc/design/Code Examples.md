@@ -158,7 +158,7 @@ fetchAccount: [^logger](
 	| Nil
 	| Cons(head: e; rest: List(e))
 
-#let L = List
+^L = List
 
 #imp self[elem]: L(elem) #> {
 	#fun map[after](f: elem -> after): L(after) = {

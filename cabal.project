@@ -1,0 +1,11 @@
+packages:
+    package/*/*.cabal
+
+constraints:
+    any.doctest            ==0.22.*,
+    any.hspec-discover     ==2.11.*,
+    any.hspec              ==2.11.*,
+    any.QuickCheck         ==2.14.*,
+    QuickCheck -old-random +templatehaskell
+
+tests: True

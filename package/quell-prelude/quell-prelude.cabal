@@ -1,0 +1,82 @@
+cabal-version:      3.4
+name:               quell-prelude
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            Apache-2.0
+license-file:       LICENSE
+author:             Mizunashi Mana
+maintainer:         contact@mizunashi.work
+-- copyright:
+category:           Language
+build-type:         Simple
+extra-doc-files:    CHANGELOG.md
+-- extra-source-files:
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Wincomplete-uni-patterns
+        -Wmonomorphism-restriction
+        -Wpartial-fields
+
+common language
+    default-language: GHC2021
+    default-extensions:
+        NoImplicitPrelude
+        NoCUSKs
+        NoStarIsType
+
+        BlockArguments
+        LambdaCase
+        MagicHash
+        Strict
+
+library
+    import:
+        warnings,
+        language,
+
+    -- other-extensions:
+    hs-source-dirs:   src
+
+    build-depends:
+        base                            ^>=4.18.0.0,
+        array                           ^>=0.5.5,
+        bytestring                      ^>=0.11.4,
+        ghc-prim                        ^>=0.10.0,
+        template-haskell                ^>=2.20.0,
+        text                            ^>=2.0.2,
+        constraints                     ^>=0.13.4,
+        mono-traversable                ^>=1.0.15,
+        prettyprinter                   ^>=1.7.1,
+        prettyprinter-ansi-terminal     ^>=1.1.3,
+        primitive                       ^>=0.8.0,
+        transformers                    ^>=0.6.1,
+        vector                          ^>=0.13.0,
+
+    exposed-modules:
+        Language.Quell.Prelude
+        Language.Quell.Data.TextId
+
+    other-modules:
+        Language.Quell.Prelude.Core
+        Language.Quell.Prelude.Literal
+        Language.Quell.Prelude.Text
+        Language.Quell.Prelude.MonoTraversableM
+        Language.Quell.Prelude.Debug
+
+test-suite quell-prelude-test
+    import:
+        warnings,
+        language,
+
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.0.0,
+        quell-prelude
