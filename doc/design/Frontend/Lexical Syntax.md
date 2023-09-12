@@ -5,14 +5,14 @@
 lexical_program := (whitespace / lexeme)* EOS
 lexeme := literal_part
         / literal
-		/ special_char
-		/ reserved_id
-		/ reserved_sym
-		/ free_id
-		/ var_id
-		/ var_sym
-		/ con_id
-		/ con_sym
+        / special_char
+        / keyword_id
+        / keyword_sym
+        / free_id
+        / var_id
+        / var_sym
+        / con_id
+        / con_sym
 ```
 
 ## Identifier
@@ -29,18 +29,18 @@ free_id := kw_prefix_char string
 
 ```
 special_char := "{"
-	          / "}"
-	          / "["
-	          / "]"
-	          / "("
-	          / ")"
+              / "}"
+              / "["
+              / "]"
+              / "("
+              / ")"
               / ";"
               / "."
-reserved_id := kw_prefix_char id_char* ! id_char
-             / kw_prefix_char sym_char* ! sym_char
-             / "_" ! id_char
-reserved_sym := reserved_sym_unit ! sym_char
-reserved_sym_unit := "="
+keyword_id := kw_prefix_char id_char* ! id_char
+            / kw_prefix_char sym_char* ! sym_char
+            / "_" ! id_char
+keyword_sym := keyword_sym_unit ! sym_char
+keyword_sym_unit := "="
                    / "^"
                    / ":"
                    / '\'
@@ -50,10 +50,9 @@ reserved_sym_unit := "="
 
 ```
 literal_part := interp_string_part
-literal := rational
+literal := string
+         / rational
          / integer
-         / bytechar
-         / char
 ```
 
 ## Number Literal
@@ -72,15 +71,14 @@ hexit_char := digit_char
             / "a" / "b" / ... / "f"
 ```
 
-## String Interpolation
+## String Literal
 
 ```
-interp_string_part := string
-                    / interp_string_start
+interp_string_part := interp_string_start
                     / interp_string_cont
                     / interp_string_end
-
 string := str_sep_char str_graphic_char* str_sep_char
+
 interp_string_start = str_sep_char str_graphic_char* interp_open
 interp_string_cont := interp_close str_graphic_char* interp_open
 interp_string_end := interp_close str_graphic_char* str_sep_char
@@ -115,8 +113,6 @@ whitestuff := white_char
 
 ```
 comment := line_comment
-         / doc_comment
-         / pragma_comment
          / multiline_comment
 
 line_comment := "//" any_1l_char* (newline / EOS)

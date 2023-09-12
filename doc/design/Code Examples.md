@@ -26,11 +26,11 @@
 		#let predefUrls = savePredefs(env).await.try
 
 		env.output.saveTopPage(env.templates.renderTopHtml(TopHtmlParams(
-			title = #mch input.title #in {
+			title = #match input.title #in {
 				Some(title) #> title
 				None #> "Archived ActivityPub Server"
 			}
-			description = #mch input.description #in {
+			description = #match input.description #in {
 				Some(description) #> description
 				None #> "A hub of archived ActivityPub servers."
 			}
@@ -50,7 +50,7 @@ fetchAccount: [^logger](
 	account: String
 ) -> Result((); Error) = {
 	#let accountStripped = account.stripPrefix("@").unwrapOr(account)
-	#let account = #mch accountStripped.splitOne("@") #in {
+	#let account = #match accountStripped.splitOne("@") #in {
 		None #> return Err("Illegal account: #{account#}".into())
 		Some((username; domain)) #> Account.new(username; domain; env.staticBaseUrl).try
 	}
@@ -77,7 +77,7 @@ fetchAccount: [^logger](
 	saveWebfingerResource(env.output; subject; account.actor_url; account.profile_url).await.try
 
 	#let outboxUrlOpt = #case {
-		env.fetchOutbox #> #mch accountActor.actorItems #in {
+		env.fetchOutbox #> #match accountActor.actorItems #in {
 			None #> None
 			Some(actorItems) #> Some(
 				fetchOutboxCollectionRef(
@@ -111,7 +111,7 @@ fetchAccount: [^logger](
 	).await.try
 
 	#if {
-		#let Some(actorId) = originalAccountIdOpt #> #mch FullUrl.parse(actorId) #in {
+		#let Some(actorId) = originalAccountIdOpt #> #match FullUrl.parse(actorId) #in {
 			Ok(actorIdUrl) #> {
 				saveRedirectMap(
 					env;
@@ -162,7 +162,7 @@ fetchAccount: [^logger](
 
 #imp self[elem]: L(elem) #> {
 	#fun map[after](f: elem -> after): L(after) = {
-		#mch self #in {
+		#match self #in {
 			Nil #> Nil
 			Cons(head; rest) => Cons(f(head); rest.map(f))	
 		}
@@ -170,7 +170,7 @@ fetchAccount: [^logger](
 
 	#fun reverse(): L(elem) = {
 		#fun go(acc; rest) = {
-			#mch rest #in {
+			#match rest #in {
 				Nil #> acc
 				Cons(head; rest) #> go(Cons(head; acc); rest)
 			}
