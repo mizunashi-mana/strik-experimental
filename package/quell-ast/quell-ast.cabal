@@ -27,6 +27,7 @@ common language
         LambdaCase
         MagicHash
         Strict
+        TypeFamilies
 
 library
     import:
@@ -43,6 +44,7 @@ library
 
     exposed-modules:
         Language.Quell.Frontend.Data.Token
+        Language.Quell.Frontend.Data.ParsedAst
 
 test-suite quell-ast-test
     import:

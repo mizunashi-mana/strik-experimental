@@ -37,6 +37,8 @@ data LexToken
     | SpDot
 
     | KwArrow
+    | KwBraceOpen
+    | KwBrackOpen
     | KwCase
     | KwId
     | KwIf
@@ -44,6 +46,7 @@ data LexToken
     | KwLet
     | KwMatch
     | KwOp
+    | KwParenOpen
     | KwRec
     | KwWhere
     deriving (Eq, Show)
@@ -71,12 +74,15 @@ instance Pretty LexToken where
         SpDot -> pretty "."
 
         KwArrow -> pretty "#>"
+        KwBraceOpen -> pretty "#{"
+        KwBrackOpen -> pretty "#["
         KwCase -> pretty "#case"
         KwId -> pretty "#id"
         KwIf -> pretty "#if"
         KwIn -> pretty "#in"
         KwLet -> pretty "#let"
         KwMatch -> pretty "#match"
+        KwParenOpen -> pretty "#("
         KwOp -> pretty "#op"
         KwRec -> pretty "#rec"
         KwWhere -> pretty "#where"

@@ -38,7 +38,11 @@ special_char := "{"
               / "."
 keyword_id := kw_prefix_char id_char* ! id_char
             / kw_prefix_char sym_char* ! sym_char
+            / "#{"
+            / "#["
+            / "#("
             / "_" ! id_char
+keyword_id_sym_char = sym_char
 keyword_sym := keyword_sym_unit ! sym_char
 keyword_sym_unit := "="
                    / "^"

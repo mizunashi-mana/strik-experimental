@@ -11,7 +11,7 @@
 		fetchOutbox: String
 		defaultMaxPages: Word
 		pageItemsCount: Word
-	): Future(Result((); Error)) = {
+	): Future(Result((); Error)) = #handle(return; try; await) {
 		#let input = input.load(inputPath).await.try
 		#let env = Env(
 			client = reqwest.Client.new()
@@ -48,10 +48,10 @@ fetchAccount: [^logger](
 	env: Env(logger)
 	predefUrls: PredefUrls
 	account: String
-) -> Result((); Error) = {
+) -> Result((); Error) = #handle(return; try; await) {
 	#let accountStripped = account.stripPrefix("@").unwrapOr(account)
 	#let account = #match accountStripped.splitOne("@") #in {
-		None #> return Err("Illegal account: #{account#}".into())
+		None #> Err("Illegal account: #{account#}".into()).return
 		Some((username; domain)) #> Account.new(username; domain; env.staticBaseUrl).try
 	}
 

@@ -9,11 +9,13 @@ local_type_decl := "#let" let_type_body
 let_body := lb_open let_body_items lb_close
           / let_body_item
 let_body_items := lsemis? let_body_item (lsemis let_body_item)* lsemis?
-let_body_item := declvar "=" expr
+let_body_item := bind_prom_type
+               / bind_expr
 let_type_body := lb_open let_type_body_items lb_close
                / let_type_body_item
 let_type_body_items := lsemis? let_type_body_item (lsemis let_type_body_item)* lsemis?
-let_type_body_item := declvar "=" type
+let_type_body_item := bind_prom_type
+                    /  dbind_type
 ```
 
 ## Where Declaration
@@ -23,8 +25,13 @@ where_body := lb_open where_body_items lb_close
             / where_body_item
 where_body_items := lsemis? where_body_item (lsemis where_body_item)* lsemis?
                   / lsemis?
-where_body_item := declvar (":" type)? "=" expr
+where_body_item := bind_prom_type
+                 / bind_expr
                  / local_decl
+
+bind_expr := declvar (":" type)? "=" expr
+bind_type := declvar (":" type)? "=" type
+bind_prom_type := "^" declvar (":" type)? "=" type
 ```
 
 ## Expression
@@ -59,7 +66,7 @@ case_item := view "#>" expr
 
 block := lb_open block_items lb_close
        / lb_open block_stmts lb_close
-       / lb_open lb_close
+       / lb_open lsemis? lb_close
 block_items := lsemis? block_item (lsemis block_item)* lsemis?
 block_item := block_pats block_guard? "#>" expr
 block_pats := lsemis? pat (lsemis pat)* lsemis?
@@ -69,12 +76,14 @@ block_stmts := lsemis? block_stmt (lsemis block_stmt)* lsemis?
 block_stmt := expr
             / local_decl
 
-expr_interp_string := interp_string_start expr (interp_string_cont expr)* interp_string_end
+expr_interp_string := interp_string_start block_stmts (interp_string_cont block_stmts)* interp_string_end
 
 expr_tuple := lp_open expr_tuple_items lp_close
 expr_tuple_items := lsemis? expr_tuple_item (lsemis expr_tuple_item)* lsemis?
                   / lsemis?
-expr_tuple_item := declvar (":" type)? "=" expr
+expr_tuple_item := bind_prom_type
+                 / bind_expr
+                 / "^" type
                  / expr
                  / local_decl
 ```
@@ -95,9 +104,10 @@ type_atomic := block_type
              / var
 type_literal := literal
               / type_tuple
+              / type_tuple_sig
 
 block_type := lb_open block_type_stmts lb_close
-            / lb_open lclose
+            / lb_open lsemis? lb_close
 block_type_stmts := lsemis? block_type_stmt (lsemis block_type_stmt)* lsemis?
 block_type_stmt := type
                  / local_type_decl
@@ -105,14 +115,18 @@ block_type_stmt := type
 type_tuple := lp_open type_tuple_items lp_close
 type_tuple_items := lsemis? type_tuple_item (lsemis type_tuple_item)* lsemis?
                   / lsemis?
-type_tuple_item := declvar "=" type
+type_tuple_item := bind_prom_type
+                 / bind_type
+                 / "^" type_infix
                  / type_infix
                  / local_type_decl
 
 type_tuple_sig := lp_open type_tuple_sig_items lp_close
 type_tuple_sig_items := lsemis? type_tuple_sig_item (lsemis type_tuple_sig_item)* lsemis?
                       / lsemis?
-type_tuple_sig_item := declvar ":" type
+type_tuple_sig_item := "^" declvar ":" type
+                     / declvar ":" type
+                     / "^" type_infix
                      / type_infix
                      / local_type_decl
 ```
