@@ -1,4 +1,5 @@
 # Not Scope
+
 * Accessibility
 	* Unicode syntax
 	* Internationalization
@@ -16,6 +17,7 @@
 * Useful comments
 	* nested comment
 * Support attribute annotation
+
 # Contents
 ## Lexical Syntax
 Overview:

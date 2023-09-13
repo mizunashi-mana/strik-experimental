@@ -371,6 +371,78 @@ deriving instance EqXAll tag => Eq (TypeTupleSigItem tag)
 deriving instance ShowXAll tag => Show (TypeTupleSigItem tag)
 
 
+data Pat tag
+    = PatWithAnn (Pat tag) (TypeExpr tag) (XPatWithAnn tag)
+    | PatInfix (Pat tag) [InfixAppPat tag] (XPatInfix tag)
+    | PatApp Name [AppPat tag] (XPatApp tag)
+    | PatLiteral (Literal tag) (XPatLiteral tag)
+    | PatTuple [PatTupleItem tag] (XPatTuple tag)
+    | PatVar Name (XPatVar tag)
+
+type family XPatWithAnn (tag :: a) :: Type
+type family XPatInfix (tag :: a) :: Type
+type family XPatApp (tag :: a) :: Type
+type family XPatLiteral (tag :: a) :: Type
+type family XPatTuple (tag :: a) :: Type
+type family XPatVar (tag :: a) :: Type
+
+type MapXPat :: (Type -> Constraint) -> a -> Constraint
+type MapXPat f tag =
+    (
+        f (XPatWithAnn tag),
+        f (XPatInfix tag),
+        f (XPatApp tag),
+        f (XPatLiteral tag),
+        f (XPatTuple tag),
+        f (XPatVar tag)
+    )
+deriving instance EqXAll tag => Eq (Pat tag)
+deriving instance ShowXAll tag => Show (Pat tag)
+
+
+data InfixAppPat tag = InfixAppPat Name (Pat tag) (XInfixAppPat tag)
+
+type family XInfixAppPat (tag :: a) :: Type
+
+type MapXInfixAppPat :: (Type -> Constraint) -> a -> Constraint
+type MapXInfixAppPat f tag =
+    (
+        f (XInfixAppPat tag)
+    )
+deriving instance EqXAll tag => Eq (InfixAppPat tag)
+deriving instance ShowXAll tag => Show (InfixAppPat tag)
+
+
+data AppPat tag = AppPat (Pat tag) (XAppPat tag)
+
+type family XAppPat (tag :: a) :: Type
+
+type MapXAppPat :: (Type -> Constraint) -> a -> Constraint
+type MapXAppPat f tag =
+    (
+        f (XAppPat tag)
+    )
+deriving instance EqXAll tag => Eq (AppPat tag)
+deriving instance ShowXAll tag => Show (AppPat tag)
+
+
+data PatTupleItem tag
+    = PatTupleItemNamedPat Name (Pat tag) (XPatTupleItemNamedPat tag)
+    | PatTupleItemPat (Pat tag) (XPatTupleItemPat tag)
+
+type family XPatTupleItemNamedPat (tag :: a) :: Type
+type family XPatTupleItemPat (tag :: a) :: Type
+
+type MapXPatTupleItem :: (Type -> Constraint) -> a -> Constraint
+type MapXPatTupleItem f tag =
+    (
+        f (XPatTupleItemNamedPat tag),
+        f (XPatTupleItemPat tag)
+    )
+deriving instance EqXAll tag => Eq (PatTupleItem tag)
+deriving instance ShowXAll tag => Show (PatTupleItem tag)
+
+
 data View tag
     = ViewBlock [View tag] (XViewBlock tag)
     | ViewLetDecl (Pat tag) (Expr tag) (XViewLetDecl tag)
@@ -391,10 +463,24 @@ deriving instance EqXAll tag => Eq (View tag)
 deriving instance ShowXAll tag => Show (View tag)
 
 
-data Pat tag deriving (Eq, Show)
+data Literal tag
+    = LitString Text (XLitString tag)
+    | LitRational Rational (XLitRational tag)
+    | LitInteger Integer (XLitInteger tag)
 
+type family XLitString (tag :: a) :: Type
+type family XLitRational (tag :: a) :: Type
+type family XLitInteger (tag :: a) :: Type
 
-data Literal tag deriving (Eq, Show)
+type MapXLiteral :: (Type -> Constraint) -> a -> Constraint
+type MapXLiteral f tag =
+    (
+        f (XLitString tag),
+        f (XLitRational tag),
+        f (XLitInteger tag)
+    )
+deriving instance EqXAll tag => Eq (Literal tag)
+deriving instance ShowXAll tag => Show (Literal tag)
 
 
 type Name = TextId.T
@@ -421,11 +507,17 @@ type MapXAll f tag =
         MapXTypeBlockStmt f tag,
         MapXTypeTupleItem f tag,
         MapXTypeTupleSigItem f tag,
-        MapXView f tag
+        MapXPat f tag,
+        MapXInfixAppPat f tag,
+        MapXAppPat f tag,
+        MapXPatTupleItem f tag,
+        MapXView f tag,
+        MapXLiteral f tag
     )
 
 class MapXAll Eq tag => EqXAll tag
 class MapXAll Show tag => ShowXAll tag
+
 
 data Bundle a
 
@@ -486,8 +578,22 @@ type instance XTypeTupleSigItemNamedType (Bundle a) = a
 type instance XTypeTupleSigItemPromType (Bundle a) = a
 type instance XTypeTupleSigItemType (Bundle a) = a
 type instance XTypeTupleSigItemLocal (Bundle a) = a
+type instance XPatWithAnn (Bundle a) = a
+type instance XPatInfix (Bundle a) = a
+type instance XPatApp (Bundle a) = a
+type instance XPatLiteral (Bundle a) = a
+type instance XPatTuple (Bundle a) = a
+type instance XPatVar (Bundle a) = a
+type instance XInfixAppPat (Bundle a) = a
+type instance XAppPat (Bundle a) = a
+type instance XPatTupleItemNamedPat (Bundle a) = a
+type instance XPatTupleItemPat (Bundle a) = a
 type instance XViewBlock (Bundle a) = a
 type instance XViewLetDecl (Bundle a) = a
 type instance XViewExpr (Bundle a) = a
+type instance XLitString (Bundle a) = a
+type instance XLitRational (Bundle a) = a
+type instance XLitInteger (Bundle a) = a
+
 instance Eq a => EqXAll (Bundle a)
 instance Show a => ShowXAll (Bundle a)

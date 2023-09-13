@@ -134,7 +134,7 @@ type_tuple_sig_item := "^" declvar ":" type
 ## Pattern
 
 ```
-pat := pat_ann 
+pat := pat_ann
 pat_ann := pat_infix ":" type
          / pat_infix
 pat_infix := pat_apps (pat_op pat_apps)*
@@ -143,7 +143,6 @@ pat_op := "#op" lp_open lsemis? con lsemis? lp_close
 pat_apps := con pat_atomic*
 pat_atomic := lb_open lsemis? pat lsemis? lb_close
             / pat_literal
-            / con
             / var
 pat_literal := literal
              / pat_tuple

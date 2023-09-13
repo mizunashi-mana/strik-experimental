@@ -3,6 +3,7 @@
 * Parsing optimization
 * Module
 * Useful pattern and view
+    - Or pattern
 * GADTs
 * Interface
 * Suspension

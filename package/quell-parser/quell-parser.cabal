@@ -22,57 +22,60 @@ extra-doc-files:    CHANGELOG.md
 -- extra-source-files:
 
 common warnings
-    ghc-options: -Wall
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Wincomplete-uni-patterns
+        -Wmonomorphism-restriction
+        -Wpartial-fields
+
+common language
+    default-language: GHC2021
+    default-extensions:
+        NoImplicitPrelude
+        NoCUSKs
+        NoStarIsType
+
+        BlockArguments
+        LambdaCase
+        MagicHash
+        Strict
+        TypeFamilies
 
 library
-    import:           warnings
+    import:
+        warnings,
+        language,
 
-    exposed-modules:  MyLib
-
-    -- Modules included in this library but not exported.
-    -- other-modules:
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-
-    -- Other library packages from which modules are imported.
-    build-depends:
-        base            ^>=4.18.0.0,
-        tlex            ^>= 0.4.0,
-        tlex-encoding   ^>= 0.4.0,
-        tlex-th         ^>= 0.4.1,
-        ptera           ^>= 0.4.0,
-        ptera-th        ^>= 0.7.0,
-
-        quell-ast,
-
-    -- Directories containing source files.
     hs-source-dirs:   src
 
-    -- Base language which the package is written in.
-    default-language: GHC2021
+    build-depends:
+        base             ^>=4.18.0.0,
+        tlex             ^>=0.4.0,
+        tlex-encoding    ^>=0.4.0,
+        tlex-th          ^>=0.4.1,
+        ptera            ^>=0.4.0,
+        ptera-th         ^>=0.7.0,
+        enummapset       ^>=0.7.1,
+        template-haskell ^>=2.20.0,
+
+        quell-prelude,
+        quell-ast,
+
+    exposed-modules:
+        Language.Quell.Lexer.Rules
+        Language.Quell.Lexer.CodeUnit
 
 test-suite quell-parser-test
-    import:           warnings
+    import:
+        warnings,
+        language,
 
-    default-language: GHC2021
-
-    -- Modules included in this executable, other than Main.
-    -- other-modules:
-
-    -- LANGUAGE extensions used by modules in this package.
-    -- other-extensions:
-
-    -- The interface type and version of the test suite.
     type:             exitcode-stdio-1.0
 
-    -- Directories containing source files.
     hs-source-dirs:   test
-
-    -- The entrypoint to the test suite.
     main-is:          Main.hs
 
-    -- Test dependencies.
     build-depends:
-        base ^>=4.18.0.0,
+        quell-prelude,
         quell-parser
