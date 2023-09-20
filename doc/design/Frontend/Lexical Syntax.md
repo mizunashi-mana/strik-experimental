@@ -22,25 +22,17 @@ var_id := id_small_char id_char* ! id_char
 con_id := id_large_char id_char* ! id_char
 var_sym := sym_normal_char sym_char* ! sym_char
 con_sym := sym_sp_char sym_char* ! sym_char
-free_id := kw_prefix_char string
+free_id := keyword_prefix_char string
 ```
 
 ## Reserved
 
 ```
-special_char := "{"
-              / "}"
-              / "["
-              / "]"
-              / "("
-              / ")"
-              / ";"
-              / "."
-keyword_id := kw_prefix_char id_char* ! id_char
-            / kw_prefix_char sym_char* ! sym_char
-            / "#{"
-            / "#["
-            / "#("
+keyword_id := keyword_prefix_char id_char* ! id_char
+            / keyword_prefix_char sym_char* ! sym_char
+            / keyword_prefix_char "{"
+            / keyword_prefix_char "["
+            / keyword_prefix_char "("
             / "_" ! id_char
 keyword_id_sym_char = sym_char
 keyword_sym := keyword_sym_unit ! sym_char
@@ -81,23 +73,22 @@ hexit_char := digit_char
 interp_string_part := interp_string_start
                     / interp_string_cont
                     / interp_string_end
-string := str_sep_char str_graphic_char* str_sep_char
+string := interp_string_sep_char interp_string_graphic_char* interp_string_sep_char
 
-interp_string_start = str_sep_char str_graphic_char* interp_open
-interp_string_cont := interp_close str_graphic_char* interp_open
-interp_string_end := interp_close str_graphic_char* str_sep_char
+interp_string_start = interp_string_sep_char interp_string_graphic_char* interp_open
+interp_string_cont := interp_close interp_string_graphic_char* interp_open
+interp_string_end := interp_close interp_string_graphic_char* interp_string_sep_char
 
 interp_open := interp_open_char "{"
-interp_close := kw_prefix_char "}"
+interp_close := keyword_prefix_char "}"
 
-str_sep_char := '"'
 escape_open_char := '\'
-interp_open_char := kw_prefix_char
-str_graphic_char := uni_escape
-                  / bstr_graphic 
+interp_open_char := keyword_prefix_char
+interp_string_graphic_char := uni_escape
+                            / bstr_graphic 
 bstr_graphic_char := byte_escape
                    / white_char
-                   / ! (str_sep_char / escape_open_char / interp_open_char) graphic_char
+                   / ! (interp_string_sep_char / escape_open_char / interp_open_char) graphic_char
 byte_escape := escape_open_char (charesc / byteesc)
 uni_escape := escape_open_char "u{" hexit+ "}"
 charesc := "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v" / "#"
@@ -174,9 +165,22 @@ other_cat_char := "\p{General_Category=Modifier_Letter}"
                 / "\p{General_Category=Letter_Number}"
                 / "\p{General_Category=Other_Number}"
                 / "\p{General_Category=Format}"
-other_special_char := "#"
-                    / '"'
-                    / "'"
+
+special_char := "{"
+              / "}"
+              / "["
+              / "]"
+              / "("
+              / ")"
+              / ";"
+              / "."
+other_special_char := keyword_prefix_char
+                    / interp_string_sep_char
+                    / raw_string_sep_char
+keyword_prefix_char := "#"
+interp_string_sep_char := '"'
+raw_string_sep_char := "'"
+
 other_graphic_char := ! (symbol_cat_char / special_char / other_special_char) other_graphic_cat_char
 other_graphic_cat_char := "\p{General_Category=Punctuation}"
 ```

@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskellQuotes #-}
+
 module Language.Quell.Lexer.Rules where
 
 import Language.Quell.Prelude
@@ -66,8 +68,153 @@ lexerRules :: ScannerBuilder ()
 lexerRules = undefined
 
 
+specialRules :: ScannerBuilder ()
+specialRules = do
+    initialRule (stringP "{") [||withLexToken Token.SpBraceOpen||]
+    initialRule (stringP "}") [||withLexToken Token.SpBraceClose||]
+    initialRule (stringP "[") [||withLexToken Token.SpBrackOpen||]
+    initialRule (stringP "]") [||withLexToken Token.SpBrackClose||]
+    initialRule (stringP "(") [||withLexToken Token.SpParenOpen||]
+    initialRule (stringP ")") [||withLexToken Token.SpParenClose||]
+    initialRule (stringP ";") [||withLexToken Token.SpSemi||]
+    initialRule (stringP ".") [||withLexToken Token.SpDot||]
+
+specialCharCs :: CharSet
+specialCharCs = EnumSet.unions
+    [
+        charsCs [
+            '{',
+            '}',
+            '[',
+            ']',
+            '(',
+            ')',
+            ';',
+            '.'
+        ]
+    ]
+
+
 whiteSpaceRules :: ScannerBuilder ()
 whiteSpaceRules = undefined
+
+
+anyCharCs :: CharSet
+anyCharCs = undefined
+
+
+graphicCharCs :: CharSet
+graphicCharCs = EnumSet.unions
+    [
+        smallCharCs,
+        largeCharCs,
+        symbolCharCs
+    ]
+
+whiteCharCs :: CharSet
+whiteCharCs = EnumSet.unions
+    [
+        charsCs [
+            '\v'
+        ],
+        spaceCharCs,
+        newlineCharCs
+    ]
+
+spaceCharCs :: CharSet
+spaceCharCs = EnumSet.unions
+    [
+        charsCs [
+            '\t',
+            '\x200E',
+            '\x200F'
+        ],
+        CodeUnit.catSpaceSeparator
+    ]
+
+newlineP :: Pattern
+newlineP = undefined
+
+newlineCharCs :: CharSet
+newlineCharCs = EnumSet.unions
+    [
+        charsCs [
+            '\r',
+            '\n',
+            '\f'
+        ],
+        CodeUnit.catLineSeparator,
+        CodeUnit.catParagraphSeparator
+    ]
+
+smallCharCs :: CharSet
+smallCharCs = EnumSet.unions
+    [
+        CodeUnit.catLowercaseLetter,
+        CodeUnit.catOtherLetter,
+        charsCs [
+            '_'
+        ]
+    ]
+
+largeCharCs :: CharSet
+largeCharCs = EnumSet.unions
+    [
+        CodeUnit.catUppercaseLetter,
+        CodeUnit.catTitlecaseLetter
+    ]
+
+symbolCharCs :: CharSet
+symbolCharCs = EnumSet.unions
+    [
+        symbolCatCharCs
+    ] `EnumSet.difference` EnumSet.unions [
+        specialCharCs
+    ]
+
+symbolCatCharCs :: CharSet
+symbolCatCharCs = EnumSet.unions
+    [
+        CodeUnit.catConnectorPunctuation,
+        CodeUnit.catDashPunctuation,
+        CodeUnit.catOtherPunctuation,
+        CodeUnit.catSymbol
+    ]
+
+digitCharCs :: CharSet
+digitCharCs = EnumSet.unions
+    [
+        CodeUnit.catDecimalNumber
+    ]
+
+otherCharCs :: CharSet
+otherCharCs = EnumSet.unions
+    [
+        otherCatCharCs
+    ] `EnumSet.difference` EnumSet.unions
+    [
+        whiteCharCs
+    ]
+
+otherCatCharCs :: CharSet
+otherCatCharCs = EnumSet.unions
+    [
+        CodeUnit.catModifierLetter,
+        CodeUnit.catMark,
+        CodeUnit.catLetterNumber,
+        CodeUnit.catOtherNumber,
+        CodeUnit.catFormat
+    ]
+
+otherSpecialCharCs :: CharSet
+otherSpecialCharCs = EnumSet.unions
+    [
+        charsCs [
+            '#',
+            '"',
+            '\''
+        ]
+    ]
 
 
 charSetP :: CharSet -> Pattern
@@ -75,6 +222,9 @@ charSetP = Tlex.straightEnumSetP
 
 chP :: Char -> Pattern
 chP c = charSetP do charsCs [c]
+
+stringP :: StringLit -> Pattern
+stringP = foldMap chP
 
 
 charsCs :: [Char] -> CharSet
