@@ -1,3 +1,5 @@
+{-# OPTIONS_GHC -Wno-missing-signatures #-}
+
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
 module Language.Quell.Lexer.Rules where
@@ -95,12 +97,86 @@ specialCharCs = EnumSet.unions
     ]
 
 
-whiteSpaceRules :: ScannerBuilder ()
-whiteSpaceRules = undefined
+integerP = undefined
 
+decimalP = digitCharP <> Tlex.manyP digitUscoreCharP
+
+heximalP = hexitCharP <> Tlex.manyP hexitUscoreCharP
+
+signCharP = charSetP signCharCs
+signCharCs = charsCs ['+', '-']
+
+zeroCharCs = charsCs ['0']
+
+digitUscoreCharP = charSetP digitUscoreCharCs
+digitUscoreCharCs = EnumSet.unions
+    [
+        digitCharCs,
+        numSepSymCharCs
+    ]
+
+hexitUscoreCharP = charSetP hexitUscoreCharCs
+hexitUscoreCharCs = EnumSet.unions
+    [
+        hexitCharCs,
+        numSepSymCharCs
+    ]
+
+numSepSymCharCs = EnumSet.unions
+    [
+        charsCs [
+            '_'
+        ]
+    ]
+
+hexitCharP = charSetP hexitCharCs
+hexitCharCs = EnumSet.unions
+    [
+        digitCharCs,
+        charsCs [
+            'A', 'B', 'C', 'D', 'E', 'F',
+            'a', 'b', 'c', 'd', 'e', 'f'
+        ]
+    ]
+
+
+whiteSpaceRules :: ScannerBuilder ()
+whiteSpaceRules = do
+    initialRule (Tlex.someP whiteCharP) [||WithWhiteSpace||]
+
+    commentRules
+
+
+commentRules :: ScannerBuilder ()
+commentRules = do
+    initialRule lineCommentOpenP [||LexCommentLineWithContent||]
+    initialRule multilineCommentOpenP [||LexCommentMultilineWithContent||]
+
+lineCommentOpenP :: Pattern
+lineCommentOpenP = stringP "//"
+
+multilineCommentOpenP :: Pattern
+multilineCommentOpenP = commentOpenP
+
+commentOpenP :: Pattern
+commentOpenP = stringP "/*"
+
+commentCloseP :: Pattern
+commentCloseP = stringP "*/"
+
+any1lCharCs :: CharSet
+any1lCharCs = EnumSet.unions
+    [
+        graphicCharCs,
+        spaceCharCs
+    ]
 
 anyCharCs :: CharSet
-anyCharCs = undefined
+anyCharCs = EnumSet.unions
+    [
+        graphicCharCs,
+        whiteCharCs
+    ]
 
 
 graphicCharCs :: CharSet
@@ -108,10 +184,31 @@ graphicCharCs = EnumSet.unions
     [
         smallCharCs,
         largeCharCs,
-        symbolCharCs
+        symbolCharCs,
+        digitCharCs,
+        otherCharCs,
+        specialCharCs,
+        otherSpecialCharCs,
+        otherGraphicCharCs
     ]
 
-whiteCharCs :: CharSet
+idCharCs :: CharSet
+idCharCs = EnumSet.unions
+    [
+        smallCharCs,
+        largeCharCs,
+        digitCharCs,
+        otherCharCs
+    ]
+
+symCharCs :: CharSet
+symCharCs = EnumSet.unions
+    [
+        symbolCharCs,
+        otherCharCs
+    ]
+
+whiteCharP = charSetP whiteCharCs
 whiteCharCs = EnumSet.unions
     [
         charsCs [
@@ -147,7 +244,6 @@ newlineCharCs = EnumSet.unions
         CodeUnit.catParagraphSeparator
     ]
 
-smallCharCs :: CharSet
 smallCharCs = EnumSet.unions
     [
         CodeUnit.catLowercaseLetter,
@@ -157,14 +253,12 @@ smallCharCs = EnumSet.unions
         ]
     ]
 
-largeCharCs :: CharSet
 largeCharCs = EnumSet.unions
     [
         CodeUnit.catUppercaseLetter,
         CodeUnit.catTitlecaseLetter
     ]
 
-symbolCharCs :: CharSet
 symbolCharCs = EnumSet.unions
     [
         symbolCatCharCs
@@ -172,7 +266,6 @@ symbolCharCs = EnumSet.unions
         specialCharCs
     ]
 
-symbolCatCharCs :: CharSet
 symbolCatCharCs = EnumSet.unions
     [
         CodeUnit.catConnectorPunctuation,
@@ -181,7 +274,7 @@ symbolCatCharCs = EnumSet.unions
         CodeUnit.catSymbol
     ]
 
-digitCharCs :: CharSet
+digitCharP = charSetP digitCharCs
 digitCharCs = EnumSet.unions
     [
         CodeUnit.catDecimalNumber
@@ -209,11 +302,34 @@ otherCatCharCs = EnumSet.unions
 otherSpecialCharCs :: CharSet
 otherSpecialCharCs = EnumSet.unions
     [
+        keywordPrefixCharCs,
+        interpStringSepCharCs,
         charsCs [
-            '#',
-            '"',
             '\''
         ]
+    ]
+
+keywordPrefixCharCs :: CharSet
+keywordPrefixCharCs = charsCs ['#']
+
+interpStringSepCharCs :: CharSet
+interpStringSepCharCs = charsCs ['"']
+
+otherGraphicCharCs :: CharSet
+otherGraphicCharCs = EnumSet.unions
+    [
+        otherGraphicCatCharCs
+    ] `EnumSet.difference` EnumSet.unions
+    [
+        symbolCatCharCs,
+        specialCharCs,
+        otherSpecialCharCs
+    ]
+
+otherGraphicCatCharCs :: CharSet
+otherGraphicCatCharCs = EnumSet.unions
+    [
+        CodeUnit.catPunctuation
     ]
 
 

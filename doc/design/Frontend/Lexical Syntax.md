@@ -54,14 +54,15 @@ literal := string
 ## Number Literal
 
 ```
-rational := sign? decimal "." decimal
-integer := sign? zero_char ("x" / "X") heximal
-         / sign? (! zero_char) decimal
-decimal := digit_char (digit_char / "_")* ! (digit_char / "_")
-heximal := hexit_char (hexit_char / "_")* ! (hexit_char / "_")
-sign := "+"
-      / "-"
+rational := sign_char? decimal "." decimal
+integer := sign_char? zero_char ("x" / "X") heximal
+         / sign_char? (! zero_char) decimal
+decimal := digit_char (digit_char / num_sep_sym_char)* ! (digit_char / num_sep_sym_char)
+heximal := hexit_char (hexit_char / num_sep_sym_char)* ! (hexit_char / num_sep_sym_char)
+sign_char := "+"
+           / "-"
 zero_char := "0"
+num_sep_sym_char := "_"
 hexit_char := digit_char
             / "A" / "B" / ... / "F"
             / "a" / "b" / ... / "f"
@@ -111,13 +112,13 @@ comment := line_comment
          / multiline_comment
 
 line_comment := "//" any_1l_char* (newline / EOS)
-multiline_comment := comment_open anys comment_close
+multiline_comment := comment_open anys (comment_close / EOS)
 
 comment_open := "/*"
 comment_close := "*/"
 
 any_1l_char := graphic_char / space_char
-anys := (! (comment_open / comment_close) any_char)*
+anys := (! comment_close any_char)*
 any_char := graphic_char / white_char
 ```
 
@@ -176,10 +177,9 @@ special_char := "{"
               / "."
 other_special_char := keyword_prefix_char
                     / interp_string_sep_char
-                    / raw_string_sep_char
+                    / "'"
 keyword_prefix_char := "#"
 interp_string_sep_char := '"'
-raw_string_sep_char := "'"
 
 other_graphic_char := ! (symbol_cat_char / special_char / other_special_char) other_graphic_cat_char
 other_graphic_cat_char := "\p{General_Category=Punctuation}"
