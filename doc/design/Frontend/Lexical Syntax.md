@@ -54,14 +54,17 @@ literal := string
 ## Number Literal
 
 ```
-rational := sign_char? decimal "." decimal
-integer := sign_char? zero_char ("x" / "X") heximal
+rational := sign_char? (! zero_char) decimal num_dot_sym_char decimal
+integer := number_prefix ("x" / "X") heximal
+         / number_prefix ("d" / "D") decimal
          / sign_char? (! zero_char) decimal
+number_prefix := sign_char? zero_char
 decimal := digit_char (digit_char / num_sep_sym_char)* ! (digit_char / num_sep_sym_char)
 heximal := hexit_char (hexit_char / num_sep_sym_char)* ! (hexit_char / num_sep_sym_char)
 sign_char := "+"
            / "-"
 zero_char := "0"
+num_dot_sym_char := "."
 num_sep_sym_char := "_"
 hexit_char := digit_char
             / "A" / "B" / ... / "F"

@@ -20,9 +20,9 @@ data LexerAction
     | WithIdType IdType
     | WithWhiteSpace
     | LexLitRationalWithDot
-    | LexLitRationalWithoutDot
     | LexLitHeximalInteger
     | LexLitDecimalInteger
+    | LexLitDefaultInteger
     | LexLitString
     | LexInterpStringStart
     | LexInterpStringContinue
@@ -97,29 +97,50 @@ specialCharCs = EnumSet.unions
     ]
 
 
-integerP = undefined
+rationalRules :: ScannerBuilder ()
+rationalRules = do
+    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP <> numDotSymCharP <> decimalP) [||LexLitRationalWithDot||]
 
-decimalP = digitCharP <> Tlex.manyP digitUscoreCharP
+integerRules :: ScannerBuilder ()
+integerRules = do
+    initialRule (numberPrefixP <> charsP ['x', 'X'] <> heximalP) [||LexLitHeximalInteger||]
+    initialRule (numberPrefixP <> charsP ['d', 'D'] <> decimalP) [||LexLitDecimalInteger||]
+    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP) [||LexLitDefaultInteger||]
 
-heximalP = hexitCharP <> Tlex.manyP hexitUscoreCharP
+numberPrefixP = Tlex.maybeP signCharP <> zeroCharP
+
+nonZeroDecimalP = charSetP nonZeroDigitCharCs <> Tlex.manyP digitOrUscoreCharP
+nonZeroDigitCharCs = digitCharCs `EnumSet.difference` zeroCharCs
+
+decimalP = digitCharP <> Tlex.manyP digitOrUscoreCharP
+heximalP = hexitCharP <> Tlex.manyP hexitOrUscoreCharP
 
 signCharP = charSetP signCharCs
 signCharCs = charsCs ['+', '-']
 
+zeroCharP = charSetP zeroCharCs
 zeroCharCs = charsCs ['0']
 
-digitUscoreCharP = charSetP digitUscoreCharCs
-digitUscoreCharCs = EnumSet.unions
+digitOrUscoreCharP = charSetP digitOrUscoreCharCs
+digitOrUscoreCharCs = EnumSet.unions
     [
         digitCharCs,
         numSepSymCharCs
     ]
 
-hexitUscoreCharP = charSetP hexitUscoreCharCs
-hexitUscoreCharCs = EnumSet.unions
+hexitOrUscoreCharP = charSetP hexitOrUscoreCharCs
+hexitOrUscoreCharCs = EnumSet.unions
     [
         hexitCharCs,
         numSepSymCharCs
+    ]
+
+numDotSymCharP = charSetP numDotSymCharCs
+numDotSymCharCs = EnumSet.unions
+    [
+        charsCs [
+            '.'
+        ]
     ]
 
 numSepSymCharCs = EnumSet.unions
@@ -230,7 +251,11 @@ spaceCharCs = EnumSet.unions
     ]
 
 newlineP :: Pattern
-newlineP = undefined
+newlineP = Tlex.orP
+    [
+        stringP "\r\n",
+        charSetP newlineCharCs
+    ]
 
 newlineCharCs :: CharSet
 newlineCharCs = EnumSet.unions
@@ -335,6 +360,9 @@ otherGraphicCatCharCs = EnumSet.unions
 
 charSetP :: CharSet -> Pattern
 charSetP = Tlex.straightEnumSetP
+
+charsP :: [Char] -> Pattern
+charsP cs = charSetP do charsCs cs
 
 chP :: Char -> Pattern
 chP c = charSetP do charsCs [c]
