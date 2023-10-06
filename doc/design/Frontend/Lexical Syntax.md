@@ -77,26 +77,27 @@ hexit_char := digit_char
 interp_string_part := interp_string_start
                     / interp_string_cont
                     / interp_string_end
-string := interp_string_sep_char interp_string_graphic_char* interp_string_sep_char
+string := interp_string_sep_char interp_string_graphic* interp_string_sep_char
 
-interp_string_start = interp_string_sep_char interp_string_graphic_char* interp_open
-interp_string_cont := interp_close interp_string_graphic_char* interp_open
-interp_string_end := interp_close interp_string_graphic_char* interp_string_sep_char
+interp_string_start = interp_string_sep_char interp_string_graphic* interp_open
+interp_string_cont := interp_close interp_string_graphic* interp_open
+interp_string_end := interp_close interp_string_graphic* interp_string_sep_char
 
 interp_open := interp_open_char "{"
 interp_close := keyword_prefix_char "}"
 
 escape_open_char := '\'
 interp_open_char := keyword_prefix_char
-interp_string_graphic_char := uni_escape
-                            / bstr_graphic 
-bstr_graphic_char := byte_escape
-                   / white_char
-                   / ! (interp_string_sep_char / escape_open_char / interp_open_char) graphic_char
-byte_escape := escape_open_char (charesc / byteesc)
-uni_escape := escape_open_char "u{" hexit+ "}"
-charesc := "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v" / "#"
-         / escape_open_char / str_sep_char
+str_sep_char := '"'
+interp_string_graphic := uni_escape
+                       / bstr_graphic 
+bstr_graphic := byte_escape
+              / white_char
+              / ! (interp_string_sep_char / escape_open_char / interp_open_char) graphic_char
+byte_escape := escape_open_char (charesc_char / byteesc)
+uni_escape := escape_open_char "u{" hexit_char+ "}"
+charesc_char := "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v"
+              / escape_open_char / str_sep_char / interp_open_char
 byteesc := "x" hexit_char hexit_char
 ```
 

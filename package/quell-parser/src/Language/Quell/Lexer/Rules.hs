@@ -161,6 +161,40 @@ hexitCharCs = EnumSet.unions
     ]
 
 
+escapeOpenCharCs = EnumSet.unions
+    [
+        charsCs [
+            '\\'
+        ]
+    ]
+
+interpOpenCharCs = keywordPrefixCharCs
+
+strSepCharCs = EnumSet.unions
+    [
+        charsCs [
+            '"'
+        ]
+    ]
+
+interpStringGraphicP = EnumSet.unions
+    [
+
+    ]
+
+charescCharCs = EnumSet.unions
+    [
+        charsCs [
+            '0', 'a', 'b', 'f', 'n', 'r', 't', 'v'
+        ],
+        escapeOpenCharCs,
+        strSepCharCs,
+        interpOpenCharCs
+    ]
+
+byteescP = stringP "x" <> hexitCharP <> hexitCharP
+
+
 whiteSpaceRules :: ScannerBuilder ()
 whiteSpaceRules = do
     initialRule (Tlex.someP whiteCharP) [||WithWhiteSpace||]
