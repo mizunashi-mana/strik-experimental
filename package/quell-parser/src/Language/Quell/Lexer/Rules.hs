@@ -23,7 +23,6 @@ data LexerAction
     | LexLitHeximalInteger
     | LexLitDecimalInteger
     | LexLitDefaultInteger
-    | LexLitString
     | LexInterpStringStart
     | LexInterpStringContinue
     | LexCommentLineWithContent
@@ -81,7 +80,6 @@ specialRules = do
     initialRule (stringP ";") [||withLexToken Token.SpSemi||]
     initialRule (stringP ".") [||withLexToken Token.SpDot||]
 
-specialCharCs :: CharSet
 specialCharCs = EnumSet.unions
     [
         charsCs [
@@ -95,6 +93,13 @@ specialCharCs = EnumSet.unions
             '.'
         ]
     ]
+
+
+literalPartOrLiteralRules :: ScannerBuilder ()
+literalPartOrLiteralRules = do
+    interpStringPartOrStringLiteralRules
+    rationalRules
+    integerRules
 
 
 rationalRules :: ScannerBuilder ()
@@ -161,6 +166,15 @@ hexitCharCs = EnumSet.unions
     ]
 
 
+interpStringPartOrStringLiteralRules :: ScannerBuilder ()
+interpStringPartOrStringLiteralRules = do
+    initialRule strSepCharP [||LexInterpStringStart||]
+    initialRule interpCloseP [||LexInterpStringContinue||]
+
+interpOpenP = interpOpenCharP <> charsP ['{']
+interpCloseP = keywordPrefixCharP <> charsP ['}']
+
+escapeOpenCharP = charSetP escapeOpenCharCs
 escapeOpenCharCs = EnumSet.unions
     [
         charsCs [
@@ -168,8 +182,10 @@ escapeOpenCharCs = EnumSet.unions
         ]
     ]
 
+interpOpenCharP = charSetP interpOpenCharCs
 interpOpenCharCs = keywordPrefixCharCs
 
+strSepCharP = charSetP strSepCharCs
 strSepCharCs = EnumSet.unions
     [
         charsCs [
@@ -177,10 +193,29 @@ strSepCharCs = EnumSet.unions
         ]
     ]
 
-interpStringGraphicP = EnumSet.unions
+interpStringGraphicP = Tlex.orP
     [
-
+        uniEscapeP,
+        bstrGraphicP
     ]
+
+bstrGraphicP = Tlex.orP
+    [
+        byteEscapeP,
+        whiteCharP,
+        charSetP bstrOtherGraphicCharCs
+    ]
+
+bstrOtherGraphicCharCs = graphicCharCs `EnumSet.difference` EnumSet.unions
+    [
+        interpStringSepCharCs,
+        escapeOpenCharCs,
+        interpOpenCharCs
+    ]
+
+byteEscapeP = escapeOpenCharP <> Tlex.orP [charSetP charescCharCs, byteescP]
+
+uniEscapeP = escapeOpenCharP <> stringP "u{" <> Tlex.someP hexitCharP <> stringP "}"
 
 charescCharCs = EnumSet.unions
     [
@@ -207,26 +242,19 @@ commentRules = do
     initialRule lineCommentOpenP [||LexCommentLineWithContent||]
     initialRule multilineCommentOpenP [||LexCommentMultilineWithContent||]
 
-lineCommentOpenP :: Pattern
 lineCommentOpenP = stringP "//"
 
-multilineCommentOpenP :: Pattern
 multilineCommentOpenP = commentOpenP
 
-commentOpenP :: Pattern
 commentOpenP = stringP "/*"
-
-commentCloseP :: Pattern
 commentCloseP = stringP "*/"
 
-any1lCharCs :: CharSet
 any1lCharCs = EnumSet.unions
     [
         graphicCharCs,
         spaceCharCs
     ]
 
-anyCharCs :: CharSet
 anyCharCs = EnumSet.unions
     [
         graphicCharCs,
@@ -234,7 +262,6 @@ anyCharCs = EnumSet.unions
     ]
 
 
-graphicCharCs :: CharSet
 graphicCharCs = EnumSet.unions
     [
         smallCharCs,
@@ -247,7 +274,6 @@ graphicCharCs = EnumSet.unions
         otherGraphicCharCs
     ]
 
-idCharCs :: CharSet
 idCharCs = EnumSet.unions
     [
         smallCharCs,
@@ -256,7 +282,6 @@ idCharCs = EnumSet.unions
         otherCharCs
     ]
 
-symCharCs :: CharSet
 symCharCs = EnumSet.unions
     [
         symbolCharCs,
@@ -273,7 +298,6 @@ whiteCharCs = EnumSet.unions
         newlineCharCs
     ]
 
-spaceCharCs :: CharSet
 spaceCharCs = EnumSet.unions
     [
         charsCs [
@@ -284,7 +308,6 @@ spaceCharCs = EnumSet.unions
         CodeUnit.catSpaceSeparator
     ]
 
-newlineP :: Pattern
 newlineP = Tlex.orP
     [
         stringP "\r\n",
@@ -339,7 +362,6 @@ digitCharCs = EnumSet.unions
         CodeUnit.catDecimalNumber
     ]
 
-otherCharCs :: CharSet
 otherCharCs = EnumSet.unions
     [
         otherCatCharCs
@@ -348,7 +370,6 @@ otherCharCs = EnumSet.unions
         whiteCharCs
     ]
 
-otherCatCharCs :: CharSet
 otherCatCharCs = EnumSet.unions
     [
         CodeUnit.catModifierLetter,
@@ -358,7 +379,6 @@ otherCatCharCs = EnumSet.unions
         CodeUnit.catFormat
     ]
 
-otherSpecialCharCs :: CharSet
 otherSpecialCharCs = EnumSet.unions
     [
         keywordPrefixCharCs,
@@ -368,13 +388,11 @@ otherSpecialCharCs = EnumSet.unions
         ]
     ]
 
-keywordPrefixCharCs :: CharSet
+keywordPrefixCharP = charSetP keywordPrefixCharCs
 keywordPrefixCharCs = charsCs ['#']
 
-interpStringSepCharCs :: CharSet
 interpStringSepCharCs = charsCs ['"']
 
-otherGraphicCharCs :: CharSet
 otherGraphicCharCs = EnumSet.unions
     [
         otherGraphicCatCharCs
@@ -385,7 +403,6 @@ otherGraphicCharCs = EnumSet.unions
         otherSpecialCharCs
     ]
 
-otherGraphicCatCharCs :: CharSet
 otherGraphicCatCharCs = EnumSet.unions
     [
         CodeUnit.catPunctuation
