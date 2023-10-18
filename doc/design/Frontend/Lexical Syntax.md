@@ -28,13 +28,10 @@ free_id := keyword_prefix_char string
 ## Reserved
 
 ```
-keyword_id := keyword_prefix_char id_char* ! id_char
-            / keyword_prefix_char sym_char* ! sym_char
-            / keyword_prefix_char "{"
-            / keyword_prefix_char "["
-            / keyword_prefix_char "("
+keyword_id := keyword_prefix_char id_char+ ! id_char
+            / keyword_prefix_char sym_char+ ! sym_char
+            / keyword_prefix_char ("{" / "[" / "(")
             / "_" ! id_char
-keyword_id_sym_char = sym_char
 keyword_sym := keyword_sym_unit ! sym_char
 keyword_sym_unit := "="
                    / "^"
@@ -137,12 +134,17 @@ graphic_char := small_char
               / special_char
               / other_special_char
               / other_graphic_char
-id_char := small_char
-         / large_char
+id_char := id_small_char
+         / id_large_char
          / digit_char
          / other_char
-sym_char := symbol_char
+id_small_char := small_char
+id_large_char := large_char
+sym_char := sym_normal_char
+          / sym_sp_char
           / other_char
+sym_normal_char := ! sym_sp_char symbol_char
+sym_sp_char := "~"
 white_char := "\v"
             / space_char
             / newline_char

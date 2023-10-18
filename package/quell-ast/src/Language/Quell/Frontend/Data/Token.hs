@@ -2,6 +2,9 @@ module Language.Quell.Frontend.Data.Token where
 
 import Language.Quell.Prelude
 
+import qualified Language.Quell.Data.TextId as TextId
+import qualified Language.Quell.Data.TextId as Text
+
 type T = Token
 
 data Token
@@ -36,19 +39,21 @@ data LexToken
     | SpSemi
     | SpDot
 
-    | KwArrow
     | KwBraceOpen
     | KwBrackOpen
-    | KwCase
-    | KwId
-    | KwIf
-    | KwIn
-    | KwLet
-    | KwMatch
-    | KwOp
     | KwParenOpen
-    | KwRec
-    | KwWhere
+    | KwUnderscore
+
+    | KwSymEqual
+    | KwSymCaret
+    | KwSymColon
+    | KwSymBackslash
+
+    | IdVarId TextId.T
+    | IdConId TextId.T
+    | IdVarSym TextId.T
+    | IdConSym TextId.T
+    | IdFreeId TextId.T
     deriving (Eq, Show)
 
 instance Pretty LexToken where
@@ -73,19 +78,23 @@ instance Pretty LexToken where
         SpSemi -> pretty ";"
         SpDot -> pretty "."
 
-        KwArrow -> pretty "#>"
         KwBraceOpen -> pretty "#{"
         KwBrackOpen -> pretty "#["
-        KwCase -> pretty "#case"
-        KwId -> pretty "#id"
-        KwIf -> pretty "#if"
-        KwIn -> pretty "#in"
-        KwLet -> pretty "#let"
-        KwMatch -> pretty "#match"
         KwParenOpen -> pretty "#("
-        KwOp -> pretty "#op"
-        KwRec -> pretty "#rec"
-        KwWhere -> pretty "#where"
+        KwUnderscore -> pretty "_"
+
+        KwSymBackslash -> pretty "\\"
+        KwSymCaret -> pretty "^"
+        KwSymColon -> pretty ":"
+        KwSymEqual -> pretty "="
+
+        IdVarId v -> pretty v
+        IdConId v -> pretty v
+        IdVarSym v -> pretty v
+        IdConSym v -> pretty v
+        -- FIXME: Make to show complete representation.
+        -- Current implementation is approximately.
+        IdFreeId v -> pretty do text "#\"" <> Text.showByText v <> text "\""
 
 data WsToken
     = CommentLine Text

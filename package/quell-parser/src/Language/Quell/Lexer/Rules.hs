@@ -18,7 +18,9 @@ import qualified Language.Haskell.TH as TH
 data LexerAction
     = WithToken Token.T
     | WithIdType IdType
+    | WithKwToken
     | WithWhiteSpace
+    | LexIdFreeIdStart
     | LexLitRationalWithDot
     | LexLitHeximalInteger
     | LexLitDecimalInteger
@@ -66,33 +68,45 @@ initialRule = TlexTH.thLexRule [Initial]
 
 
 lexerRules :: ScannerBuilder ()
-lexerRules = undefined
+lexerRules = do
+    literalPartOrLiteralRules
+    specialCharRules
+    keywordIdRules
+    keywordSymRules
+    identifierRules
 
 
-specialRules :: ScannerBuilder ()
-specialRules = do
-    initialRule (stringP "{") [||withLexToken Token.SpBraceOpen||]
-    initialRule (stringP "}") [||withLexToken Token.SpBraceClose||]
-    initialRule (stringP "[") [||withLexToken Token.SpBrackOpen||]
-    initialRule (stringP "]") [||withLexToken Token.SpBrackClose||]
-    initialRule (stringP "(") [||withLexToken Token.SpParenOpen||]
-    initialRule (stringP ")") [||withLexToken Token.SpParenClose||]
-    initialRule (stringP ";") [||withLexToken Token.SpSemi||]
-    initialRule (stringP ".") [||withLexToken Token.SpDot||]
+identifierRules :: ScannerBuilder ()
+identifierRules = do
+    initialRule varIdP [||withIdType Token.IdVarId||]
+    initialRule conIdP [||withIdType Token.IdConId||]
+    initialRule varSymP [||withIdType Token.IdVarSym||]
+    initialRule conSymP [||withIdType Token.IdConSym||]
+    initialRule freeIdOpenP [||LexIdFreeIdStart||]
 
-specialCharCs = EnumSet.unions
-    [
-        charsCs [
-            '{',
-            '}',
-            '[',
-            ']',
-            '(',
-            ')',
-            ';',
-            '.'
-        ]
-    ]
+varIdP = idSmallCharP <> Tlex.manyP idCharP
+conIdP = idLargeCharP <> Tlex.manyP idCharP
+varSymP = symNormalCharP <> Tlex.manyP symCharP
+conSymP = symSpCharP <> Tlex.manyP symCharP
+freeIdOpenP = keywordPrefixCharP <> strSepCharP
+
+
+keywordIdRules :: ScannerBuilder ()
+keywordIdRules = do
+    initialRule (keywordPrefixCharP <> Tlex.someP idCharP) [||WithKwToken||]
+    initialRule (keywordPrefixCharP <> Tlex.someP symCharP) [||WithKwToken||]
+    initialRule (keywordPrefixCharP <> charsP ['{']) [||withLexToken Token.KwBraceOpen||]
+    initialRule (keywordPrefixCharP <> charsP ['[']) [||withLexToken Token.KwBrackOpen||]
+    initialRule (keywordPrefixCharP <> charsP ['(']) [||withLexToken Token.KwParenOpen||]
+    -- The underscore is parsed as varIdP
+
+
+keywordSymRules :: ScannerBuilder ()
+keywordSymRules = do
+    initialRule (stringP "=") [||withLexToken Token.KwSymEqual||]
+    initialRule (stringP "^") [||withLexToken Token.KwSymCaret||]
+    initialRule (stringP ":") [||withLexToken Token.KwSymColon||]
+    initialRule (stringP "\\") [||withLexToken Token.KwSymBackslash||]
 
 
 literalPartOrLiteralRules :: ScannerBuilder ()
@@ -274,18 +288,38 @@ graphicCharCs = EnumSet.unions
         otherGraphicCharCs
     ]
 
+idCharP = charSetP idCharCs
 idCharCs = EnumSet.unions
     [
-        smallCharCs,
-        largeCharCs,
+        idSmallCharCs,
+        idLargeCharCs,
         digitCharCs,
         otherCharCs
     ]
 
+idSmallCharP = charSetP idSmallCharCs
+idSmallCharCs = smallCharCs
+
+idLargeCharP = charSetP idLargeCharCs
+idLargeCharCs = largeCharCs
+
+symCharP = charSetP symCharCs
 symCharCs = EnumSet.unions
     [
-        symbolCharCs,
+        symNormalCharCs,
+        symSpCharCs,
         otherCharCs
+    ]
+
+symNormalCharP = charSetP symNormalCharCs
+symNormalCharCs = symbolCharCs `EnumSet.difference` symSpCharCs
+
+symSpCharP = charSetP symSpCharCs
+symSpCharCs = EnumSet.unions
+    [
+        charsCs [
+            '~'
+        ]
     ]
 
 whiteCharP = charSetP whiteCharCs
@@ -377,6 +411,31 @@ otherCatCharCs = EnumSet.unions
         CodeUnit.catLetterNumber,
         CodeUnit.catOtherNumber,
         CodeUnit.catFormat
+    ]
+
+specialCharRules :: ScannerBuilder ()
+specialCharRules = do
+    initialRule (stringP "{") [||withLexToken Token.SpBraceOpen||]
+    initialRule (stringP "}") [||withLexToken Token.SpBraceClose||]
+    initialRule (stringP "[") [||withLexToken Token.SpBrackOpen||]
+    initialRule (stringP "]") [||withLexToken Token.SpBrackClose||]
+    initialRule (stringP "(") [||withLexToken Token.SpParenOpen||]
+    initialRule (stringP ")") [||withLexToken Token.SpParenClose||]
+    initialRule (stringP ";") [||withLexToken Token.SpSemi||]
+    initialRule (stringP ".") [||withLexToken Token.SpDot||]
+
+specialCharCs = EnumSet.unions
+    [
+        charsCs [
+            '{',
+            '}',
+            '[',
+            ']',
+            '(',
+            ')',
+            ';',
+            '.'
+        ]
     ]
 
 otherSpecialCharCs = EnumSet.unions
