@@ -32,6 +32,9 @@ common language
         LambdaCase
         MagicHash
         Strict
+        TypeFamilies
+        UnboxedTuples
+        UnliftedNewtypes
 
 library
     import:
@@ -45,6 +48,7 @@ library
         base                            ^>=4.18.0.0,
         array                           ^>=0.5.5,
         bytestring                      ^>=0.11.4,
+        conduit                         ^>=1.3.5,
         ghc-prim                        ^>=0.10.0,
         template-haskell                ^>=2.20.0,
         text                            ^>=2.0.2,
@@ -59,6 +63,11 @@ library
     exposed-modules:
         Language.Quell.Prelude
         Language.Quell.Data.TextId
+        Language.Quell.Data.Bag
+        Language.Quell.Data.BufferedConduitT
+        Language.Quell.Data.Mutable.STBuffer
+        Language.Quell.Data.Unlifted.MutInt
+        Language.Quell.Data.Monad.MonadST
 
     other-modules:
         Language.Quell.Prelude.Core
@@ -67,16 +76,22 @@ library
         Language.Quell.Prelude.MonoTraversableM
         Language.Quell.Prelude.Debug
 
-test-suite quell-prelude-test
+test-suite spec
     import:
         warnings,
         language,
-
-    -- other-modules:
-    -- other-extensions:
-    type:             exitcode-stdio-1.0
-    hs-source-dirs:   test
-    main-is:          Main.hs
+    type: exitcode-stdio-1.0
+    hs-source-dirs:
+        test/spec
+    main-is:
+        HSpecDriver.hs
+    ghc-options:
+        -Wno-missing-home-modules
+    build-tool-depends:
+        hspec-discover:hspec-discover,
     build-depends:
-        base ^>=4.18.0.0,
-        quell-prelude
+        quell-prelude,
+
+        base,
+        hspec,
+        QuickCheck,

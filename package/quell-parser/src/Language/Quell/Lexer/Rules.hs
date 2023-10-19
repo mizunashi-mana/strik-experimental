@@ -15,6 +15,15 @@ import qualified Data.EnumSet as EnumSet
 import qualified Language.Haskell.TH as TH
 
 
+buildLexer :: TH.Q [TH.Dec]
+buildLexer = do
+    stateTy <- [t|LexerState|]
+    codeUnitTy <- [t|LexerCodeUnit|]
+    actionTy <- [t|LexerAction|]
+    let lexer = TlexTH.buildTHScanner codeUnitTy stateTy actionTy lexerRules
+    TlexTH.outputScanner lexer
+
+
 data LexerAction
     = WithToken Token.T
     | WithIdType IdType
