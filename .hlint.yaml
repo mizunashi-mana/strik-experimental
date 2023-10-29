@@ -15,6 +15,7 @@
 - ignore: {name: "Replace case with fromMaybe"}
 - ignore: {name: "Functor law"}
 - ignore: {name: "Eta reduce"}
+- ignore: {name: "Redundant as"}
 - ignore: {name: "Redundant bracket"}
 - ignore: {name: "Redundant irrefutable pattern"}
 - ignore: {name: "Redundant multi-way if"}

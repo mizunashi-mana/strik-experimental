@@ -37,8 +37,10 @@ common language
         NoStarIsType
 
         BlockArguments
+        DerivingVia
         LambdaCase
         MagicHash
+        MultiWayIf
         Strict
         TypeFamilies
 
@@ -50,32 +52,44 @@ library
     hs-source-dirs:   src
 
     build-depends:
-        base             ^>=4.18.0.0,
-        tlex             ^>=0.4.0,
-        tlex-encoding    ^>=0.4.0,
-        tlex-th          ^>=0.4.1,
-        ptera            ^>=0.4.0,
-        ptera-th         ^>=0.7.0,
-        enummapset       ^>=0.7.1,
-        template-haskell ^>=2.20.0,
+        base                            ^>=4.18.0.0,
+        tlex                            ^>=0.4.0,
+        tlex-encoding                   ^>=0.4.0,
+        tlex-th                         ^>=0.4.1,
+        ptera                           ^>=0.4.0,
+        ptera-th                        ^>=0.7.0,
+        enummapset                      ^>=0.7.1,
+        template-haskell                ^>=2.20.0,
+        conduit                         ^>=1.3.5,
 
         quell-prelude,
         quell-ast,
 
     exposed-modules:
-        Language.Quell.Lexer.Rules
-        Language.Quell.Lexer.CodeUnit
+        Language.Quell.Parsing.Spanned
+        Language.Quell.Parsing.Lexer.Rules
+        Language.Quell.Parsing.Lexer.CodeUnit
+        Language.Quell.Parsing.Lexer.Lexing
 
-test-suite quell-parser-test
+test-suite quell-parser-spec
     import:
         warnings,
         language,
-
-    type:             exitcode-stdio-1.0
-
-    hs-source-dirs:   test
-    main-is:          Main.hs
-
+    type: exitcode-stdio-1.0
+    hs-source-dirs:
+        test/spec
+    main-is:
+        HSpecDriver.hs
+    ghc-options:
+        -Wno-missing-home-modules
+    build-tool-depends:
+        hspec-discover:hspec-discover,
     build-depends:
         quell-prelude,
-        quell-parser
+        quell-parser,
+        hspec,
+        QuickCheck,
+
+        base,
+        charset,
+        enummapset,

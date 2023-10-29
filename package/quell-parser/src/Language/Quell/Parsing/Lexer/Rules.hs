@@ -2,13 +2,13 @@
 
 {-# LANGUAGE TemplateHaskellQuotes #-}
 
-module Language.Quell.Lexer.Rules where
+module Language.Quell.Parsing.Lexer.Rules where
 
 import Language.Quell.Prelude
 
 import qualified Language.Quell.Data.TextId as TextId
 import qualified Language.Quell.Frontend.Data.Token as Token
-import qualified Language.Quell.Lexer.CodeUnit as CodeUnit
+import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
 import qualified Language.Lexer.Tlex.Plugin.TH as TlexTH
 import qualified Language.Lexer.Tlex as Tlex
 import qualified Data.EnumSet as EnumSet

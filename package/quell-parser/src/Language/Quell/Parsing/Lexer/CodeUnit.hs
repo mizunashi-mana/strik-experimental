@@ -1,4 +1,4 @@
-module Language.Quell.Lexer.CodeUnit where
+module Language.Quell.Parsing.Lexer.CodeUnit where
 
 import Language.Quell.Prelude
 
@@ -42,7 +42,9 @@ data ByPoint
     | LcU0028 -- '('
     | LcU0029 -- ')'
     | LcU002A -- '*'
+    | LcU002B -- '+'
     | LcU002C -- ','
+    | LcU002D -- '-'
     | LcU002E -- '.'
     | LcU002F -- '/'
     | LcU0030 -- '0'
@@ -120,6 +122,7 @@ data ByPoint
     | LcU007A -- 'z'
     | LcU007B -- '{'
     | LcU007D -- '}'
+    | LcU007E -- '~'
     | LcU03BB -- 'λ'
     | LcU200E -- Left-to-Right Mark
     | LcU200F -- Right-to-Left Mark
@@ -176,7 +179,9 @@ fromChar c = case fromEnum c of
     0x0028 -> CodeUnitByPoint LcU0028
     0x0029 -> CodeUnitByPoint LcU0029
     0x002A -> CodeUnitByPoint LcU002A
+    0x002B -> CodeUnitByPoint LcU002B
     0x002C -> CodeUnitByPoint LcU002C
+    0x002D -> CodeUnitByPoint LcU002D
     0x002E -> CodeUnitByPoint LcU002E
     0x002F -> CodeUnitByPoint LcU002F
     0x0030 -> CodeUnitByPoint LcU0030
@@ -254,6 +259,7 @@ fromChar c = case fromEnum c of
     0x007A -> CodeUnitByPoint LcU007A
     0x007B -> CodeUnitByPoint LcU007B
     0x007D -> CodeUnitByPoint LcU007D
+    0x007E -> CodeUnitByPoint LcU007E
     0x03BB -> CodeUnitByPoint LcU03BB
     0x200E -> CodeUnitByPoint LcU200E
     0x200F -> CodeUnitByPoint LcU200F
@@ -420,7 +426,8 @@ catConnectorPunctuation = EnumSet.fromList
 
 catDashPunctuation :: EnumSet.EnumSet CodeUnit
 catDashPunctuation = EnumSet.fromList
-    [ CodeUnitOtherByCat LcCatPd
+    [ CodeUnitByPoint LcU002D
+    , CodeUnitOtherByCat LcCatPd
     ]
 
 catClosePunctuation :: EnumSet.EnumSet CodeUnit
@@ -485,10 +492,12 @@ catPunctuation = mconcat
 
 catSymbol :: EnumSet.EnumSet CodeUnit
 catSymbol = EnumSet.fromList
-    [ CodeUnitByPoint LcU003C
+    [ CodeUnitByPoint LcU002B
+    , CodeUnitByPoint LcU003C
     , CodeUnitByPoint LcU003D
     , CodeUnitByPoint LcU003E
     , CodeUnitByPoint LcU005E
+    , CodeUnitByPoint LcU007E
     , CodeUnitByPoint LcU2200
     , CodeUnitByPoint LcU29CF
     , CodeUnitByPoint LcU29D0

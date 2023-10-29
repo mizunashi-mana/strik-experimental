@@ -29,8 +29,10 @@ common language
         NoStarIsType
 
         BlockArguments
+        DerivingVia
         LambdaCase
         MagicHash
+        MultiWayIf
         Strict
         TypeFamilies
         UnboxedTuples
@@ -62,9 +64,11 @@ library
 
     exposed-modules:
         Language.Quell.Prelude
+        Language.Quell.Model.Error
+        Language.Quell.Model.ErrorCode
         Language.Quell.Data.TextId
         Language.Quell.Data.Bag
-        Language.Quell.Data.BufferedConduitT
+        Language.Quell.Data.BufferedConduit
         Language.Quell.Data.Mutable.STBuffer
         Language.Quell.Data.Unlifted.MutInt
         Language.Quell.Data.Monad.MonadST
@@ -76,7 +80,7 @@ library
         Language.Quell.Prelude.MonoTraversableM
         Language.Quell.Prelude.Debug
 
-test-suite spec
+test-suite quell-prelude-spec
     import:
         warnings,
         language,
@@ -91,7 +95,8 @@ test-suite spec
         hspec-discover:hspec-discover,
     build-depends:
         quell-prelude,
-
-        base,
         hspec,
         QuickCheck,
+
+        base,
+        conduit,
