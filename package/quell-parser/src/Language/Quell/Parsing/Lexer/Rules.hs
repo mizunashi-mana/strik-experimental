@@ -100,22 +100,21 @@ conSymP = symSpCharP <> Tlex.manyP symCharP
 freeIdOpenP = keywordPrefixCharP <> strSepCharP
 
 
-keywordIdRules :: ScannerBuilder ()
-keywordIdRules = do
+keywordPrefixedRules :: ScannerBuilder ()
+keywordPrefixedRules = do
     initialRule (keywordPrefixCharP <> Tlex.someP idCharP) [||WithKwToken||]
     initialRule (keywordPrefixCharP <> Tlex.someP symCharP) [||WithKwToken||]
     initialRule (keywordPrefixCharP <> charsP ['{']) [||withLexToken Token.KwBraceOpen||]
     initialRule (keywordPrefixCharP <> charsP ['[']) [||withLexToken Token.KwBrackOpen||]
     initialRule (keywordPrefixCharP <> charsP ['(']) [||withLexToken Token.KwParenOpen||]
-    -- The underscore is parsed as varIdP
 
+-- | All identifiers parsed as varIds.
+keywordIdRules :: ScannerBuilder ()
+keywordIdRules = pure ()
 
+-- | All symbols parsed as varSyms.
 keywordSymRules :: ScannerBuilder ()
-keywordSymRules = do
-    initialRule (stringP "=") [||withLexToken Token.KwSymEqual||]
-    initialRule (stringP "^") [||withLexToken Token.KwSymCaret||]
-    initialRule (stringP ":") [||withLexToken Token.KwSymColon||]
-    initialRule (stringP "\\") [||withLexToken Token.KwSymBackslash||]
+keywordSymRules = pure ()
 
 
 literalPartOrLiteralRules :: ScannerBuilder ()

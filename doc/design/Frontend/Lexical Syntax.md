@@ -28,10 +28,11 @@ free_id := keyword_prefix_char string
 ## Reserved
 
 ```
-keyword_id := keyword_prefix_char id_char+ ! id_char
-            / keyword_prefix_char sym_char+ ! sym_char
-            / keyword_prefix_char ("{" / "[" / "(")
-            / "_" ! id_char
+keyword_prefixed := keyword_prefix_char id_char+ ! id_char
+                  / keyword_prefix_char sym_char+ ! sym_char
+                  / keyword_prefix_char ("{" / "[" / "(")
+keyword_id := keyword_id_unit ! id_char
+keyword_id_unit := "_"
 keyword_sym := keyword_sym_unit ! sym_char
 keyword_sym_unit := "="
                    / "^"
