@@ -14,6 +14,7 @@ import qualified Data.EnumSet as EnumSet
 import qualified Language.Quell.Data.TextId as TextId
 import qualified Language.Quell.Parsing.Lexer.Input as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing as NumberLexing
 
 $(Rules.buildLexer)
 
@@ -169,7 +170,67 @@ lexAndYieldFreeId :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldFreeId = undefined
 
 lexAndYieldLitRationalWithDot :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldLitRationalWithDot = undefined
+lexAndYieldLitRationalWithDot pos0 pos1 = do
+    spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
+        do \item -> item <&> \(c, u) -> go0 c u
+        do \spannedState item -> Spanned.Spanned
+            { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan item
+            , Spanned.unSpanned = case Spanned.unSpanned item of
+                (c, u) -> case Spanned.unSpanned spannedState of
+                    (lexedSign, s) -> (lexedSign, lexItemNextState s c u)
+            }
+        pos0 pos1
+    Input.lexerYield do
+        spannedState <&> \(lexedSign, LexItemState { lexItemState = (i0, n0, m0) }) -> do
+            let i1 = case lexedSign of
+                    NumberLexing.LexedSignPositive -> i0
+                    NumberLexing.LexedSignNegative -> negate i0
+                n1 = m0 - n0
+            Input.LexedToken do
+                Token.TokLexeme do
+                    Token.LitRational if
+                        | n1 < 0    -> i1 % 10 ^ negate n1
+                        | otherwise -> i1 * 10 ^ n1 % 1
+    where
+        go0 c u = case NumberLexing.lexSignChar u of
+            Just lexedSign ->
+                ( lexedSign
+                , LexItemState
+                    {
+                        lexItemState = (0, 0, 0),
+                        lexItemNext = goDecimal1
+                    }
+                )
+            Nothing ->
+                (NumberLexing.LexedSignPositive, goDecimal1 (0, 0, 0) c u)
+
+        goDecimal1 i@(i0, n0, m0) c u = case NumberLexing.lexNumDotSymChar u of
+            True ->
+                LexItemState
+                    {
+                        lexItemState = i,
+                        lexItemNext = goDecimal2
+                    }
+            False -> do
+                let i1 = case NumberLexing.lexDigitChar c of
+                        Just n  -> i0 * 10 + toInteger n
+                        Nothing -> i0 -- num_sep_sym_char
+                LexItemState
+                    {
+                        lexItemState = (i1, n0, m0),
+                        lexItemNext = goDecimal1
+                    }
+
+        goDecimal2 (i0, n0, m0) c _ = do
+            let i1 = case NumberLexing.lexDigitChar c of
+                    Just n  -> i0 * 10 + toInteger n
+                    Nothing -> i0 -- num_sep_sym_char
+                n1 = n0 + 1
+            LexItemState
+                {
+                    lexItemState = (i1, n1, m0),
+                    lexItemNext = goDecimal2
+                }
 
 lexAndYieldLitDefaultInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldLitDefaultInteger = undefined
@@ -191,3 +252,13 @@ lexAndYieldCommentLineWithContent = undefined
 
 lexAndYieldCommentMultilineWithContent :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldCommentMultilineWithContent = undefined
+
+
+data LexItemState a = LexItemState
+    {
+        lexItemState :: a,
+        lexItemNext :: a -> Char -> CodeUnit.T -> LexItemState a
+    }
+
+lexItemNextState :: LexItemState a -> Char -> CodeUnit.T -> LexItemState a
+lexItemNextState s = lexItemNext s do lexItemState s

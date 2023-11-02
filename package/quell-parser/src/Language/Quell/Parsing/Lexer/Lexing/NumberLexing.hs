@@ -9,15 +9,20 @@ data LexedSign
     | LexedSignNegative
     deriving (Eq, Ord, Bounded, Enum, Show)
 
-lexSign :: CodeUnit.T -> Maybe LexedSign
-lexSign = \case
+lexSignChar :: CodeUnit.T -> Maybe LexedSign
+lexSignChar = \case
     CodeUnit.LcGPlusSign -> Just LexedSignPositive
     CodeUnit.LcGHyphenMinus -> Just LexedSignNegative
     _                     -> Nothing
 
-lexDot :: CodeUnit.T -> Bool
-lexDot = \case
+lexNumDotSymChar :: CodeUnit.T -> Bool
+lexNumDotSymChar = \case
     CodeUnit.LcGFullStop -> True
+    _ -> False
+
+lexNumSepSymChar :: CodeUnit.T -> Bool
+lexNumSepSymChar = \case
+    CodeUnit.LcGLowLine -> True
     _ -> False
 
 -- | Decode a digit

@@ -534,3 +534,6 @@ pattern LcGHyphenMinus = CodeUnitByPoint LcU002D
 
 pattern LcGFullStop :: CodeUnit
 pattern LcGFullStop = CodeUnitByPoint LcU002E
+
+pattern LcGLowLine :: CodeUnit
+pattern LcGLowLine = CodeUnitByPoint LcU005F
