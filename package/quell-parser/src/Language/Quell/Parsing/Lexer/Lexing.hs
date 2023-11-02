@@ -14,7 +14,6 @@ import qualified Data.EnumSet as EnumSet
 import qualified Language.Quell.Data.TextId as TextId
 import qualified Language.Quell.Parsing.Lexer.Input as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
-import qualified Language.Quell.Parsing.Lexer.Input as Token
 
 $(Rules.buildLexer)
 
@@ -26,7 +25,7 @@ buildInputUnit mLastItem (bs, c) = Spanned.Spanned
     where
         u = CodeUnit.fromChar c
 
-        newlineCRLF = [CodeUnit.CodeUnitByPoint CodeUnit.LcU000D, CodeUnit.CodeUnitByPoint CodeUnit.LcU000A]
+        newlineCRLF = [CodeUnit.LcGCarriageReturn, CodeUnit.LcGEndOfLine]
         isNewlineCodeUnit lcu = EnumSet.member lcu Rules.newlineCharCs
 
         sp = case mLastItem of

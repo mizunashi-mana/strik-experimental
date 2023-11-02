@@ -2,6 +2,8 @@ packages:
     package/*/*.cabal
 
 constraints:
+    any.Cabal              ==3.10.*,
+    any.cabal-doctest      ==1.0.*,
     any.doctest            ==0.22.*,
     any.hspec-discover     ==2.11.*,
     any.hspec              ==2.11.*,

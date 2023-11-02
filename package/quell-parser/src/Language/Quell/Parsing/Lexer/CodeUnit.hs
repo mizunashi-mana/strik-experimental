@@ -519,3 +519,18 @@ catSpaceSeparator = EnumSet.fromList
     [ CodeUnitByPoint LcU0020
     , CodeUnitOtherByCat LcCatZs
     ]
+
+pattern LcGEndOfLine :: CodeUnit
+pattern LcGEndOfLine = CodeUnitByPoint LcU000A
+
+pattern LcGCarriageReturn :: CodeUnit
+pattern LcGCarriageReturn = CodeUnitByPoint LcU000D
+
+pattern LcGPlusSign :: CodeUnit
+pattern LcGPlusSign = CodeUnitByPoint LcU002B
+
+pattern LcGHyphenMinus :: CodeUnit
+pattern LcGHyphenMinus = CodeUnitByPoint LcU002D
+
+pattern LcGFullStop :: CodeUnit
+pattern LcGFullStop = CodeUnitByPoint LcU002E

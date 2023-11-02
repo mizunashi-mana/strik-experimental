@@ -13,7 +13,7 @@ maintainer:         contact@mizunashi.work
 copyright:          Mizunashi Mana <contact@mizunashi.work>
 
 category:           Language
-build-type:         Simple
+build-type:         Custom
 
 -- Extra doc files to be distributed with the package, such as a CHANGELOG or a README.
 extra-doc-files:    CHANGELOG.md
@@ -43,6 +43,13 @@ common language
         MultiWayIf
         Strict
         TypeFamilies
+        PatternSynonyms
+
+custom-setup
+    setup-depends:
+        base,
+        Cabal,
+        cabal-doctest,
 
 library
     import:
@@ -73,6 +80,26 @@ library
         Language.Quell.Parsing.Lexer.Lexing
         Language.Quell.Parsing.Lexer.Lexing.KeywordLexing
         Language.Quell.Parsing.Lexer.Lexing.KeywordRules
+        Language.Quell.Parsing.Lexer.Lexing.NumberLexing
+
+test-suite quell-parser-doctest
+    import:
+        warnings,
+        language,
+    type:
+        exitcode-stdio-1.0
+    hs-source-dirs:
+        test/doctest
+    main-is:
+        Doctest.hs
+    build-depends:
+        base,
+        doctest,
+        QuickCheck,
+    autogen-modules:
+        Build_doctests
+    other-modules:
+        Build_doctests
 
 test-suite quell-parser-spec
     import:
