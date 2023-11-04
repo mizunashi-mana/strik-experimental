@@ -1,16 +1,16 @@
 module Language.Quell.Parsing.Lexer.Input where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Conduit as Conduit
-import qualified Language.Quell.Data.Monad.MonadST as MonadST
-import qualified Language.Quell.Data.BufferedConduit as BufferedConduit
-import qualified Language.Quell.Frontend.Data.Token as Token
+import qualified Conduit                               as Conduit
+import qualified Language.Lexer.Tlex                   as Tlex
+import qualified Language.Quell.Data.BufferedConduit   as BufferedConduit
+import qualified Language.Quell.Data.Monad.MonadST     as MonadST
+import qualified Language.Quell.Frontend.Data.Token    as Token
+import qualified Language.Quell.Model.Error            as Error
+import qualified Language.Quell.Model.ErrorCode        as ErrorCode
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
-import qualified Language.Quell.Model.Error as Error
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Lexer.Tlex as Tlex
-import qualified Language.Quell.Model.ErrorCode as ErrorCode
+import qualified Language.Quell.Parsing.Spanned        as Spanned
 
 data LexedUnit
     = LexedToken Token.T

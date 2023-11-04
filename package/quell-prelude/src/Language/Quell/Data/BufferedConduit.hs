@@ -14,7 +14,7 @@ module Language.Quell.Data.BufferedConduit (
 import           Language.Quell.Prelude
 
 import qualified Conduit
-import qualified Language.Quell.Data.Monad.MonadST as MonadST
+import qualified Language.Quell.Data.Monad.MonadST    as MonadST
 import qualified Language.Quell.Data.Mutable.STBuffer as STBuffer
 
 

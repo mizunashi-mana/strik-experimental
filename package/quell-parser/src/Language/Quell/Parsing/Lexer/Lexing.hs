@@ -2,19 +2,19 @@
 
 module Language.Quell.Parsing.Lexer.Lexing where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Parsing.Lexer.Rules as Rules
-import qualified Language.Quell.Parsing.Spanned as Spanned
-import qualified Language.Quell.Frontend.Data.Token as Token
-import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
-import qualified Language.Quell.Data.Monad.MonadST as MonadST
-import qualified Language.Lexer.Tlex as Tlex
-import qualified Data.EnumSet as EnumSet
-import qualified Language.Quell.Data.TextId as TextId
-import qualified Language.Quell.Parsing.Lexer.Input as Input
+import qualified Data.EnumSet                                      as EnumSet
+import qualified Language.Lexer.Tlex                               as Tlex
+import qualified Language.Quell.Data.Monad.MonadST                 as MonadST
+import qualified Language.Quell.Data.TextId                        as TextId
+import qualified Language.Quell.Frontend.Data.Token                as Token
+import qualified Language.Quell.Parsing.Lexer.CodeUnit             as CodeUnit
+import qualified Language.Quell.Parsing.Lexer.Input                as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
-import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing as NumberLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing  as NumberLexing
+import qualified Language.Quell.Parsing.Lexer.Rules                as Rules
+import qualified Language.Quell.Parsing.Spanned                    as Spanned
 
 $(Rules.buildLexer)
 
@@ -257,7 +257,7 @@ lexAndYieldCommentMultilineWithContent = undefined
 data LexItemState a = LexItemState
     {
         lexItemState :: a,
-        lexItemNext :: a -> Char -> CodeUnit.T -> LexItemState a
+        lexItemNext  :: a -> Char -> CodeUnit.T -> LexItemState a
     }
 
 lexItemNextState :: LexItemState a -> Char -> CodeUnit.T -> LexItemState a

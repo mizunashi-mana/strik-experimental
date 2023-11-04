@@ -4,15 +4,15 @@
 
 module Language.Quell.Parsing.Lexer.Rules where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Data.TextId as TextId
-import qualified Language.Quell.Frontend.Data.Token as Token
+import qualified Data.EnumSet                          as EnumSet
+import qualified Language.Haskell.TH                   as TH
+import qualified Language.Lexer.Tlex                   as Tlex
+import qualified Language.Lexer.Tlex.Plugin.TH         as TlexTH
+import qualified Language.Quell.Data.TextId            as TextId
+import qualified Language.Quell.Frontend.Data.Token    as Token
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
-import qualified Language.Lexer.Tlex.Plugin.TH as TlexTH
-import qualified Language.Lexer.Tlex as Tlex
-import qualified Data.EnumSet as EnumSet
-import qualified Language.Haskell.TH as TH
 
 
 buildLexer :: TH.Q [TH.Dec]
@@ -493,5 +493,5 @@ charsCs :: [Char] -> CharSet
 charsCs cs = EnumSet.fromList do
     c <- cs
     pure case CodeUnit.fromChar c of
-        x@CodeUnit.CodeUnitByPoint{} -> x
+        x@CodeUnit.CodeUnitByPoint{}  -> x
         CodeUnit.CodeUnitOtherByCat{} -> error do "Unsupported char: " <> show c

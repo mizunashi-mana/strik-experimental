@@ -1,6 +1,6 @@
 module Language.Quell.Model.Error where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
 import qualified Language.Quell.Model.ErrorCode as ErrorCode
 
@@ -8,9 +8,9 @@ type T = Error
 
 data Error = Error
     {
-        getCode :: ErrorCode.T,
-        getDetail :: Text,
-        getPosition :: Maybe (), -- TODO
+        getCode      :: ErrorCode.T,
+        getDetail    :: Text,
+        getPosition  :: Maybe (), -- TODO
         getCallStack :: Maybe CallStack
     }
     deriving Show

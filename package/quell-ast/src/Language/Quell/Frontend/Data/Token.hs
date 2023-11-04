@@ -1,9 +1,9 @@
 module Language.Quell.Frontend.Data.Token where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Data.TextId as TextId
 import qualified Language.Quell.Data.TextId as Text
+import qualified Language.Quell.Data.TextId as TextId
 
 type T = Token
 

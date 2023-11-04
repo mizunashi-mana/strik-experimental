@@ -1,9 +1,9 @@
 module Language.Quell.Parsing.Lexer.CodeUnit where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Data.EnumSet as EnumSet
-import qualified Data.Char as Char
+import qualified Data.Char              as Char
+import qualified Data.EnumSet           as EnumSet
 
 
 type T = CodeUnit

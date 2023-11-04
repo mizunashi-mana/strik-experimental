@@ -1,6 +1,6 @@
 module Language.Quell.Parsing.Lexer.Lexing.NumberLexing where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
 

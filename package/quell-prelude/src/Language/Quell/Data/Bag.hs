@@ -6,10 +6,9 @@ module Language.Quell.Data.Bag (
     fromList,
 ) where
 
-import           Language.Quell.Prelude                  hiding (empty,
-                                                          singleton)
+import           Language.Quell.Prelude hiding (empty, singleton)
 
-import qualified Data.Foldable                           as Foldable
+import qualified Data.Foldable          as Foldable
 
 
 type T = Bag

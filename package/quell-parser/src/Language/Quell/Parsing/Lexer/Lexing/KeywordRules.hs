@@ -4,15 +4,15 @@
 
 module Language.Quell.Parsing.Lexer.Lexing.KeywordRules where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
-import qualified Language.Quell.Frontend.Data.Token as Token
+import qualified Data.EnumSet                          as EnumSet
+import qualified Language.Haskell.TH                   as TH
+import qualified Language.Lexer.Tlex                   as Tlex
+import qualified Language.Lexer.Tlex.Plugin.TH         as TlexTH
+import qualified Language.Quell.Frontend.Data.Token    as Token
 import qualified Language.Quell.Parsing.Lexer.CodeUnit as CodeUnit
-import qualified Language.Lexer.Tlex.Plugin.TH as TlexTH
-import qualified Language.Lexer.Tlex as Tlex
-import qualified Data.EnumSet as EnumSet
-import qualified Language.Haskell.TH as TH
-import qualified Language.Quell.Parsing.Lexer.Rules as Rules
+import qualified Language.Quell.Parsing.Lexer.Rules    as Rules
 
 buildLexer :: TH.Q [TH.Dec]
 buildLexer = do

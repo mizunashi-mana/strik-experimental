@@ -2,12 +2,12 @@
 
 module Language.Quell.Frontend.Data.ParsedAst where
 
-import Language.Quell.Prelude
 import qualified Language.Quell.Data.TextId as TextId
+import           Language.Quell.Prelude
 
 
 data Program tag = Program {
-    expr :: Expr tag,
+    expr  :: Expr tag,
     extra :: XProgram tag
 }
 
