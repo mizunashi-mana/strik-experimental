@@ -169,6 +169,13 @@ yieldKwToken pos0 pos1 = KeywordLexing.lexer pos1 >>= \case
 lexAndYieldFreeId :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldFreeId = undefined
 
+data LexItemStateOfRational = LexItemStateOfRational
+    {
+        lexItemStateOfRationalSign     :: NumberLexing.LexedSign,
+        lexItemStateOfRationalFraction :: Integer,
+        lexItemStateOfRationalExponent :: Integer
+    }
+
 lexAndYieldLitRationalWithDot :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldLitRationalWithDot pos0 pos1 = do
     spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
@@ -176,59 +183,79 @@ lexAndYieldLitRationalWithDot pos0 pos1 = do
         do \spannedState item -> Spanned.Spanned
             { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan item
             , Spanned.unSpanned = case Spanned.unSpanned item of
-                (c, u) -> case Spanned.unSpanned spannedState of
-                    (lexedSign, s) -> (lexedSign, lexItemNextState s c u)
+                (c, u) -> lexItemNextState
+                    do Spanned.unSpanned spannedState
+                    c u
             }
         pos0 pos1
     Input.lexerYield do
-        spannedState <&> \(lexedSign, LexItemState { lexItemState = (i0, n0, m0) }) -> do
-            let i1 = case lexedSign of
-                    NumberLexing.LexedSignPositive -> i0
-                    NumberLexing.LexedSignNegative -> negate i0
-                n1 = m0 - n0
+        spannedState <&> \(LexItemState { lexItemState = s0 }) -> do
+            let fraction0 = lexItemStateOfRationalFraction s0
+                fraction1 = case lexItemStateOfRationalSign s0 of
+                    NumberLexing.LexedSignPositive -> fraction0
+                    NumberLexing.LexedSignNegative -> negate fraction0
+                exponent1 = lexItemStateOfRationalExponent s0
             Input.LexedToken do
                 Token.TokLexeme do
                     Token.LitRational if
-                        | n1 < 0    -> i1 % 10 ^ negate n1
-                        | otherwise -> i1 * 10 ^ n1 % 1
+                        | exponent1 < 0 -> fraction1 % 10 ^ negate exponent1
+                        | otherwise     -> fraction1 * 10 ^ exponent1 % 1
     where
         go0 c u = case NumberLexing.lexSignChar u of
-            Just lexedSign ->
-                ( lexedSign
-                , LexItemState
-                    {
-                        lexItemState = (0, 0, 0),
-                        lexItemNext = goDecimal1
-                    }
-                )
+            Just lexedSign -> LexItemState
+                {
+                    lexItemState = LexItemStateOfRational
+                        {
+                            lexItemStateOfRationalSign = lexedSign,
+                            lexItemStateOfRationalFraction = 0,
+                            lexItemStateOfRationalExponent = 0
+                        },
+                    lexItemNext = goDecimal1
+                }
             Nothing ->
-                (NumberLexing.LexedSignPositive, goDecimal1 (0, 0, 0) c u)
+                let s0 = LexItemStateOfRational
+                        {
+                            lexItemStateOfRationalSign = NumberLexing.LexedSignPositive,
+                            lexItemStateOfRationalFraction = 0,
+                            lexItemStateOfRationalExponent = 0
+                        }
+                in goDecimal1 s0 c u
 
-        goDecimal1 i@(i0, n0, m0) c u = case NumberLexing.lexNumDotSymChar u of
+        goDecimal1 s0 c u = case NumberLexing.lexNumDotSymChar u of
             True ->
                 LexItemState
                     {
-                        lexItemState = i,
+                        lexItemState = s0,
                         lexItemNext = goDecimal2
                     }
             False -> do
-                let i1 = case NumberLexing.lexDigitChar c of
-                        Just n  -> i0 * 10 + toInteger n
-                        Nothing -> i0 -- num_sep_sym_char
+                let fraction0 = lexItemStateOfRationalFraction s0
+                    fraction1 = case NumberLexing.lexDigitChar c of
+                        Just n  -> fraction0 * 10 + toInteger n
+                        Nothing -> fraction0 -- num_sep_sym_char
                 LexItemState
                     {
-                        lexItemState = (i1, n0, m0),
+                        lexItemState = s0
+                            {
+                                lexItemStateOfRationalFraction = fraction1
+                            },
                         lexItemNext = goDecimal1
                     }
 
-        goDecimal2 (i0, n0, m0) c _ = do
-            let i1 = case NumberLexing.lexDigitChar c of
-                    Just n  -> i0 * 10 + toInteger n
-                    Nothing -> i0 -- num_sep_sym_char
-                n1 = n0 + 1
+        goDecimal2 s0 c _ = do
+            let fraction0 = lexItemStateOfRationalFraction s0
+                exponent0 = lexItemStateOfRationalExponent s0
+                fraction1 = case NumberLexing.lexDigitChar c of
+                    Just n  -> fraction0 * 10 + toInteger n
+                    Nothing -> fraction0 -- num_sep_sym_char
+                exponent1 = exponent0 - 1
             LexItemState
                 {
-                    lexItemState = (i1, n1, m0),
+                    lexItemState = s0
+                        {
+                            lexItemStateOfRationalFraction = fraction1,
+                            lexItemStateOfRationalExponent = exponent1
+                        },
                     lexItemNext = goDecimal2
                 }
 
