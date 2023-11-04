@@ -136,3 +136,26 @@ yieldTlexError = lexerYield do
         , Spanned.unSpanned = LexError do
             Error.build ErrorCode.UnexpectedCodeUnits "TODO"
         }
+
+
+data LexItemState a = LexItemState
+    {
+        lexItemState :: a,
+        lexItemNext  :: LexItemStateNext a
+    }
+
+type LexItemStateNext a = a -> (Char, CodeUnit.T) -> LexItemState a
+
+lexItemNextState :: LexItemState a -> (Char, CodeUnit.T) -> LexItemState a
+lexItemNextState s = lexItemNext s do lexItemState s
+
+skipLexItems :: Int -> LexItemStateNext a -> LexItemStateNext a
+skipLexItems skipCount cont s0 item = if
+    | skipCount <= 0 -> cont s0 item
+    | otherwise -> LexItemState
+        {
+            lexItemState = s0,
+            lexItemNext = skipLexItems
+                do skipCount - 1
+                do cont
+        }

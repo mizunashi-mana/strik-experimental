@@ -182,13 +182,13 @@ lexAndYieldLitRationalWithDot pos0 pos1 = do
         do \spannedItem -> spannedItem <&> go0
         do \spannedState spannedItem -> Spanned.Spanned
             { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = lexItemNextState
+            , Spanned.unSpanned = Input.lexItemNextState
                 do Spanned.unSpanned spannedState
                 do Spanned.unSpanned spannedItem
             }
         pos0 pos1
     Input.lexerYield do
-        spannedState <&> \(LexItemState { lexItemState = s0 }) -> do
+        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
             let fraction0 = lexItemStateOfRationalFraction s0
                 fraction1 = case lexItemStateOfRationalSign s0 of
                     NumberLexing.LexedSignPositive -> fraction0
@@ -201,15 +201,15 @@ lexAndYieldLitRationalWithDot pos0 pos1 = do
                         | otherwise     -> fraction1 * 10 ^ exponent1 % 1
     where
         go0 item@(_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> LexItemState
+            Just lexedSign -> Input.LexItemState
                 {
-                    lexItemState = LexItemStateOfRational
+                    Input.lexItemState = LexItemStateOfRational
                         {
                             lexItemStateOfRationalSign = lexedSign,
                             lexItemStateOfRationalFraction = 0,
                             lexItemStateOfRationalExponent = 0
                         },
-                    lexItemNext = goDecimal1
+                    Input.lexItemNext = goDecimal1
                 }
             Nothing ->
                 let s0 = LexItemStateOfRational
@@ -222,23 +222,23 @@ lexAndYieldLitRationalWithDot pos0 pos1 = do
 
         goDecimal1 s0 (c, u) = case NumberLexing.lexNumDotSymChar u of
             True ->
-                LexItemState
+                Input.LexItemState
                     {
-                        lexItemState = s0,
-                        lexItemNext = goDecimal2
+                        Input.lexItemState = s0,
+                        Input.lexItemNext = goDecimal2
                     }
             False -> do
                 let fraction0 = lexItemStateOfRationalFraction s0
                     fraction1 = case NumberLexing.lexDigitChar c of
                         Just n  -> fraction0 * 10 + toInteger n
                         Nothing -> fraction0 -- num_sep_sym_char
-                LexItemState
+                Input.LexItemState
                     {
-                        lexItemState = s0
+                        Input.lexItemState = s0
                             {
                                 lexItemStateOfRationalFraction = fraction1
                             },
-                        lexItemNext = goDecimal1
+                        Input.lexItemNext = goDecimal1
                     }
 
         goDecimal2 s0 (c, _) = do
@@ -248,14 +248,14 @@ lexAndYieldLitRationalWithDot pos0 pos1 = do
                     Just n  -> fraction0 * 10 + toInteger n
                     Nothing -> fraction0 -- num_sep_sym_char
                 exponent1 = exponent0 - 1
-            LexItemState
+            Input.LexItemState
                 {
-                    lexItemState = s0
+                    Input.lexItemState = s0
                         {
                             lexItemStateOfRationalFraction = fraction1,
                             lexItemStateOfRationalExponent = exponent1
                         },
-                    lexItemNext = goDecimal2
+                    Input.lexItemNext = goDecimal2
                 }
 
 data LexItemStateOfInteger = LexItemStateOfInteger
@@ -270,13 +270,13 @@ lexAndYieldLitDefaultInteger pos0 pos1 = do
         do \spannedItem -> spannedItem <&> go0
         do \spannedState spannedItem -> Spanned.Spanned
             { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = lexItemNextState
+            , Spanned.unSpanned = Input.lexItemNextState
                 do Spanned.unSpanned spannedState
                 do Spanned.unSpanned spannedItem
             }
         pos0 pos1
     Input.lexerYield do
-        spannedState <&> \(LexItemState { lexItemState = s0 }) -> do
+        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
             let fraction0 = lexItemStateOfIntegerFraction s0
                 fraction1 = case lexItemStateOfIntegerSign s0 of
                     NumberLexing.LexedSignPositive -> fraction0
@@ -286,14 +286,14 @@ lexAndYieldLitDefaultInteger pos0 pos1 = do
                     Token.LitInteger fraction1
     where
         go0 item@(_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> LexItemState
+            Just lexedSign -> Input.LexItemState
                 {
-                    lexItemState = LexItemStateOfInteger
+                    Input.lexItemState = LexItemStateOfInteger
                         {
                             lexItemStateOfIntegerSign = lexedSign,
                             lexItemStateOfIntegerFraction = 0
                         },
-                    lexItemNext = goDecimal
+                    Input.lexItemNext = goDecimal
                 }
             Nothing -> do
                 let s0 = LexItemStateOfInteger
@@ -308,13 +308,13 @@ lexAndYieldLitDefaultInteger pos0 pos1 = do
                 fraction1 = case NumberLexing.lexDigitChar c of
                     Just n  -> fraction0 * 10 + toInteger n
                     Nothing -> fraction0 -- num_sep_sym_char
-            LexItemState
+            Input.LexItemState
                 {
-                    lexItemState = s0
+                    Input.lexItemState = s0
                         {
                             lexItemStateOfIntegerFraction = fraction1
                         },
-                    lexItemNext = goDecimal
+                    Input.lexItemNext = goDecimal
                 }
 
 lexAndYieldLitDecimalInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
@@ -323,13 +323,13 @@ lexAndYieldLitDecimalInteger pos0 pos1 = do
         do \spannedItem -> spannedItem <&> go0
         do \spannedState spannedItem -> Spanned.Spanned
             { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = lexItemNextState
+            , Spanned.unSpanned = Input.lexItemNextState
                 do Spanned.unSpanned spannedState
                 do Spanned.unSpanned spannedItem
             }
         pos0 pos1
     Input.lexerYield do
-        spannedState <&> \(LexItemState { lexItemState = s0 }) -> do
+        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
             let fraction0 = lexItemStateOfIntegerFraction s0
                 fraction1 = case lexItemStateOfIntegerSign s0 of
                     NumberLexing.LexedSignPositive -> fraction0
@@ -339,15 +339,15 @@ lexAndYieldLitDecimalInteger pos0 pos1 = do
                     Token.LitInteger fraction1
     where
         go0 (_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> LexItemState
+            Just lexedSign -> Input.LexItemState
                 {
-                    lexItemState = LexItemStateOfInteger
+                    Input.lexItemState = LexItemStateOfInteger
                         {
                             lexItemStateOfIntegerSign = lexedSign,
                             lexItemStateOfIntegerFraction = 0
                         },
                     -- "0[dD]" rests
-                    lexItemNext = skipLexItems 2 goDecimal
+                    Input.lexItemNext = Input.skipLexItems 2 goDecimal
                 }
             Nothing -> do
                 let s0 = LexItemStateOfInteger
@@ -355,11 +355,11 @@ lexAndYieldLitDecimalInteger pos0 pos1 = do
                             lexItemStateOfIntegerSign = NumberLexing.LexedSignPositive,
                             lexItemStateOfIntegerFraction = 0
                         }
-                LexItemState
+                Input.LexItemState
                     {
-                        lexItemState = s0,
+                        Input.lexItemState = s0,
                         -- "[dD]" rests
-                        lexItemNext = skipLexItems 1 goDecimal
+                        Input.lexItemNext = Input.skipLexItems 1 goDecimal
                     }
 
         goDecimal s0 (c, _) = do
@@ -367,13 +367,13 @@ lexAndYieldLitDecimalInteger pos0 pos1 = do
                 fraction1 = case NumberLexing.lexDigitChar c of
                     Just n  -> fraction0 * 10 + toInteger n
                     Nothing -> fraction0 -- num_sep_sym_char
-            LexItemState
+            Input.LexItemState
                 {
-                    lexItemState = s0
+                    Input.lexItemState = s0
                         {
                             lexItemStateOfIntegerFraction = fraction1
                         },
-                    lexItemNext = goDecimal
+                    Input.lexItemNext = goDecimal
                 }
 
 lexAndYieldLitHeximalInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
@@ -382,13 +382,13 @@ lexAndYieldLitHeximalInteger pos0 pos1 = do
         do \spannedItem -> spannedItem <&> go0
         do \spannedState spannedItem -> Spanned.Spanned
             { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = lexItemNextState
+            , Spanned.unSpanned = Input.lexItemNextState
                 do Spanned.unSpanned spannedState
                 do Spanned.unSpanned spannedItem
             }
         pos0 pos1
     Input.lexerYield do
-        spannedState <&> \(LexItemState { lexItemState = s0 }) -> do
+        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
             let fraction0 = lexItemStateOfIntegerFraction s0
                 fraction1 = case lexItemStateOfIntegerSign s0 of
                     NumberLexing.LexedSignPositive -> fraction0
@@ -398,15 +398,15 @@ lexAndYieldLitHeximalInteger pos0 pos1 = do
                     Token.LitInteger fraction1
     where
         go0 (_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> LexItemState
+            Just lexedSign -> Input.LexItemState
                 {
-                    lexItemState = LexItemStateOfInteger
+                    Input.lexItemState = LexItemStateOfInteger
                         {
                             lexItemStateOfIntegerSign = lexedSign,
                             lexItemStateOfIntegerFraction = 0
                         },
                     -- "0[xX]" rests
-                    lexItemNext = skipLexItems 2 goHeximal
+                    Input.lexItemNext = Input.skipLexItems 2 goHeximal
                 }
             Nothing -> do
                 let s0 = LexItemStateOfInteger
@@ -414,11 +414,11 @@ lexAndYieldLitHeximalInteger pos0 pos1 = do
                             lexItemStateOfIntegerSign = NumberLexing.LexedSignPositive,
                             lexItemStateOfIntegerFraction = 0
                         }
-                LexItemState
+                Input.LexItemState
                     {
-                        lexItemState = s0,
+                        Input.lexItemState = s0,
                         -- "[xX]" rests
-                        lexItemNext = skipLexItems 1 goHeximal
+                        Input.lexItemNext = Input.skipLexItems 1 goHeximal
                     }
 
         goHeximal s0 (c, _) = do
@@ -426,13 +426,13 @@ lexAndYieldLitHeximalInteger pos0 pos1 = do
                 fraction1 = case NumberLexing.lexHexitChar c of
                     Just n  -> fraction0 * 0x10 + toInteger n
                     Nothing -> fraction0 -- num_sep_sym_char
-            LexItemState
+            Input.LexItemState
                 {
-                    lexItemState = s0
+                    Input.lexItemState = s0
                         {
                             lexItemStateOfIntegerFraction = fraction1
                         },
-                    lexItemNext = goHeximal
+                    Input.lexItemNext = goHeximal
                 }
 
 lexAndYieldInterpStringStart :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
@@ -446,26 +446,3 @@ lexAndYieldCommentLineWithContent = undefined
 
 lexAndYieldCommentMultilineWithContent :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldCommentMultilineWithContent = undefined
-
-
-data LexItemState a = LexItemState
-    {
-        lexItemState :: a,
-        lexItemNext  :: LexItemStateNext a
-    }
-
-type LexItemStateNext a = a -> (Char, CodeUnit.T) -> LexItemState a
-
-lexItemNextState :: LexItemState a -> (Char, CodeUnit.T) -> LexItemState a
-lexItemNextState s = lexItemNext s do lexItemState s
-
-skipLexItems :: Int -> LexItemStateNext a -> LexItemStateNext a
-skipLexItems skipCount cont s0 item = if
-    | skipCount <= 0 -> cont s0 item
-    | otherwise -> LexItemState
-        {
-            lexItemState = s0,
-            lexItemNext = skipLexItems
-                do skipCount - 1
-                do cont
-        }
