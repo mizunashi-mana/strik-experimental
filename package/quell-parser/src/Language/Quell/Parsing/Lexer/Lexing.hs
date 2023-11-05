@@ -12,6 +12,7 @@ import qualified Language.Quell.Frontend.Data.Token                as Token
 import qualified Language.Quell.Parsing.Lexer.CodeUnit             as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Input                as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.NumberRules  as NumberRules
 import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing  as NumberLexing
 import qualified Language.Quell.Parsing.Lexer.Rules                as Rules
 import qualified Language.Quell.Parsing.Spanned                    as Spanned
@@ -26,7 +27,7 @@ buildInputUnit mLastItem (bs, c) = Spanned.Spanned
     where
         u = CodeUnit.fromChar c
 
-        newlineCRLF = [CodeUnit.LcGCarriageReturn, CodeUnit.LcGEndOfLine]
+        newlineCRLF = [CodeUnit.LcACarriageReturn, CodeUnit.LcAEndOfLine]
         isNewlineCodeUnit lcu = EnumSet.member lcu Rules.newlineCharCs
 
         sp = case mLastItem of
@@ -108,20 +109,20 @@ lexer = go Rules.Initial where
             yieldIdType pos0 pos1 t
         Rules.WithKwToken -> do
             yieldKwToken pos0 pos1
-        Rules.LexIdFreeIdStart -> do
+        Rules.LexIdFreeId -> do
             lexAndYieldFreeId pos0 pos1
-        Rules.LexLitRationalWithDot -> do
-            lexAndYieldLitRationalWithDot pos0 pos1
-        Rules.LexLitDefaultInteger -> do
-            lexAndYieldLitDefaultInteger pos0 pos1
-        Rules.LexLitDecimalInteger -> do
-            lexAndYieldLitDecimalInteger pos0 pos1
-        Rules.LexLitHeximalInteger -> do
-            lexAndYieldLitHeximalInteger pos0 pos1
+        Rules.LexLitString -> do
+            lexAndYieldLitString pos0 pos1
+        Rules.LexLitRational -> do
+            lexAndYieldLitRational pos0 pos1
+        Rules.LexLitInteger -> do
+            lexAndYieldLitInteger pos0 pos1
         Rules.LexInterpStringStart -> do
             lexAndYieldInterpStringStart pos0 pos1
         Rules.LexInterpStringContinue -> do
             lexAndYieldInterpStringContinue pos0 pos1
+        Rules.LexInterpStringEnd -> do
+            lexAndYieldInterpStringEnd pos0 pos1
         Rules.LexCommentLineWithContent -> do
             lexAndYieldCommentLineWithContent pos0 pos1
         Rules.LexCommentMultilineWithContent -> do
@@ -171,275 +172,237 @@ lexAndYieldFreeId = undefined
 
 data LexItemStateOfRational = LexItemStateOfRational
     {
-        lexItemStateOfRationalSign     :: NumberLexing.LexedSign,
+        lexItemStateOfRationalSign     :: Bool,
+        lexItemStateOfRationalBase     :: Integer,
         lexItemStateOfRationalFraction :: Integer,
         lexItemStateOfRationalExponent :: Integer
     }
 
-lexAndYieldLitRationalWithDot :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldLitRationalWithDot pos0 pos1 = do
-    spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
-        do \spannedItem -> spannedItem <&> go0
-        do \spannedState spannedItem -> Spanned.Spanned
-            { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = Input.lexItemNextState
-                do Spanned.unSpanned spannedState
-                do Spanned.unSpanned spannedItem
-            }
-        pos0 pos1
-    Input.lexerYield do
-        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
-            let fraction0 = lexItemStateOfRationalFraction s0
-                fraction1 = case lexItemStateOfRationalSign s0 of
-                    NumberLexing.LexedSignPositive -> fraction0
-                    NumberLexing.LexedSignNegative -> negate fraction0
-                exponent1 = lexItemStateOfRationalExponent s0
-            Input.LexedToken do
-                Token.TokLexeme do
-                    Token.LitRational if
-                        | exponent1 < 0 -> fraction1 % 10 ^ negate exponent1
-                        | otherwise     -> fraction1 * 10 ^ exponent1 % 1
+lexAndYieldLitRational :: forall s m. MonadST.T s m => Int -> Int -> Input.Lexer s m ()
+lexAndYieldLitRational posStart posEnd = do
+        Input.setNeedBackMode posStart
+        goSign
+        Input.seekToPosition posEnd
     where
-        go0 item@(_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> Input.LexItemState
-                {
-                    Input.lexItemState = LexItemStateOfRational
+        unexpectedAction = error "unreachable: unexpected action"
+
+        goSign :: Input.Lexer s m ()
+        goSign = NumberLexing.tlexScan NumberRules.Sign >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                let sign = case act of
+                        NumberRules.LexedSignPositive -> True
+                        NumberRules.LexedSignNegative -> False
+                        NumberRules.LexedBase{} -> unexpectedAction
+                        NumberRules.LexedComponentElement{} -> unexpectedAction
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSep -> unexpectedAction
+                Input.seekToPosition pos1
+                goBase sign
+
+        goBase :: Bool -> Input.Lexer s m ()
+        goBase sign = NumberLexing.tlexScan NumberRules.Base >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                let base = case act of
+                        NumberRules.LexedBase e -> e
+                        NumberRules.LexedSignPositive -> unexpectedAction
+                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedComponentElement{} -> unexpectedAction
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSep -> unexpectedAction
+                let s = LexItemStateOfRational
                         {
-                            lexItemStateOfRationalSign = lexedSign,
-                            lexItemStateOfRationalFraction = 0,
-                            lexItemStateOfRationalExponent = 0
-                        },
-                    Input.lexItemNext = goDecimal1
-                }
-            Nothing ->
-                let s0 = LexItemStateOfRational
-                        {
-                            lexItemStateOfRationalSign = NumberLexing.LexedSignPositive,
+                            lexItemStateOfRationalSign = sign,
+                            lexItemStateOfRationalBase = base,
                             lexItemStateOfRationalFraction = 0,
                             lexItemStateOfRationalExponent = 0
                         }
-                in goDecimal1 s0 item
+                goComponent1 s
 
-        goDecimal1 s0 (c, u) = case NumberLexing.lexNumDotSymChar u of
-            True ->
-                Input.LexItemState
-                    {
-                        Input.lexItemState = s0,
-                        Input.lexItemNext = goDecimal2
-                    }
-            False -> do
-                let fraction0 = lexItemStateOfRationalFraction s0
-                    fraction1 = case NumberLexing.lexDigitChar c of
-                        Just n  -> fraction0 * 10 + toInteger n
-                        Nothing -> fraction0 -- num_sep_sym_char
-                Input.LexItemState
-                    {
-                        Input.lexItemState = s0
+        goComponent1 :: LexItemStateOfRational -> Input.Lexer s m ()
+        goComponent1 s0 = NumberLexing.tlexScan NumberRules.Component >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                case act of
+                    NumberRules.LexedComponentElement e -> do
+                        let base = lexItemStateOfRationalBase s0
+                            fraction0 = lexItemStateOfRationalFraction s0
+                            s1 = s0
+                                {
+                                    lexItemStateOfRationalFraction = fraction0 * base + e
+                                }
+                        goComponent1 s1
+                    NumberRules.LexedSep -> goComponent1 s0
+                    NumberRules.LexedDot -> goComponent2 s0
+                    NumberRules.LexedSignPositive -> unexpectedAction
+                    NumberRules.LexedSignNegative -> unexpectedAction
+                    NumberRules.LexedBase{} -> unexpectedAction
+
+        goComponent2 :: LexItemStateOfRational -> Input.Lexer s m ()
+        goComponent2 s0 = NumberLexing.tlexScan NumberRules.Component >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                let base = lexItemStateOfRationalBase s0
+                    fraction0 = lexItemStateOfRationalFraction s0
+                    exponent0 = lexItemStateOfRationalExponent s0
+                    s1 = case act of
+                        NumberRules.LexedComponentElement e -> s0
                             {
-                                lexItemStateOfRationalFraction = fraction1
-                            },
-                        Input.lexItemNext = goDecimal1
-                    }
+                                lexItemStateOfRationalFraction = fraction0 * base + e,
+                                lexItemStateOfRationalExponent = exponent0 + 1
+                            }
+                        NumberRules.LexedSep -> s0
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSignPositive -> unexpectedAction
+                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedBase{} -> unexpectedAction
+                if
+                    | pos1 < posEnd -> goComponent2 s1
+                    | otherwise -> yieldLitRationalToken s1
 
-        goDecimal2 s0 (c, _) = do
-            let fraction0 = lexItemStateOfRationalFraction s0
-                exponent0 = lexItemStateOfRationalExponent s0
-                fraction1 = case NumberLexing.lexDigitChar c of
-                    Just n  -> fraction0 * 10 + toInteger n
-                    Nothing -> fraction0 -- num_sep_sym_char
-                exponent1 = exponent0 - 1
-            Input.LexItemState
-                {
-                    Input.lexItemState = s0
-                        {
-                            lexItemStateOfRationalFraction = fraction1,
-                            lexItemStateOfRationalExponent = exponent1
-                        },
-                    Input.lexItemNext = goDecimal2
-                }
+        yieldLitRationalToken :: LexItemStateOfRational -> Input.Lexer s m ()
+        yieldLitRationalToken s = do
+            let base = lexItemStateOfRationalBase s
+                fraction0 = case lexItemStateOfRationalSign s of
+                    True -> lexItemStateOfRationalFraction s
+                    False -> negate do lexItemStateOfRationalFraction s
+                exponent0 = lexItemStateOfRationalExponent s
+                tok = Input.LexedToken do
+                    Token.TokLexeme do
+                        Token.LitRational if
+                            | exponent0 < 0 -> fraction0 % base ^ exponent0
+                            | otherwise    -> fraction0 * base ^ exponent0 % 1
+            span0 <- Input.lexSpan posStart posEnd
+            Input.lexerYield do
+                Spanned.Spanned
+                    {
+                        Spanned.getSpan = span0,
+                        Spanned.unSpanned = tok
+                    }
 
 data LexItemStateOfInteger = LexItemStateOfInteger
     {
-        lexItemStateOfIntegerSign     :: NumberLexing.LexedSign,
+        lexItemStateOfIntegerSign     :: Bool,
+        lexItemStateOfIntegerBase     :: Integer,
         lexItemStateOfIntegerFraction :: Integer
     }
 
-lexAndYieldLitDefaultInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldLitDefaultInteger pos0 pos1 = do
-    spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
-        do \spannedItem -> spannedItem <&> go0
-        do \spannedState spannedItem -> Spanned.Spanned
-            { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = Input.lexItemNextState
-                do Spanned.unSpanned spannedState
-                do Spanned.unSpanned spannedItem
-            }
-        pos0 pos1
-    Input.lexerYield do
-        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case lexItemStateOfIntegerSign s0 of
-                    NumberLexing.LexedSignPositive -> fraction0
-                    NumberLexing.LexedSignNegative -> negate fraction0
-            Input.LexedToken do
-                Token.TokLexeme do
-                    Token.LitInteger fraction1
+lexAndYieldLitInteger :: forall s m. MonadST.T s m => Int -> Int -> Input.Lexer s m ()
+lexAndYieldLitInteger posStart posEnd = do
+        Input.setNeedBackMode posStart
+        goSign
+        Input.seekToPosition posEnd
     where
-        go0 item@(_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> Input.LexItemState
-                {
-                    Input.lexItemState = LexItemStateOfInteger
+        unexpectedAction = error "unreachable: unexpected action"
+
+        goSign :: Input.Lexer s m ()
+        goSign = NumberLexing.tlexScan NumberRules.Sign >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                let sign = case act of
+                        NumberRules.LexedSignPositive -> True
+                        NumberRules.LexedSignNegative -> False
+                        NumberRules.LexedBase{} -> unexpectedAction
+                        NumberRules.LexedComponentElement{} -> unexpectedAction
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSep -> unexpectedAction
+                Input.seekToPosition pos1
+                goBase sign
+
+        goBase :: Bool -> Input.Lexer s m ()
+        goBase sign = NumberLexing.tlexScan NumberRules.Base >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                let base = case act of
+                        NumberRules.LexedBase e -> e
+                        NumberRules.LexedSignPositive -> unexpectedAction
+                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedComponentElement{} -> unexpectedAction
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSep -> unexpectedAction
+                let s = LexItemStateOfInteger
                         {
-                            lexItemStateOfIntegerSign = lexedSign,
-                            lexItemStateOfIntegerFraction = 0
-                        },
-                    Input.lexItemNext = goDecimal
-                }
-            Nothing -> do
-                let s0 = LexItemStateOfInteger
-                        {
-                            lexItemStateOfIntegerSign = NumberLexing.LexedSignPositive,
+                            lexItemStateOfIntegerSign = sign,
+                            lexItemStateOfIntegerBase = base,
                             lexItemStateOfIntegerFraction = 0
                         }
-                goDecimal s0 item
+                goComponent s
 
-        goDecimal s0 (c, _) = do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case NumberLexing.lexDigitChar c of
-                    Just n  -> fraction0 * 10 + toInteger n
-                    Nothing -> fraction0 -- num_sep_sym_char
-            Input.LexItemState
-                {
-                    Input.lexItemState = s0
-                        {
-                            lexItemStateOfIntegerFraction = fraction1
-                        },
-                    Input.lexItemNext = goDecimal
-                }
+        goComponent :: LexItemStateOfInteger -> Input.Lexer s m ()
+        goComponent s0 = NumberLexing.tlexScan NumberRules.Component >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                let s1 = case act of
+                        NumberRules.LexedComponentElement e -> do
+                            let base = lexItemStateOfIntegerBase s0
+                                fraction0 = lexItemStateOfIntegerFraction s0
+                            s0
+                                {
+                                    lexItemStateOfIntegerFraction = fraction0 * base + e
+                                }
+                        NumberRules.LexedSep -> s0
+                        NumberRules.LexedDot -> unexpectedAction
+                        NumberRules.LexedSignPositive -> unexpectedAction
+                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedBase{} -> unexpectedAction
+                if
+                    | pos1 < posEnd -> goComponent s1
+                    | otherwise -> yieldLitIntegerToken s1
 
-lexAndYieldLitDecimalInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldLitDecimalInteger pos0 pos1 = do
-    spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
-        do \spannedItem -> spannedItem <&> go0
-        do \spannedState spannedItem -> Spanned.Spanned
-            { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = Input.lexItemNextState
-                do Spanned.unSpanned spannedState
-                do Spanned.unSpanned spannedItem
-            }
-        pos0 pos1
-    Input.lexerYield do
-        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case lexItemStateOfIntegerSign s0 of
-                    NumberLexing.LexedSignPositive -> fraction0
-                    NumberLexing.LexedSignNegative -> negate fraction0
-            Input.LexedToken do
-                Token.TokLexeme do
-                    Token.LitInteger fraction1
-    where
-        go0 (_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> Input.LexItemState
-                {
-                    Input.lexItemState = LexItemStateOfInteger
-                        {
-                            lexItemStateOfIntegerSign = lexedSign,
-                            lexItemStateOfIntegerFraction = 0
-                        },
-                    -- "0[dD]" rests
-                    Input.lexItemNext = Input.skipLexItems 2 goDecimal
-                }
-            Nothing -> do
-                let s0 = LexItemStateOfInteger
-                        {
-                            lexItemStateOfIntegerSign = NumberLexing.LexedSignPositive,
-                            lexItemStateOfIntegerFraction = 0
-                        }
-                Input.LexItemState
+        yieldLitIntegerToken :: LexItemStateOfInteger -> Input.Lexer s m ()
+        yieldLitIntegerToken s = do
+            let fraction0 = case lexItemStateOfIntegerSign s of
+                    True -> lexItemStateOfIntegerFraction s
+                    False -> negate do lexItemStateOfIntegerFraction s
+                tok = Input.LexedToken do
+                    Token.TokLexeme do
+                        Token.LitInteger fraction0
+            span0 <- Input.lexSpan posStart posEnd
+            Input.lexerYield do
+                Spanned.Spanned
                     {
-                        Input.lexItemState = s0,
-                        -- "[dD]" rests
-                        Input.lexItemNext = Input.skipLexItems 1 goDecimal
+                        Spanned.getSpan = span0,
+                        Spanned.unSpanned = tok
                     }
 
-        goDecimal s0 (c, _) = do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case NumberLexing.lexDigitChar c of
-                    Just n  -> fraction0 * 10 + toInteger n
-                    Nothing -> fraction0 -- num_sep_sym_char
-            Input.LexItemState
-                {
-                    Input.lexItemState = s0
-                        {
-                            lexItemStateOfIntegerFraction = fraction1
-                        },
-                    Input.lexItemNext = goDecimal
-                }
-
-lexAndYieldLitHeximalInteger :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldLitHeximalInteger pos0 pos1 = do
-    spannedState <- Input.consumeLexedUnitsAndSwitchToNoBackMode
-        do \spannedItem -> spannedItem <&> go0
-        do \spannedState spannedItem -> Spanned.Spanned
-            { Spanned.getSpan = Spanned.getSpan spannedState <> Spanned.getSpan spannedItem
-            , Spanned.unSpanned = Input.lexItemNextState
-                do Spanned.unSpanned spannedState
-                do Spanned.unSpanned spannedItem
-            }
-        pos0 pos1
-    Input.lexerYield do
-        spannedState <&> \(Input.LexItemState { Input.lexItemState = s0 }) -> do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case lexItemStateOfIntegerSign s0 of
-                    NumberLexing.LexedSignPositive -> fraction0
-                    NumberLexing.LexedSignNegative -> negate fraction0
-            Input.LexedToken do
-                Token.TokLexeme do
-                    Token.LitInteger fraction1
-    where
-        go0 (_, u) = case NumberLexing.lexSignChar u of
-            Just lexedSign -> Input.LexItemState
-                {
-                    Input.lexItemState = LexItemStateOfInteger
-                        {
-                            lexItemStateOfIntegerSign = lexedSign,
-                            lexItemStateOfIntegerFraction = 0
-                        },
-                    -- "0[xX]" rests
-                    Input.lexItemNext = Input.skipLexItems 2 goHeximal
-                }
-            Nothing -> do
-                let s0 = LexItemStateOfInteger
-                        {
-                            lexItemStateOfIntegerSign = NumberLexing.LexedSignPositive,
-                            lexItemStateOfIntegerFraction = 0
-                        }
-                Input.LexItemState
-                    {
-                        Input.lexItemState = s0,
-                        -- "[xX]" rests
-                        Input.lexItemNext = Input.skipLexItems 1 goHeximal
-                    }
-
-        goHeximal s0 (c, _) = do
-            let fraction0 = lexItemStateOfIntegerFraction s0
-                fraction1 = case NumberLexing.lexHexitChar c of
-                    Just n  -> fraction0 * 0x10 + toInteger n
-                    Nothing -> fraction0 -- num_sep_sym_char
-            Input.LexItemState
-                {
-                    Input.lexItemState = s0
-                        {
-                            lexItemStateOfIntegerFraction = fraction1
-                        },
-                    Input.lexItemNext = goHeximal
-                }
+lexAndYieldLitString :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
+lexAndYieldLitString = undefined
 
 lexAndYieldInterpStringStart :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldInterpStringStart = undefined
 
 lexAndYieldInterpStringContinue :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldInterpStringContinue = undefined
+
+lexAndYieldInterpStringEnd :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
+lexAndYieldInterpStringEnd = undefined
 
 lexAndYieldCommentLineWithContent :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
 lexAndYieldCommentLineWithContent = undefined

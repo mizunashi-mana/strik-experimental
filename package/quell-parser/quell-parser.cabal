@@ -81,6 +81,7 @@ library
         Language.Quell.Parsing.Lexer.Lexing.KeywordLexing
         Language.Quell.Parsing.Lexer.Lexing.KeywordRules
         Language.Quell.Parsing.Lexer.Lexing.NumberLexing
+        Language.Quell.Parsing.Lexer.Lexing.NumberRules
         Language.Quell.Parsing.Lexer.Lexing.StringLexing
 
 test-suite quell-parser-doctest

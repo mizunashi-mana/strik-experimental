@@ -61,7 +61,7 @@ decimal := digit_char (digit_char / num_sep_sym_char)* ! (digit_char / num_sep_s
 heximal := hexit_char (hexit_char / num_sep_sym_char)* ! (hexit_char / num_sep_sym_char)
 sign_char := "+"
            / "-"
-zero_char := "0"
+zero_char := "\p{Digit=0}"
 num_dot_sym_char := "."
 num_sep_sym_char := "_"
 hexit_char := digit_char
@@ -75,11 +75,11 @@ hexit_char := digit_char
 interp_string_part := interp_string_start
                     / interp_string_cont
                     / interp_string_end
-string := interp_string_sep_char interp_string_graphic* interp_string_sep_char
+string := str_sep_char interp_string_graphic* interp_string_sep_char
 
-interp_string_start = interp_string_sep_char interp_string_graphic* interp_open
+interp_string_start = str_sep_char interp_string_graphic* interp_open
 interp_string_cont := interp_close interp_string_graphic* interp_open
-interp_string_end := interp_close interp_string_graphic* interp_string_sep_char
+interp_string_end := interp_close interp_string_graphic* str_sep_char
 
 interp_open := interp_open_char "{"
 interp_close := keyword_prefix_char "}"

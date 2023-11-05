@@ -52,12 +52,12 @@ keywordPrefixedRules = pure ()
 
 keywordIdRules :: ScannerBuilder ()
 keywordIdRules = do
-    initialRule (Rules.stringP "_") [||Token.KwUnderscore||]
+    initialRule (Rules.strP "_") [||Token.KwUnderscore||]
 
 keywordSymRules :: ScannerBuilder ()
 keywordSymRules = do
-    initialRule (Rules.stringP "=") [||Token.KwSymEqual||]
-    initialRule (Rules.stringP "^") [||Token.KwSymCaret||]
-    initialRule (Rules.stringP ":") [||Token.KwSymColon||]
-    initialRule (Rules.stringP "\\") [||Token.KwSymBackslash||]
+    initialRule (Rules.strP "=") [||Token.KwSymEqual||]
+    initialRule (Rules.strP "^") [||Token.KwSymCaret||]
+    initialRule (Rules.strP ":") [||Token.KwSymColon||]
+    initialRule (Rules.strP "\\") [||Token.KwSymBackslash||]
 

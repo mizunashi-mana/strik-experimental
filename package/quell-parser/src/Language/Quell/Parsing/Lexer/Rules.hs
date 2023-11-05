@@ -29,13 +29,13 @@ data LexerAction
     | WithIdType IdType
     | WithKwToken
     | WithWhiteSpace
-    | LexIdFreeIdStart
-    | LexLitRationalWithDot
-    | LexLitHeximalInteger
-    | LexLitDecimalInteger
-    | LexLitDefaultInteger
+    | LexIdFreeId
+    | LexLitString
+    | LexLitRational
+    | LexLitInteger
     | LexInterpStringStart
     | LexInterpStringContinue
+    | LexInterpStringEnd
     | LexCommentLineWithContent
     | LexCommentMultilineWithContent
     deriving (Eq, Show)
@@ -78,7 +78,8 @@ initialRule = TlexTH.thLexRule [Initial]
 
 lexerRules :: ScannerBuilder ()
 lexerRules = do
-    literalPartOrLiteralRules
+    literalPartRules
+    literalRules
     specialCharRules
     keywordIdRules
     keywordSymRules
@@ -91,13 +92,13 @@ identifierRules = do
     initialRule conIdP [||withIdType Token.IdConId||]
     initialRule varSymP [||withIdType Token.IdVarSym||]
     initialRule conSymP [||withIdType Token.IdConSym||]
-    initialRule freeIdOpenP [||LexIdFreeIdStart||]
+    initialRule freeIdP [||LexIdFreeId||]
 
 varIdP = idSmallCharP <> Tlex.manyP idCharP
 conIdP = idLargeCharP <> Tlex.manyP idCharP
 varSymP = symNormalCharP <> Tlex.manyP symCharP
 conSymP = symSpCharP <> Tlex.manyP symCharP
-freeIdOpenP = keywordPrefixCharP <> strSepCharP
+freeIdP = keywordPrefixCharP <> stringP
 
 
 keywordPrefixedRules :: ScannerBuilder ()
@@ -117,22 +118,25 @@ keywordSymRules :: ScannerBuilder ()
 keywordSymRules = pure ()
 
 
-literalPartOrLiteralRules :: ScannerBuilder ()
-literalPartOrLiteralRules = do
-    interpStringPartOrStringLiteralRules
+literalPartRules :: ScannerBuilder ()
+literalPartRules = do
+    interpStringPartRules
+
+literalRules :: ScannerBuilder ()
+literalRules = do
+    stringRules
     rationalRules
     integerRules
 
-
 rationalRules :: ScannerBuilder ()
 rationalRules = do
-    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP <> numDotSymCharP <> decimalP) [||LexLitRationalWithDot||]
+    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP <> numDotSymCharP <> decimalP) [||LexLitRational||]
 
 integerRules :: ScannerBuilder ()
 integerRules = do
-    initialRule (numberPrefixP <> charsP ['x', 'X'] <> heximalP) [||LexLitHeximalInteger||]
-    initialRule (numberPrefixP <> charsP ['d', 'D'] <> decimalP) [||LexLitDecimalInteger||]
-    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP) [||LexLitDefaultInteger||]
+    initialRule (numberPrefixP <> charsP ['x', 'X'] <> heximalP) [||LexLitInteger||]
+    initialRule (numberPrefixP <> charsP ['d', 'D'] <> decimalP) [||LexLitInteger||]
+    initialRule (Tlex.maybeP signCharP <> nonZeroDecimalP) [||LexLitInteger||]
 
 numberPrefixP = Tlex.maybeP signCharP <> zeroCharP
 
@@ -146,7 +150,7 @@ signCharP = charSetP signCharCs
 signCharCs = charsCs ['+', '-']
 
 zeroCharP = charSetP zeroCharCs
-zeroCharCs = charsCs ['0']
+zeroCharCs = unitsCs [CodeUnit.CodeUnitOtherByGroup CodeUnit.LcGNdDigit0]
 
 digitOrUscoreCharP = charSetP digitOrUscoreCharCs
 digitOrUscoreCharCs = EnumSet.unions
@@ -170,6 +174,7 @@ numDotSymCharCs = EnumSet.unions
         ]
     ]
 
+numSepSymCharP = charSetP numSepSymCharCs
 numSepSymCharCs = EnumSet.unions
     [
         charsCs [
@@ -188,10 +193,21 @@ hexitCharCs = EnumSet.unions
     ]
 
 
-interpStringPartOrStringLiteralRules :: ScannerBuilder ()
-interpStringPartOrStringLiteralRules = do
-    initialRule strSepCharP [||LexInterpStringStart||]
-    initialRule interpCloseP [||LexInterpStringContinue||]
+interpStringPartRules :: ScannerBuilder ()
+interpStringPartRules = do
+    initialRule interpStringStartP [||LexInterpStringStart||]
+    initialRule interpStringContP [||LexInterpStringContinue||]
+    initialRule interpStringEndP [||LexInterpStringEnd||]
+
+stringRules :: ScannerBuilder ()
+stringRules = do
+    initialRule stringP [||LexLitString||]
+
+stringP = strSepCharP <> Tlex.manyP interpStringGraphicP <> strSepCharP
+
+interpStringStartP = strSepCharP <> Tlex.manyP interpStringGraphicP <> interpOpenP
+interpStringContP = interpCloseP <> Tlex.manyP interpStringGraphicP <> interpOpenP
+interpStringEndP = interpCloseP <> Tlex.manyP interpStringGraphicP <> strSepCharP
 
 interpOpenP = interpOpenCharP <> charsP ['{']
 interpCloseP = keywordPrefixCharP <> charsP ['}']
@@ -237,7 +253,7 @@ bstrOtherGraphicCharCs = graphicCharCs `EnumSet.difference` EnumSet.unions
 
 byteEscapeP = escapeOpenCharP <> Tlex.orP [charSetP charescCharCs, byteescP]
 
-uniEscapeP = escapeOpenCharP <> stringP "u{" <> Tlex.someP hexitCharP <> stringP "}"
+uniEscapeP = escapeOpenCharP <> strP "u{" <> Tlex.someP hexitCharP <> strP "}"
 
 charescCharCs = EnumSet.unions
     [
@@ -249,7 +265,7 @@ charescCharCs = EnumSet.unions
         interpOpenCharCs
     ]
 
-byteescP = stringP "x" <> hexitCharP <> hexitCharP
+byteescP = strP "x" <> hexitCharP <> hexitCharP
 
 
 whiteSpaceRules :: ScannerBuilder ()
@@ -264,12 +280,12 @@ commentRules = do
     initialRule lineCommentOpenP [||LexCommentLineWithContent||]
     initialRule multilineCommentOpenP [||LexCommentMultilineWithContent||]
 
-lineCommentOpenP = stringP "//"
+lineCommentOpenP = strP "//"
 
 multilineCommentOpenP = commentOpenP
 
-commentOpenP = stringP "/*"
-commentCloseP = stringP "*/"
+commentOpenP = strP "/*"
+commentCloseP = strP "*/"
 
 any1lCharCs = EnumSet.unions
     [
@@ -352,7 +368,7 @@ spaceCharCs = EnumSet.unions
 
 newlineP = Tlex.orP
     [
-        stringP "\r\n",
+        strP "\r\n",
         charSetP newlineCharCs
     ]
 
@@ -423,14 +439,14 @@ otherCatCharCs = EnumSet.unions
 
 specialCharRules :: ScannerBuilder ()
 specialCharRules = do
-    initialRule (stringP "{") [||withLexToken Token.SpBraceOpen||]
-    initialRule (stringP "}") [||withLexToken Token.SpBraceClose||]
-    initialRule (stringP "[") [||withLexToken Token.SpBrackOpen||]
-    initialRule (stringP "]") [||withLexToken Token.SpBrackClose||]
-    initialRule (stringP "(") [||withLexToken Token.SpParenOpen||]
-    initialRule (stringP ")") [||withLexToken Token.SpParenClose||]
-    initialRule (stringP ";") [||withLexToken Token.SpSemi||]
-    initialRule (stringP ".") [||withLexToken Token.SpDot||]
+    initialRule (strP "{") [||withLexToken Token.SpBraceOpen||]
+    initialRule (strP "}") [||withLexToken Token.SpBraceClose||]
+    initialRule (strP "[") [||withLexToken Token.SpBrackOpen||]
+    initialRule (strP "]") [||withLexToken Token.SpBrackClose||]
+    initialRule (strP "(") [||withLexToken Token.SpParenOpen||]
+    initialRule (strP ")") [||withLexToken Token.SpParenClose||]
+    initialRule (strP ";") [||withLexToken Token.SpSemi||]
+    initialRule (strP ".") [||withLexToken Token.SpDot||]
 
 specialCharCs = EnumSet.unions
     [
@@ -479,19 +495,28 @@ otherGraphicCatCharCs = EnumSet.unions
 charSetP :: CharSet -> Pattern
 charSetP = Tlex.straightEnumSetP
 
+unitsP :: [CodeUnit.T] -> Pattern
+unitsP us = charSetP do unitsCs us
+
 charsP :: [Char] -> Pattern
 charsP cs = charSetP do charsCs cs
 
 chP :: Char -> Pattern
 chP c = charSetP do charsCs [c]
 
-stringP :: StringLit -> Pattern
-stringP = foldMap chP
+strP :: StringLit -> Pattern
+strP = foldMap chP
 
+
+unitsCs :: [CodeUnit.T] -> CharSet
+unitsCs = EnumSet.fromList
 
 charsCs :: [Char] -> CharSet
-charsCs cs = EnumSet.fromList do
+charsCs cs = unitsCs do
     c <- cs
     pure case CodeUnit.fromChar c of
         x@CodeUnit.CodeUnitByPoint{}  -> x
-        CodeUnit.CodeUnitOtherByCat{} -> error do "Unsupported char: " <> show c
+        CodeUnit.CodeUnitOtherByGroup{} -> unsupportedChar c
+        CodeUnit.CodeUnitOtherByCat{} -> unsupportedChar c
+    where
+        unsupportedChar c = error do "Unsupported char: " <> show c
