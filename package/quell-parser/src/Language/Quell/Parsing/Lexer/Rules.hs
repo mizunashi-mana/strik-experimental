@@ -30,12 +30,9 @@ data LexerAction
     | WithKwToken
     | WithWhiteSpace
     | LexIdFreeId
-    | LexLitString
+    | LexLitOrLitPartString
     | LexLitRational
     | LexLitInteger
-    | LexInterpStringStart
-    | LexInterpStringContinue
-    | LexInterpStringEnd
     | LexCommentLineWithContent
     | LexCommentMultilineWithContent
     deriving (Eq, Show)
@@ -195,13 +192,13 @@ hexitCharCs = EnumSet.unions
 
 interpStringPartRules :: ScannerBuilder ()
 interpStringPartRules = do
-    initialRule interpStringStartP [||LexInterpStringStart||]
-    initialRule interpStringContP [||LexInterpStringContinue||]
-    initialRule interpStringEndP [||LexInterpStringEnd||]
+    initialRule interpStringStartP [||LexLitOrLitPartString||]
+    initialRule interpStringContP [||LexLitOrLitPartString||]
+    initialRule interpStringEndP [||LexLitOrLitPartString||]
 
 stringRules :: ScannerBuilder ()
 stringRules = do
-    initialRule stringP [||LexLitString||]
+    initialRule stringP [||LexLitOrLitPartString||]
 
 stringP = strSepCharP <> Tlex.manyP interpStringGraphicP <> strSepCharP
 
@@ -240,8 +237,15 @@ interpStringGraphicP = Tlex.orP
 bstrGraphicP = Tlex.orP
     [
         byteEscapeP,
-        whiteCharP,
-        charSetP bstrOtherGraphicCharCs
+        charEscapeP,
+        bstrGraphicCharP
+    ]
+
+bstrGraphicCharP = charSetP bstrGraphicCharCs
+bstrGraphicCharCs = EnumSet.unions
+    [
+        whiteCharCs,
+        bstrOtherGraphicCharCs
     ]
 
 bstrOtherGraphicCharCs = graphicCharCs `EnumSet.difference` EnumSet.unions
@@ -251,9 +255,13 @@ bstrOtherGraphicCharCs = graphicCharCs `EnumSet.difference` EnumSet.unions
         interpOpenCharCs
     ]
 
-byteEscapeP = escapeOpenCharP <> Tlex.orP [charSetP charescCharCs, byteescP]
+uniEscapeP = uniEscapePrefixP <> Tlex.someP hexitCharP <> strP "}"
+uniEscapePrefixP = escapeOpenCharP <> charsP ['u', 'U'] <> strP "{"
 
-uniEscapeP = escapeOpenCharP <> strP "u{" <> Tlex.someP hexitCharP <> strP "}"
+byteEscapeP = byteEscapePrefixP <> hexitCharP <> hexitCharP
+byteEscapePrefixP = escapeOpenCharP <> charsP ['x', 'X']
+
+charEscapeP = escapeOpenCharP <> charSetP charescCharCs
 
 charescCharCs = EnumSet.unions
     [
@@ -264,8 +272,6 @@ charescCharCs = EnumSet.unions
         strSepCharCs,
         interpOpenCharCs
     ]
-
-byteescP = strP "x" <> hexitCharP <> hexitCharP
 
 
 whiteSpaceRules :: ScannerBuilder ()
@@ -419,6 +425,23 @@ digitCharCs = EnumSet.unions
     [
         CodeUnit.catDecimalNumber
     ]
+
+digit0P = charSetP CodeUnit.groupDigit0
+digit1P = charSetP CodeUnit.groupDigit1
+digit2P = charSetP CodeUnit.groupDigit2
+digit3P = charSetP CodeUnit.groupDigit3
+digit4P = charSetP CodeUnit.groupDigit4
+digit5P = charSetP CodeUnit.groupDigit5
+digit6P = charSetP CodeUnit.groupDigit6
+digit7P = charSetP CodeUnit.groupDigit7
+digit8P = charSetP CodeUnit.groupDigit8
+digit9P = charSetP CodeUnit.groupDigit9
+hexitAP = charsP ['a', 'A']
+hexitBP = charsP ['b', 'B']
+hexitCP = charsP ['c', 'C']
+hexitDP = charsP ['d', 'D']
+hexitEP = charsP ['e', 'E']
+hexitFP = charsP ['f', 'F']
 
 otherCharCs = EnumSet.unions
     [

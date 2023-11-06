@@ -9,6 +9,7 @@ module Language.Quell.Data.BufferedConduit (
     getCurrentPosition,
     seekToPosition,
     setBufferMode,
+    seekAndSetNeedBackModeTo,
 ) where
 
 import           Language.Quell.Prelude
@@ -224,6 +225,58 @@ setBufferMode mode = case mode of
                         { bufferMode = mode
                         }
                 pure (newCtx, ())
+
+seekAndSetNeedBackModeTo :: MonadST.T s m => Int -> BufferedConduitT s i o m ()
+seekAndSetNeedBackModeTo expectedPos = do
+    ctx <- getContext
+    case bufferMode ctx of
+        NoBack
+            | expectedPos < currentPosition ctx ->
+                error "Cannot back on no back mode."
+            | otherwise -> do
+                consumeInputs do expectedPos - currentPosition ctx
+                setPositionAndBufferMode
+        NeedBack needBack
+            | needBack <= currentPosition ctx -> if
+                | expectedPos < needBack ->
+                    error "Cannot back before buffered position."
+                | otherwise -> do
+                    let bufferConsumeCount = if
+                            | expectedPos <= currentPosition ctx ->
+                                expectedPos - needBack
+                            | otherwise ->
+                                currentPosition ctx - needBack
+                    _ <- MonadST.liftST
+                        do STBuffer.unbufferHeads
+                            do buffer ctx
+                            do bufferConsumeCount
+                    _ <- if
+                        | expectedPos >= currentPosition ctx ->
+                            consumeInputs do expectedPos - currentPosition ctx
+                        | otherwise ->
+                            pure ()
+                    setPositionAndBufferMode
+            | expectedPos < currentPosition ctx ->
+                error "Cannot back before buffered position."
+            | otherwise -> do
+                consumeInputs do expectedPos - currentPosition ctx
+                setPositionAndBufferMode
+    where
+        consumeInputs c = if
+            | c <= 0 ->
+                pure ()
+            | otherwise -> BufferedConduitT Conduit.await >>= \case
+                Nothing ->
+                    pure ()
+                Just{} ->
+                    consumeInputs do c - 1
+
+        setPositionAndBufferMode = modifyContext \ctx -> do
+            let newCtx = ctx
+                    { bufferMode = NeedBack expectedPos
+                    , currentPosition = expectedPos
+                    }
+            pure (newCtx, ())
 
 
 consumeBufferItem :: forall s i o m. MonadST.T s m => BufferedConduitT s i o m (Maybe i)

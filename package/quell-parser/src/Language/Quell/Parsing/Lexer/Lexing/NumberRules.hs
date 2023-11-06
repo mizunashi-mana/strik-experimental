@@ -72,38 +72,21 @@ baseRules = do
 
 componentRules :: ScannerBuilder ()
 componentRules = do
-    componentRule digit0P [||LexedComponentElement 0||]
-    componentRule digit1P [||LexedComponentElement 1||]
-    componentRule digit2P [||LexedComponentElement 2||]
-    componentRule digit3P [||LexedComponentElement 3||]
-    componentRule digit4P [||LexedComponentElement 4||]
-    componentRule digit5P [||LexedComponentElement 5||]
-    componentRule digit6P [||LexedComponentElement 6||]
-    componentRule digit7P [||LexedComponentElement 7||]
-    componentRule digit8P [||LexedComponentElement 8||]
-    componentRule digit9P [||LexedComponentElement 9||]
-    componentRule hexit10P [||LexedComponentElement 10||]
-    componentRule hexit11P [||LexedComponentElement 11||]
-    componentRule hexit12P [||LexedComponentElement 12||]
-    componentRule hexit13P [||LexedComponentElement 13||]
-    componentRule hexit14P [||LexedComponentElement 14||]
-    componentRule hexit15P [||LexedComponentElement 15||]
+    componentRule Rules.digit0P [||LexedComponentElement 0x0||]
+    componentRule Rules.digit1P [||LexedComponentElement 0x1||]
+    componentRule Rules.digit2P [||LexedComponentElement 0x2||]
+    componentRule Rules.digit3P [||LexedComponentElement 0x3||]
+    componentRule Rules.digit4P [||LexedComponentElement 0x4||]
+    componentRule Rules.digit5P [||LexedComponentElement 0x5||]
+    componentRule Rules.digit6P [||LexedComponentElement 0x6||]
+    componentRule Rules.digit7P [||LexedComponentElement 0x7||]
+    componentRule Rules.digit8P [||LexedComponentElement 0x8||]
+    componentRule Rules.digit9P [||LexedComponentElement 0x9||]
+    componentRule Rules.hexitAP [||LexedComponentElement 0xA||]
+    componentRule Rules.hexitBP [||LexedComponentElement 0xB||]
+    componentRule Rules.hexitCP [||LexedComponentElement 0xC||]
+    componentRule Rules.hexitDP [||LexedComponentElement 0xD||]
+    componentRule Rules.hexitEP [||LexedComponentElement 0xE||]
+    componentRule Rules.hexitFP [||LexedComponentElement 0xF||]
     componentRule Rules.numSepSymCharP [||LexedSep||]
     componentRule Rules.numDotSymCharP [||LexedDot||]
-
-digit0P = Rules.charSetP CodeUnit.groupDigit0
-digit1P = Rules.charSetP CodeUnit.groupDigit1
-digit2P = Rules.charSetP CodeUnit.groupDigit2
-digit3P = Rules.charSetP CodeUnit.groupDigit3
-digit4P = Rules.charSetP CodeUnit.groupDigit4
-digit5P = Rules.charSetP CodeUnit.groupDigit5
-digit6P = Rules.charSetP CodeUnit.groupDigit6
-digit7P = Rules.charSetP CodeUnit.groupDigit7
-digit8P = Rules.charSetP CodeUnit.groupDigit8
-digit9P = Rules.charSetP CodeUnit.groupDigit9
-hexit10P = Rules.charsP ['a', 'A']
-hexit11P = Rules.charsP ['b', 'B']
-hexit12P = Rules.charsP ['c', 'C']
-hexit13P = Rules.charsP ['d', 'D']
-hexit14P = Rules.charsP ['e', 'E']
-hexit15P = Rules.charsP ['f', 'F']

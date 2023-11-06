@@ -90,13 +90,15 @@ str_sep_char := '"'
 interp_string_graphic := uni_escape
                        / bstr_graphic 
 bstr_graphic := byte_escape
-              / white_char
-              / ! (interp_string_sep_char / escape_open_char / interp_open_char) graphic_char
-byte_escape := escape_open_char (charesc_char / byteesc)
-uni_escape := escape_open_char "u{" hexit_char+ "}"
+              / char_escape
+              / bstr_graphic_char
+bstr_graphic_char := white_char
+                   / ! (escape_open_char / str_sep_char / interp_open_char) graphic_char
+uni_escape := escape_open_char ("u" / "U") "{" hexit_char+ "}"
+byte_escape := escape_open_char ("x" / "X") hexit_char hexit_char
+char_escape := escape_open_char charesc_char
 charesc_char := "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v"
               / escape_open_char / str_sep_char / interp_open_char
-byteesc := "x" hexit_char hexit_char
 ```
 
 ## Whitespace

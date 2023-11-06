@@ -81,52 +81,51 @@ setNeedBackMode p = Lexer do BufferedConduit.setBufferMode do BufferedConduit.Ne
 setNoBackMode :: MonadST.T s m => Lexer s m ()
 setNoBackMode = Lexer do BufferedConduit.setBufferMode BufferedConduit.NoBack
 
-foldAwaits1 :: MonadST.T s m
-    => (LexerInputUnit -> a) -> (a -> LexerInputUnit -> a)
-    -> Int -> Lexer s m (Maybe a)
-foldAwaits1 f0 f = \c0 -> if
+seekAndSetNeedBackModeTo :: MonadST.T s m => Int -> Lexer s m ()
+seekAndSetNeedBackModeTo p = Lexer do BufferedConduit.seekAndSetNeedBackModeTo p
+
+foldAwaits :: MonadST.T s m => LexItemState a -> Int -> Lexer s m a
+foldAwaits s0 c0 = if
     | c0 <= 0 ->
-        pure Nothing
+        pure do lexItemState s0
     | otherwise ->
         lexerAwait >>= \case
             Nothing ->
-                pure Nothing
-            Just x ->
-                go
-                    do c0 - 1
-                    do f0 x
-    where
-        go c0 z0 = if
-            | c0 <= 0 ->
-                pure do Just z0
-            | otherwise ->
-                lexerAwait >>= \case
-                    Nothing ->
-                        pure do Just z0
-                    Just x ->
-                        go
-                            do c0 - 1
-                            do f z0 x
+                pure do lexItemState s0
+            Just x -> do
+                let s1 = lexItemNextState s0 x
+                foldAwaits s1 do c0 - 1
+
+consumeLexedUnits :: MonadST.T s m => LexItemState a -> Int -> Int -> Lexer s m a
+consumeLexedUnits s0 pos0 pos1 = do
+    seekToPosition pos0
+    foldAwaits s0 do pos1 - pos0
 
 consumeLexedUnitsAndSwitchToNoBackMode :: MonadST.T s m
-    => (LexerInputUnit -> a) -> (a -> LexerInputUnit -> a)
-    -> Int -> Int -> Lexer s m a
-consumeLexedUnitsAndSwitchToNoBackMode f0 f pos0 pos1 = do
+    => LexItemState a -> Int -> Int -> Lexer s m a
+consumeLexedUnitsAndSwitchToNoBackMode s0 pos0 pos1 = do
     seekToPosition pos0
     setNoBackMode
-    mx <- foldAwaits1 f0 f
-        do pos1 - pos0
-    case mx of
-        Nothing ->
-            error "unreachable: lexer should consume some inputs."
-        Just x ->
-            pure x
+    foldAwaits s0 do pos1 - pos0
 
-lexSpan :: MonadST.T s m => Int -> Int -> Lexer s m Spanned.Span
+lexSpan :: MonadST.T s m => Int -> Int -> Lexer s m (Maybe Spanned.Span)
 lexSpan pos0 pos1 = consumeLexedUnitsAndSwitchToNoBackMode
-    do \item -> Spanned.getSpan item
-    do \sp item -> sp <> Spanned.getSpan item
+    do LexItemState
+        {
+            lexItemState = Nothing,
+            lexItemNext = go
+        }
     pos0 pos1
+    where
+        go mspan0 spannedItem = do
+            let span1 = case mspan0 of
+                    Nothing -> Spanned.getSpan spannedItem
+                    Just span0 -> span0 <> Spanned.getSpan spannedItem
+            LexItemState
+                {
+                    lexItemState = Just span1,
+                    lexItemNext = go
+                }
 
 -- FIXME: try error recovering and report detailed and suggestions
 yieldTlexError :: MonadST.T s m => Lexer s m ()
@@ -144,9 +143,9 @@ data LexItemState a = LexItemState
         lexItemNext  :: LexItemStateNext a
     }
 
-type LexItemStateNext a = a -> (Char, CodeUnit.T) -> LexItemState a
+type LexItemStateNext a = a -> LexerInputUnit -> LexItemState a
 
-lexItemNextState :: LexItemState a -> (Char, CodeUnit.T) -> LexItemState a
+lexItemNextState :: LexItemState a -> LexerInputUnit -> LexItemState a
 lexItemNextState s = lexItemNext s do lexItemState s
 
 skipLexItems :: Int -> LexItemStateNext a -> LexItemStateNext a

@@ -41,6 +41,27 @@ spec = do
                         go
             runConduit go0 [1,2,3,4,5,6] `shouldBe` [1,6,5,4]
 
+        it "allow to seek past positions and change back mode" do
+            let go0 :: BufferedConduit.T s Int Int (ST s) ()
+                go0 = do
+                    forM_ [1::Int,2] \_ -> do
+                        BufferedConduit.await >>= \case
+                            Nothing ->
+                                pure ()
+                            Just i -> do
+                                BufferedConduit.yield i
+                    BufferedConduit.seekAndSetNeedBackModeTo 4
+                    go
+
+                go :: BufferedConduit.T s Int Int (ST s) ()
+                go = BufferedConduit.await >>= \case
+                    Nothing ->
+                        pure ()
+                    Just i -> do
+                        BufferedConduit.yield do 10 - i
+                        go
+            runConduit go0 [1,2,3,4,5,6] `shouldBe` [1,2,5,4]
+
     describe "Need back mode" do
         it "behaves usual conduit" do
             let go0 :: BufferedConduit.T s Int Int (ST s) ()
@@ -89,6 +110,28 @@ spec = do
                             Just i -> do
                                 BufferedConduit.yield i
                     BufferedConduit.seekToPosition 2
+                    go
+
+                go :: BufferedConduit.T s Int Int (ST s) ()
+                go = BufferedConduit.await >>= \case
+                    Nothing ->
+                        pure ()
+                    Just i -> do
+                        BufferedConduit.yield do 10 - i
+                        go
+            runConduit go0 [1,2,3,4,5,6] `shouldBe` [1,2,3,4,7,6,5,4]
+
+        it "allow to seek past positions buffered and change back mode" do
+            let go0 :: BufferedConduit.T s Int Int (ST s) ()
+                go0 = do
+                    BufferedConduit.setBufferMode do BufferedConduit.NeedBack 1
+                    forM_ [1::Int,2,3,4] \_ -> do
+                        BufferedConduit.await >>= \case
+                            Nothing ->
+                                pure ()
+                            Just i -> do
+                                BufferedConduit.yield i
+                    BufferedConduit.seekAndSetNeedBackModeTo 2
                     go
 
                 go :: BufferedConduit.T s Int Int (ST s) ()
