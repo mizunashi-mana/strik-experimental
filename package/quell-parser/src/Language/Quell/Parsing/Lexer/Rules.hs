@@ -538,8 +538,8 @@ charsCs :: [Char] -> CharSet
 charsCs cs = unitsCs do
     c <- cs
     pure case CodeUnit.fromChar c of
-        x@CodeUnit.CodeUnitByPoint{}  -> x
+        x@CodeUnit.CodeUnitByPoint{}    -> x
         CodeUnit.CodeUnitOtherByGroup{} -> unsupportedChar c
-        CodeUnit.CodeUnitOtherByCat{} -> unsupportedChar c
+        CodeUnit.CodeUnitOtherByCat{}   -> unsupportedChar c
     where
         unsupportedChar c = error do "Unsupported char: " <> show c

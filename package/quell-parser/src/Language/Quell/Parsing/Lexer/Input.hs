@@ -119,7 +119,7 @@ lexSpan pos0 pos1 = consumeLexedUnitsAndSwitchToNoBackMode
     where
         go mspan0 spannedItem = do
             let span1 = case mspan0 of
-                    Nothing -> Spanned.getSpan spannedItem
+                    Nothing    -> Spanned.getSpan spannedItem
                     Just span0 -> span0 <> Spanned.getSpan spannedItem
             LexItemState
                 {

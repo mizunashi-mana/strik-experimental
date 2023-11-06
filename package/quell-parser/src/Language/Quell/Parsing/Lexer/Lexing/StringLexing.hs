@@ -2,11 +2,11 @@
 
 module Language.Quell.Parsing.Lexer.Lexing.StringLexing where
 
-import Language.Quell.Prelude
+import           Language.Quell.Prelude
 
+import qualified Language.Quell.Parsing.Lexer.Input              as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.StringRules as StringRules
-import qualified Language.Quell.Parsing.Lexer.Input                as Input
-import qualified Language.Quell.Parsing.Spanned as Spanned
+import qualified Language.Quell.Parsing.Spanned                  as Spanned
 
 $(StringRules.buildLexer)
 

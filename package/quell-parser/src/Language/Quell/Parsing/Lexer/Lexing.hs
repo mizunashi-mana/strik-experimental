@@ -12,12 +12,12 @@ import qualified Language.Quell.Frontend.Data.Token                as Token
 import qualified Language.Quell.Parsing.Lexer.CodeUnit             as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Input                as Input
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
-import qualified Language.Quell.Parsing.Lexer.Lexing.NumberRules  as NumberRules
 import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing  as NumberLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.NumberRules   as NumberRules
+import qualified Language.Quell.Parsing.Lexer.Lexing.StringLexing  as StringLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.StringRules   as StringRules
 import qualified Language.Quell.Parsing.Lexer.Rules                as Rules
 import qualified Language.Quell.Parsing.Spanned                    as Spanned
-import qualified Language.Quell.Parsing.Lexer.Lexing.StringRules  as StringRules
-import qualified Language.Quell.Parsing.Lexer.Lexing.StringLexing  as StringLexing
 
 $(Rules.buildLexer)
 
@@ -145,7 +145,7 @@ yieldIdType pos0 pos1 (Rules.IdType t) = do
         pos0 pos1
     let spannedTxtBuilder0To1 = case mspannedTxtBuilder0To1 of
             Nothing -> error "unreachable: lexer should consume some inputs."
-            Just x -> x
+            Just x  -> x
     let u = spannedTxtBuilder0To1 <&> \txtBuilder -> Input.LexedToken do
             Token.TokLexeme do t do TextId.textId do buildText txtBuilder
     Input.lexerYield u
@@ -210,12 +210,12 @@ lexAndYieldLitRational posStart posEnd = do
                 Input.yieldTlexError
             Tlex.TlexAccepted pos1 act -> do
                 let sign = case act of
-                        NumberRules.LexedSignPositive -> True
-                        NumberRules.LexedSignNegative -> False
-                        NumberRules.LexedBase{} -> unexpectedAction
+                        NumberRules.LexedSignPositive       -> True
+                        NumberRules.LexedSignNegative       -> False
+                        NumberRules.LexedBase{}             -> unexpectedAction
                         NumberRules.LexedComponentElement{} -> unexpectedAction
-                        NumberRules.LexedDot -> unexpectedAction
-                        NumberRules.LexedSep -> unexpectedAction
+                        NumberRules.LexedDot                -> unexpectedAction
+                        NumberRules.LexedSep                -> unexpectedAction
                 Input.seekToPosition pos1
                 goBase sign
 
@@ -228,12 +228,12 @@ lexAndYieldLitRational posStart posEnd = do
             Tlex.TlexAccepted pos1 act -> do
                 Input.seekToPosition pos1
                 let base = case act of
-                        NumberRules.LexedBase e -> e
-                        NumberRules.LexedSignPositive -> unexpectedAction
-                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedBase e             -> e
+                        NumberRules.LexedSignPositive       -> unexpectedAction
+                        NumberRules.LexedSignNegative       -> unexpectedAction
                         NumberRules.LexedComponentElement{} -> unexpectedAction
-                        NumberRules.LexedDot -> unexpectedAction
-                        NumberRules.LexedSep -> unexpectedAction
+                        NumberRules.LexedDot                -> unexpectedAction
+                        NumberRules.LexedSep                -> unexpectedAction
                 let s = LexItemStateOfRational
                         {
                             lexItemStateOfRationalSign = sign,
@@ -290,20 +290,20 @@ lexAndYieldLitRational posStart posEnd = do
                         NumberRules.LexedBase{} -> unexpectedAction
                 if
                     | pos1 < posEnd -> goComponent2 s1
-                    | otherwise -> yieldLitRationalToken s1
+                    | otherwise     -> yieldLitRationalToken s1
 
         yieldLitRationalToken :: LexItemStateOfRational -> Input.Lexer s m ()
         yieldLitRationalToken s = do
             let base = lexItemStateOfRationalBase s
                 fraction0 = case lexItemStateOfRationalSign s of
-                    True -> lexItemStateOfRationalFraction s
+                    True  -> lexItemStateOfRationalFraction s
                     False -> negate do lexItemStateOfRationalFraction s
                 exponent0 = lexItemStateOfRationalExponent s
                 tok = Input.LexedToken do
                     Token.TokLexeme do
                         Token.LitRational if
                             | exponent0 < 0 -> fraction0 % base ^ exponent0
-                            | otherwise    -> fraction0 * base ^ exponent0 % 1
+                            | otherwise     -> fraction0 * base ^ exponent0 % 1
             mspan0 <- Input.lexSpan posStart posEnd
             Input.lexerYield do
                 Spanned.Spanned
@@ -336,12 +336,12 @@ lexAndYieldLitInteger posStart posEnd = do
                 Input.yieldTlexError
             Tlex.TlexAccepted pos1 act -> do
                 let sign = case act of
-                        NumberRules.LexedSignPositive -> True
-                        NumberRules.LexedSignNegative -> False
-                        NumberRules.LexedBase{} -> unexpectedAction
+                        NumberRules.LexedSignPositive       -> True
+                        NumberRules.LexedSignNegative       -> False
+                        NumberRules.LexedBase{}             -> unexpectedAction
                         NumberRules.LexedComponentElement{} -> unexpectedAction
-                        NumberRules.LexedDot -> unexpectedAction
-                        NumberRules.LexedSep -> unexpectedAction
+                        NumberRules.LexedDot                -> unexpectedAction
+                        NumberRules.LexedSep                -> unexpectedAction
                 Input.seekToPosition pos1
                 goBase sign
 
@@ -354,12 +354,12 @@ lexAndYieldLitInteger posStart posEnd = do
             Tlex.TlexAccepted pos1 act -> do
                 Input.seekToPosition pos1
                 let base = case act of
-                        NumberRules.LexedBase e -> e
-                        NumberRules.LexedSignPositive -> unexpectedAction
-                        NumberRules.LexedSignNegative -> unexpectedAction
+                        NumberRules.LexedBase e             -> e
+                        NumberRules.LexedSignPositive       -> unexpectedAction
+                        NumberRules.LexedSignNegative       -> unexpectedAction
                         NumberRules.LexedComponentElement{} -> unexpectedAction
-                        NumberRules.LexedDot -> unexpectedAction
-                        NumberRules.LexedSep -> unexpectedAction
+                        NumberRules.LexedDot                -> unexpectedAction
+                        NumberRules.LexedSep                -> unexpectedAction
                 let s = LexItemStateOfInteger
                         {
                             lexItemStateOfIntegerSign = sign,
@@ -391,12 +391,12 @@ lexAndYieldLitInteger posStart posEnd = do
                         NumberRules.LexedBase{} -> unexpectedAction
                 if
                     | pos1 < posEnd -> goComponent s1
-                    | otherwise -> yieldLitIntegerToken s1
+                    | otherwise     -> yieldLitIntegerToken s1
 
         yieldLitIntegerToken :: LexItemStateOfInteger -> Input.Lexer s m ()
         yieldLitIntegerToken s = do
             let fraction0 = case lexItemStateOfIntegerSign s of
-                    True -> lexItemStateOfIntegerFraction s
+                    True  -> lexItemStateOfIntegerFraction s
                     False -> negate do lexItemStateOfIntegerFraction s
                 tok = Input.LexedToken do
                     Token.TokLexeme do
@@ -412,7 +412,7 @@ lexAndYieldLitInteger posStart posEnd = do
 
 data LexItemStateOfString = LexItemStateOfString
     {
-        lexItemStateOfStringIsCont :: Bool,
+        lexItemStateOfStringIsCont      :: Bool,
         lexItemStateOfStringTextBuilder :: TextBuilder
     }
 
@@ -433,15 +433,15 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
             Tlex.TlexAccepted pos1 act -> do
                 Input.seekToPosition pos1
                 let isCont = case act of
-                        StringRules.LexedStrSep -> False
-                        StringRules.LexedInterpClose -> True
-                        StringRules.LexedInterpOpen -> unexpectedAction
-                        StringRules.LexedComponentChar -> unexpectedAction
-                        StringRules.LexedComponentEsc{} -> unexpectedAction
+                        StringRules.LexedStrSep           -> False
+                        StringRules.LexedInterpClose      -> True
+                        StringRules.LexedInterpOpen       -> unexpectedAction
+                        StringRules.LexedComponentChar    -> unexpectedAction
+                        StringRules.LexedComponentEsc{}   -> unexpectedAction
                         StringRules.LexedComponentByteEsc -> unexpectedAction
-                        StringRules.LexedComponentUniEsc -> unexpectedAction
+                        StringRules.LexedComponentUniEsc  -> unexpectedAction
                         StringRules.LexedComponentHexit{} -> unexpectedAction
-                        StringRules.LexedComponentEnd -> unexpectedAction
+                        StringRules.LexedComponentEnd     -> unexpectedAction
                 goComponent pos1 do
                     LexItemStateOfString
                         {
@@ -520,9 +520,9 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                 tok = Input.LexedToken do
                     Token.TokLexeme case (lexItemStateOfStringIsCont s, isCont) of
                         (False, False) -> Token.LitString txt
-                        (False, True) -> Token.LitPartInterpStringStart txt
-                        (True, False) -> Token.LitPartInterpStringEnd txt
-                        (True, True) -> Token.LitPartInterpStringCont txt
+                        (False, True)  -> Token.LitPartInterpStringStart txt
+                        (True, False)  -> Token.LitPartInterpStringEnd txt
+                        (True, True)   -> Token.LitPartInterpStringCont txt
             mspan0 <- Input.lexSpan posStart posEnd
             Input.lexerYield do
                 Spanned.Spanned
