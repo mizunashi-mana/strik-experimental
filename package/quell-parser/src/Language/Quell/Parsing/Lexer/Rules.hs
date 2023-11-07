@@ -288,17 +288,17 @@ commentRules = do
 
 lineCommentOpenP = strP "//"
 
-multilineCommentOpenP = commentOpenP
+multilineCommentOpenP = strP "/*"
+multilineCommentCloseP = strP "*/"
 
-commentOpenP = strP "/*"
-commentCloseP = strP "*/"
-
+any1lCharP = charSetP any1lCharCs
 any1lCharCs = EnumSet.unions
     [
         graphicCharCs,
         spaceCharCs
     ]
 
+anyCharP = charSetP anyCharCs
 anyCharCs = EnumSet.unions
     [
         graphicCharCs,

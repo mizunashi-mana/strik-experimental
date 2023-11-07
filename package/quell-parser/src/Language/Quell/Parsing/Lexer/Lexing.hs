@@ -11,6 +11,8 @@ import qualified Language.Quell.Data.TextId                        as TextId
 import qualified Language.Quell.Frontend.Data.Token                as Token
 import qualified Language.Quell.Parsing.Lexer.CodeUnit             as CodeUnit
 import qualified Language.Quell.Parsing.Lexer.Input                as Input
+import qualified Language.Quell.Parsing.Lexer.Lexing.CommentLexing as CommentLexing
+import qualified Language.Quell.Parsing.Lexer.Lexing.CommentRules  as CommentRules
 import qualified Language.Quell.Parsing.Lexer.Lexing.KeywordLexing as KeywordLexing
 import qualified Language.Quell.Parsing.Lexer.Lexing.NumberLexing  as NumberLexing
 import qualified Language.Quell.Parsing.Lexer.Lexing.NumberRules   as NumberRules
@@ -126,7 +128,7 @@ lexer = go Rules.Initial where
 
 yieldToken :: MonadST.T s m => Int -> Int -> Token.T -> Input.Lexer s m ()
 yieldToken pos0 pos1 tok = do
-    mspan0To1 <- Input.lexSpan pos0 pos1
+    mspan0To1 <- Input.lexSpanAndSwitchToNoBackMode pos0 pos1
     let u = Spanned.Spanned
             { Spanned.getSpan = case mspan0To1 of
                 Nothing -> error "unreachable: lexer should consume some inputs."
@@ -174,7 +176,7 @@ yieldKwToken pos0 pos1 = KeywordLexing.lexer pos1 >>= \case
     Nothing -> Input.yieldTlexError
     where
         goAccepted tok = do
-            mspan0To1 <- Input.lexSpan pos0 pos1
+            mspan0To1 <- Input.lexSpanAndSwitchToNoBackMode pos0 pos1
             let u = Spanned.Spanned
                     { Spanned.getSpan = case mspan0To1 of
                         Nothing -> error "unreachable: lexer should consume some inputs."
@@ -304,7 +306,7 @@ lexAndYieldLitRational posStart posEnd = do
                         Token.LitRational if
                             | exponent0 < 0 -> fraction0 % base ^ exponent0
                             | otherwise     -> fraction0 * base ^ exponent0 % 1
-            mspan0 <- Input.lexSpan posStart posEnd
+            mspan0 <- Input.lexSpanAndSwitchToNoBackMode posStart posEnd
             Input.lexerYield do
                 Spanned.Spanned
                     { Spanned.getSpan = case mspan0 of
@@ -401,7 +403,7 @@ lexAndYieldLitInteger posStart posEnd = do
                 tok = Input.LexedToken do
                     Token.TokLexeme do
                         Token.LitInteger fraction0
-            mspan0 <- Input.lexSpan posStart posEnd
+            mspan0 <- Input.lexSpanAndSwitchToNoBackMode posStart posEnd
             Input.lexerYield do
                 Spanned.Spanned
                     { Spanned.getSpan = case mspan0 of
@@ -465,15 +467,12 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                             StringLexing.lexComponentChar
                             pos0 pos1
                         goComponentCont pos1 s0 txtB
-                    StringRules.LexedComponentEsc c -> goComponentCont
-                        pos1 s0
-                        do textBuilderFromChar c
-                    StringRules.LexedComponentByteEsc -> goComponentHexits
-                        s0 0
-                        do Just do pos1 + 2
-                    StringRules.LexedComponentUniEsc -> goComponentHexits
-                        s0 0
-                        Nothing
+                    StringRules.LexedComponentEsc c ->
+                        goComponentCont pos1 s0 do textBuilderFromChar c
+                    StringRules.LexedComponentByteEsc ->
+                        goComponentHexits s0 0 do pos1 + 2
+                    StringRules.LexedComponentUniEsc ->
+                        goComponentHexits s0 0 posEnd
                     StringRules.LexedInterpClose -> unexpectedAction
                     StringRules.LexedComponentHexit{} -> unexpectedAction
                     StringRules.LexedComponentEnd -> unexpectedAction
@@ -486,8 +485,8 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                     lexItemStateOfStringTextBuilder = currentTxtB <> txtB
                 }
 
-        goComponentHexits :: LexItemStateOfString -> Int -> Maybe Int -> Input.Lexer s m ()
-        goComponentHexits s0 i0 mexpEnd = StringLexing.tlexScan StringRules.Component >>= \case
+        goComponentHexits :: LexItemStateOfString -> Int -> Int -> Input.Lexer s m ()
+        goComponentHexits s0 i0 expEnd = StringLexing.tlexScan StringRules.ComponentHexit >>= \case
             Tlex.TlexEndOfInput -> do
                 Input.yieldTlexError
             Tlex.TlexNotAccepted -> do
@@ -507,12 +506,12 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                 case mi of
                     Nothing -> goComponentCont pos1 s0
                         do textBuilderFromChar do toEnum i0
-                    Just i1 -> case mexpEnd of
-                        Just expEnd | expEnd <= pos1 ->
+                    Just i1 -> if
+                        | expEnd <= pos1 ->
                             goComponentCont pos1 s0
                                 do textBuilderFromChar do toEnum i1
-                        _ ->
-                            goComponentHexits s0 i1 mexpEnd
+                        | otherwise ->
+                            goComponentHexits s0 i1 expEnd
 
         yieldLitStringToken :: LexItemStateOfString -> Bool -> Input.Lexer s m ()
         yieldLitStringToken s isCont = do
@@ -523,7 +522,7 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                         (False, True)  -> Token.LitPartInterpStringStart txt
                         (True, False)  -> Token.LitPartInterpStringEnd txt
                         (True, True)   -> Token.LitPartInterpStringCont txt
-            mspan0 <- Input.lexSpan posStart posEnd
+            mspan0 <- Input.lexSpanAndSwitchToNoBackMode posStart posEnd
             Input.lexerYield do
                 Spanned.Spanned
                     { Spanned.getSpan = case mspan0 of
@@ -533,7 +532,56 @@ lexAndYieldLitOrLitPartString posStart posEnd = do
                     }
 
 lexAndYieldCommentLineWithContent :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldCommentLineWithContent = undefined
+lexAndYieldCommentLineWithContent posStart posPrefixEnd =
+    lexAndYieldCommentWithContent posStart posPrefixEnd
+        CommentRules.LineComponent
+        Token.CommentLine
 
 lexAndYieldCommentMultilineWithContent :: MonadST.T s m => Int -> Int -> Input.Lexer s m ()
-lexAndYieldCommentMultilineWithContent = undefined
+lexAndYieldCommentMultilineWithContent posStart posPrefixEnd =
+    lexAndYieldCommentWithContent posStart posPrefixEnd
+        CommentRules.MultilineComponent
+        Token.CommentMultiline
+
+type LexItemStateOfComment = Spanned.T TextBuilder
+
+lexAndYieldCommentWithContent :: forall s m. MonadST.T s m
+    => Int -> Int -> CommentRules.LexerState -> (Text -> Token.WsToken) -> Input.Lexer s m ()
+lexAndYieldCommentWithContent posStart posPrefixEnd lexerState tokBuilder = do
+    mspan0 <- Input.lexSpanAndSwitchToNoBackMode posStart posPrefixEnd
+    let span0 = case mspan0 of
+            Nothing -> error "unreachable: lexer should consume some inputs."
+            Just x  -> x
+    goComponent posPrefixEnd do
+        Spanned.Spanned
+            { Spanned.getSpan = span0
+            , Spanned.unSpanned = mempty
+            }
+    where
+        goComponent pos0 s0 = CommentLexing.tlexScan lexerState >>= \case
+            Tlex.TlexEndOfInput -> do
+                Input.yieldTlexError
+            Tlex.TlexNotAccepted -> do
+                Input.yieldTlexError
+            Tlex.TlexAccepted pos1 act -> do
+                Input.seekToPosition pos1
+                case act of
+                    CommentRules.LexedClose -> do
+                        msp <- Input.lexSpanAndSwitchToNoBackMode pos0 pos1
+                        let sp = case msp of
+                                Nothing -> error "unreachable: lexer should consume some inputs."
+                                Just x -> x
+                        let s1 = Spanned.appendSpan s0 sp
+                        yieldCommentToken s1
+                    CommentRules.LexedComponentChar -> do
+                        s1 <- Input.consumeLexedUnits
+                            do CommentLexing.lexComponentChar s0
+                            pos0 pos1
+                        goComponent pos1 s1
+
+        yieldCommentToken s0 = do
+            let spannedTok = s0 <&> \txtB0 ->
+                    Input.LexedToken do
+                        Token.TokWhiteSpace do
+                            tokBuilder do buildText txtB0
+            Input.lexerYield spannedTok

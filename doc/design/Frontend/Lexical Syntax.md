@@ -115,11 +115,12 @@ whitestuff := white_char
 comment := line_comment
          / multiline_comment
 
-line_comment := "//" any_1l_char* (newline / EOS)
-multiline_comment := comment_open anys (comment_close / EOS)
+line_comment := line_comment_open any_1l_char* (newline / EOS)
+multiline_comment := multiline_comment_open anys (multiline_comment_close / EOS)
 
-comment_open := "/*"
-comment_close := "*/"
+line_comment_open := "//"
+multiline_comment_open := "/*"
+multiline_comment_close := "*/"
 
 any_1l_char := graphic_char / space_char
 anys := (! comment_close any_char)*

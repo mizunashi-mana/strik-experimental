@@ -108,8 +108,8 @@ consumeLexedUnitsAndSwitchToNoBackMode s0 pos0 pos1 = do
     setNoBackMode
     foldAwaits s0 do pos1 - pos0
 
-lexSpan :: MonadST.T s m => Int -> Int -> Lexer s m (Maybe Spanned.Span)
-lexSpan pos0 pos1 = consumeLexedUnitsAndSwitchToNoBackMode
+lexSpanAndSwitchToNoBackMode :: MonadST.T s m => Int -> Int -> Lexer s m (Maybe Spanned.Span)
+lexSpanAndSwitchToNoBackMode pos0 pos1 = consumeLexedUnitsAndSwitchToNoBackMode
     do LexItemState
         {
             lexItemState = Nothing,
