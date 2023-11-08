@@ -8,7 +8,23 @@ import qualified Language.Quell.Parsing.Spanned     as Spanned
 
 
 data TokenWithL
-    = Token (Spanned.T Token.LexToken)
+    = TokenRaw (Spanned.T Token.LexToken)
+    | TokenVirt VirtToken
+    | LayoutError
+    deriving (Eq, Show)
+
+data VirtToken
+    = VirtSemi
+    deriving (Eq, Show)
+
+layoutProcess :: Monad m
+    => Bool -> Int -> Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL m ()
+layoutProcess expOpenLayout currentLineNum =
+    preParse expOpenLayout currentLineNum Conduit..| withL
+
+
+data TokenPreParsed
+    = TokenThrough (Spanned.T Token.LexToken)
     | OpenNewImpLayout Position
     | OpenNewExpLayout
     | Newline Position
@@ -34,23 +50,58 @@ instance Ord Position where
                 compare i1 i2
 
 
-type PreParseConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenWithL
+type PreParseConduit = Conduit.ConduitT (Spanned.T Token.LexToken) TokenPreParsed
 
-preParse :: forall m. Monad m => Int -> PreParseConduit m ()
-preParse = openNewImpLayout where
-    openNewImpLayout :: Int -> PreParseConduit m ()
-    openNewImpLayout = \currentLineNum -> Conduit.await >>= \case
-        Nothing -> do
-            Conduit.yield do ExpectNewImpLayout PositionEos
-            undefined
-        Just spannedTok -> do
-            let newLoc = Spanned.beginLoc do Spanned.getSpan spannedTok
-            let newCol = Spanned.locCol newLoc
-            Conduit.yield do ExpectNewImpLayout do PositionByCol newCol
-            undefined
-        where
-            checkNewline currentLineNum = Conduit.await >>= \case
-                Nothing -> pure ()
+preParse :: forall m. Monad m => Bool -> Int -> PreParseConduit m ()
+preParse expOpenLayout = \currentLineNum -> if
+        | expOpenLayout ->
+            openNewImpLayout currentLineNum
+        | otherwise ->
+            checkNewline currentLineNum
+    where
+        checkNewline currentLineNum = Conduit.await >>= \case
+            Nothing -> if
+                | expOpenLayout ->
+                    Conduit.yield CloseLayout
+                | otherwise ->
+                    pure ()
+            Just spannedTok -> do
+                let loc = Spanned.beginLoc do Spanned.getSpan spannedTok
+                let newLineNum = Spanned.locLine loc
+                if
+                    | currentLineNum < newLineNum -> do
+                        Conduit.yield do Newline do PositionByCol do Spanned.locCol loc
+                        checkTokenType spannedTok newLineNum
+                    | otherwise -> do
+                        checkTokenType spannedTok currentLineNum
+
+        checkTokenType spannedTok currentLineNum =
+            case tokenType do Spanned.unSpanned spannedTok of
+                Just TokenImpLayoutOpen -> do
+                    Conduit.yield do TokenThrough spannedTok
+                    openNewImpLayout currentLineNum
+                Just TokenExpLayoutOpen -> do
+                    Conduit.yield do TokenThrough spannedTok
+                    Conduit.yield OpenNewExpLayout
+                    checkNewline currentLineNum
+                Just TokenLayoutClose -> do
+                    Conduit.yield do TokenThrough spannedTok
+                    Conduit.yield CloseLayout
+                    checkNewline currentLineNum
+                Nothing -> do
+                    Conduit.yield do TokenThrough spannedTok
+                    checkNewline currentLineNum
+
+        openNewImpLayout currentLineNum = Conduit.await >>= \case
+            Nothing -> do
+                Conduit.yield do OpenNewImpLayout PositionEos
+                checkNewline currentLineNum
+            Just spannedTok -> do
+                let loc = Spanned.beginLoc do Spanned.getSpan spannedTok
+                let colNum = Spanned.locCol loc
+                Conduit.yield do OpenNewImpLayout do PositionByCol colNum
+                checkNewline currentLineNum
+
 
 data TokenType
     = TokenImpLayoutOpen
@@ -71,22 +122,37 @@ tokenType = \case
     _                  -> Nothing
 
 
-type WithLConduit = Conduit.ConduitT TokenWithL (Spanned.T Token.LexToken)
+type WithLConduit = Conduit.ConduitT TokenPreParsed TokenWithL
 
 withL :: forall m. Monad m => WithLConduit m ()
 withL = go [] where
     go :: [Maybe Position] -> WithLConduit m ()
-    go ms = Conduit.await >>= \case
+    go ms0 = Conduit.await >>= \case
         Nothing ->
             pure ()
         Just tokL -> case tokL of
             OpenNewImpLayout pos -> do
-                go do Just pos:ms
+                go do Just pos:ms0
             OpenNewExpLayout ->
-                go do Nothing:ms
-            CloseLayout ->
-                undefined
-            Newline pos ->
-                undefined
-            Token spannedTok ->
-                undefined
+                go do Nothing:ms0
+            CloseLayout -> case ms0 of
+                [] ->
+                    Conduit.yield LayoutError
+                _:ms1 ->
+                    go ms1
+            Newline pos -> case ms0 of
+                [] ->
+                    Conduit.yield LayoutError
+                Just posL:_ -> if
+                    | pos < posL ->
+                        Conduit.yield LayoutError
+                    | pos == posL -> do
+                        Conduit.yield do TokenVirt VirtSemi
+                        go ms0
+                    | otherwise ->
+                        go ms0
+                Nothing:_ ->
+                    go ms0
+            TokenThrough spannedTok -> do
+                Conduit.yield do TokenRaw spannedTok
+                go ms0

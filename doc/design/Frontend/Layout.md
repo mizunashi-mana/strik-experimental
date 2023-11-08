@@ -33,8 +33,7 @@ withL([], [], p)                  = ParseOk
 withL({openImp(m)}:ts, ms, p)     = withL(ts, {m}:ms, p)
 withL({openExp}:ts, ms, p)        = withL(ts, {-}:ms, p)
 withL({close}:ts, [], p)          = ParseError
-withL({close}:ts, {m}:ms, p)      = withL(ts, ms, p)
-withL({close}:ts, {-}:ms, p)      = withL(ts, ms, p)
+withL({close}:ts, m:ms, p)        = withL(ts, ms, p)
 withL({newline(c)}:ts, [], p)     = ParseError
 withL({newline(c)}:ts, {m}:ms, p) = ParseError                   (if c < m)
 withL({newline(c)}:ts, {m}:ms, p) = p(<;>, withL(ts, {m}:ms, p)) (if c = m)

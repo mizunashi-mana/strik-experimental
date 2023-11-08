@@ -54,8 +54,6 @@ data LexToken
     | IdVarSym TextId.T
     | IdConSym TextId.T
     | IdFreeId TextId.T
-
-    | VirtSemi
     deriving (Eq, Show)
 
 instance Pretty LexToken where
@@ -97,8 +95,6 @@ instance Pretty LexToken where
         -- FIXME: Make to show complete representation.
         -- Current implementation is approximately.
         IdFreeId v -> pretty do text "#\"" <> Text.showByText v <> text "\""
-
-        VirtSemi -> pretty "<;>"
 
 data WsToken
     = CommentLine Text
