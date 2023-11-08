@@ -15,7 +15,7 @@ let_type_body := lb_open let_type_body_items lb_close
                / let_type_body_item
 let_type_body_items := lsemis? let_type_body_item (lsemis let_type_body_item)* lsemis?
 let_type_body_item := bind_prom_type
-                    /  dbind_type
+                    / bind_type
 ```
 
 ## Where Declaration
@@ -186,11 +186,15 @@ var := declvar
 ## Layout Unit
 
 ```
-lb_open := "{"
-       / "#{"
+lb_open := lb_imp_open
+         / lb_exp_open
+lb_imp_open := "{"
+lb_exp_open := "#{"
 lb_close := "}"
-lp_open := "("
-         / "#("
+lp_open := lp_imp_open
+         / lp_exp_open
+lp_imp_open := "("
+lp_exp_open := "#("
 lp_close := ")"
-lsemis := (';' / ";")+
+lsemis := (<;> / ";")+
 ```

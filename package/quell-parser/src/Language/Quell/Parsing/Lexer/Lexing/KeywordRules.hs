@@ -38,7 +38,7 @@ initialRule :: Pattern -> TH.Code TH.Q LexerAction -> ScannerBuilder ()
 initialRule = TlexTH.thLexRule [Initial]
 
 keywordPrefixedRule :: Pattern -> TH.Code TH.Q LexerAction -> ScannerBuilder ()
-keywordPrefixedRule p = initialRule (Rules.keywordPrefixCharP <> p)
+keywordPrefixedRule p = initialRule do Rules.keywordPrefixCharP <> p
 
 
 lexerRules :: ScannerBuilder ()
@@ -60,4 +60,3 @@ keywordSymRules = do
     initialRule (Rules.strP "^") [||Token.KwSymCaret||]
     initialRule (Rules.strP ":") [||Token.KwSymColon||]
     initialRule (Rules.strP "\\") [||Token.KwSymBackslash||]
-

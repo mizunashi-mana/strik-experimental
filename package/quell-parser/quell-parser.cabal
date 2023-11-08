@@ -86,6 +86,7 @@ library
         Language.Quell.Parsing.Lexer.Lexing.StringRules
         Language.Quell.Parsing.Lexer.Lexing.CommentLexing
         Language.Quell.Parsing.Lexer.Lexing.CommentRules
+        Language.Quell.Parsing.Parser.Rules
 
 test-suite quell-parser-doctest
     import:
