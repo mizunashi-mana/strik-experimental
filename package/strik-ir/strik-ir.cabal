@@ -1,0 +1,61 @@
+cabal-version:      3.4
+
+name:               strik-ir
+version:            0.1.0.0
+license:            Apache-2.0
+author:             Mizunashi Mana
+maintainer:         contact@mizunashi.work
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options: -Wall
+
+library
+    -- Import common warning flags.
+    import:           warnings
+
+    -- Modules exported by the library.
+    exposed-modules:  MyLib
+
+    -- Modules included in this library but not exported.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- Other library packages from which modules are imported.
+    build-depends:    base ^>=4.18.0.0
+
+    -- Directories containing source files.
+    hs-source-dirs:   src
+
+    -- Base language which the package is written in.
+    default-language: GHC2021
+
+test-suite strik-ir-test
+    -- Import common warning flags.
+    import:           warnings
+
+    -- Base language which the package is written in.
+    default-language: GHC2021
+
+    -- Modules included in this executable, other than Main.
+    -- other-modules:
+
+    -- LANGUAGE extensions used by modules in this package.
+    -- other-extensions:
+
+    -- The interface type and version of the test suite.
+    type:             exitcode-stdio-1.0
+
+    -- Directories containing source files.
+    hs-source-dirs:   test
+
+    -- The entrypoint to the test suite.
+    main-is:          Main.hs
+
+    -- Test dependencies.
+    build-depends:
+        base ^>=4.18.0.0,
+        strik-ir

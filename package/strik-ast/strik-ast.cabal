@@ -1,0 +1,65 @@
+cabal-version:      3.4
+name:               strik-ast
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            Apache-2.0
+author:             Mizunashi Mana
+maintainer:         contact@mizunashi.work
+-- copyright:
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Wincomplete-uni-patterns
+        -Wmonomorphism-restriction
+        -Wpartial-fields
+
+common language
+    default-language: GHC2021
+    default-extensions:
+        NoImplicitPrelude
+        NoCUSKs
+        NoStarIsType
+
+        BlockArguments
+        FunctionalDependencies
+        LambdaCase
+        MagicHash
+        Strict
+        TypeFamilies
+
+library
+    import:
+        warnings,
+        language,
+
+    -- other-modules:
+    -- other-extensions:
+    hs-source-dirs:   src
+
+    build-depends:
+        base ^>=4.18.0.0,
+        strik-prelude,
+
+    exposed-modules:
+        Language.Strik.Frontend.Data.Token
+        Language.Strik.Frontend.Data.ParsedAst
+
+test-suite strik-ast-test
+    import:
+        warnings,
+        language,
+
+    -- other-modules:
+    -- other-extensions:
+    type:             exitcode-stdio-1.0
+    hs-source-dirs:   test
+    main-is:          Main.hs
+    build-depends:
+        base ^>=4.18.0.0,
+        strik-ast,
+        strik-prelude,

@@ -1,4 +1,4 @@
-Quell Specification
+Strik Specification
 ===================
 
 .. toctree::

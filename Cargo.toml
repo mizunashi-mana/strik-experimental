@@ -1,5 +1,5 @@
 [workspace]
 resolver = "2"
 members = [
-    "package/quell-runtime",
+    "package/strik-runtime",
 ]

@@ -1,3 +1,3 @@
-# Quell
+# Strik
 
 Working in progress.

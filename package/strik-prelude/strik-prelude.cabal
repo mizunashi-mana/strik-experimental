@@ -1,0 +1,99 @@
+cabal-version:      3.4
+name:               strik-prelude
+version:            0.1.0.0
+-- synopsis:
+-- description:
+license:            Apache-2.0
+author:             Mizunashi Mana
+maintainer:         contact@mizunashi.work
+-- copyright:
+category:           Language
+build-type:         Simple
+
+common warnings
+    ghc-options:
+        -Wall
+        -Wcompat
+        -Wincomplete-uni-patterns
+        -Wmonomorphism-restriction
+        -Wpartial-fields
+
+common language
+    default-language: GHC2021
+    default-extensions:
+        NoImplicitPrelude
+        NoCUSKs
+        NoStarIsType
+
+        BlockArguments
+        DerivingVia
+        LambdaCase
+        MagicHash
+        MultiWayIf
+        Strict
+        TypeFamilies
+        UnboxedTuples
+        UnliftedNewtypes
+
+library
+    import:
+        warnings,
+        language,
+
+    -- other-extensions:
+    hs-source-dirs:   src
+
+    build-depends:
+        base                            ^>=4.18.0.0,
+        array                           ^>=0.5.5,
+        bytestring                      ^>=0.11.4,
+        conduit                         ^>=1.3.5,
+        ghc-prim                        ^>=0.10.0,
+        template-haskell                ^>=2.20.0,
+        text                            ^>=2.0.2,
+        constraints                     ^>=0.13.4,
+        mono-traversable                ^>=1.0.15,
+        prettyprinter                   ^>=1.7.1,
+        prettyprinter-ansi-terminal     ^>=1.1.3,
+        primitive                       ^>=0.8.0,
+        transformers                    ^>=0.6.1,
+        vector                          ^>=0.13.0,
+
+    exposed-modules:
+        Language.Strik.Prelude
+        Language.Strik.Model.Error
+        Language.Strik.Model.ErrorCode
+        Language.Strik.Data.TextId
+        Language.Strik.Data.Bag
+        Language.Strik.Data.BufferedConduit
+        Language.Strik.Data.Mutable.STBuffer
+        Language.Strik.Data.Unlifted.MutInt
+        Language.Strik.Data.Monad.MonadST
+
+    other-modules:
+        Language.Strik.Prelude.Core
+        Language.Strik.Prelude.Literal
+        Language.Strik.Prelude.Text
+        Language.Strik.Prelude.MonoTraversableM
+        Language.Strik.Prelude.Debug
+
+test-suite strik-prelude-spec
+    import:
+        warnings,
+        language,
+    type: exitcode-stdio-1.0
+    hs-source-dirs:
+        test/spec
+    main-is:
+        HSpecDriver.hs
+    ghc-options:
+        -Wno-missing-home-modules
+    build-tool-depends:
+        hspec-discover:hspec-discover,
+    build-depends:
+        strik-prelude,
+        hspec,
+        QuickCheck,
+
+        base,
+        conduit,

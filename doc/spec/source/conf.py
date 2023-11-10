@@ -6,7 +6,7 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'quell-spec'
+project = 'strik-spec'
 copyright = '2023, Mizunashi Mana'
 author = 'Mizunashi Mana'
 
@@ -38,7 +38,7 @@ html_theme = 'alabaster'
 
 html_theme_options = {
   'github_user': 'mizunashi-mana',
-  'github_repo': 'quell-experimental',
+  'github_repo': 'strik-experimental',
   'github_banner': True,
 }
 
