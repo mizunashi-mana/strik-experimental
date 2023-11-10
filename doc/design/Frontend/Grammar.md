@@ -1,5 +1,11 @@
 # Grammar
 
+## Program
+
+```
+program := expr
+```
+
 ## Local Declaration
 
 ```
@@ -14,8 +20,7 @@ let_body_item := bind_prom_type
 let_type_body := lb_open let_type_body_items lb_close
                / let_type_body_item
 let_type_body_items := lsemis? let_type_body_item (lsemis let_type_body_item)* lsemis?
-let_type_body_item := bind_prom_type
-                    / bind_type
+let_type_body_item := bind_type
 ```
 
 ## Where Declaration
@@ -45,7 +50,7 @@ expr_op := "#op" lp_open lsemis? expr lsemis? lp_close
          / sym
 expr_apps := expr_block expr_block*
 expr_block := '\' expr
-            / "#match" expr_tuple_items "#in" expr
+            / "#match" tuple_items "#in" expr
             / "#case" case_body
             / "#if" case_body
             / expr_atomic
@@ -55,7 +60,7 @@ expr_atomic := block
              / var
 expr_literal := literal
               / expr_interp_string
-              / expr_tuple
+              / tuple
 
 case_body := lb_open case_items lb_close
            / case_item
@@ -78,14 +83,14 @@ block_stmt := expr
 
 expr_interp_string := interp_string_start block_stmts (interp_string_cont block_stmts)* interp_string_end
 
-expr_tuple := lp_open expr_tuple_items lp_close
-expr_tuple_items := lsemis? expr_tuple_item (lsemis expr_tuple_item)* lsemis?
-                  / lsemis?
-expr_tuple_item := bind_prom_type
-                 / bind_expr
-                 / "^" type
-                 / expr
-                 / local_decl
+tuple := lp_open tuple_items lp_close
+tuple_items := lsemis? tuple_item (lsemis tuple_item)* lsemis?
+             / lsemis?
+tuple_item := bind_prom_type
+            / bind_expr
+            / "^" type
+            / expr
+            / local_decl
 ```
 
 ## Type Expression

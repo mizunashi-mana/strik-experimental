@@ -1,3 +1,5 @@
+{-# LANGUAGE TemplateHaskell #-}
+
 module Language.Quell.Parsing.Spanned (
     T,
     Spanned (..),
@@ -15,6 +17,8 @@ module Language.Quell.Parsing.Spanned (
 
 import           Language.Quell.Prelude
 
+import qualified Language.Parser.Ptera.TH                as Ptera
+
 
 type T = Spanned
 
@@ -24,6 +28,9 @@ data Spanned a = Spanned
         unSpanned :: a
     }
     deriving (Eq, Show, Functor)
+
+instance Ptera.LiftType a => Ptera.LiftType (Spanned a) where
+    liftType _ = [t|Spanned $(Ptera.liftType do Proxy @a)|]
 
 instance Semigroup a => Semigroup (Spanned a) where
     sx1 <> sx2 = Spanned
@@ -59,6 +66,9 @@ data Span = Span
         endLoc   :: Loc
     }
     deriving (Eq, Show)
+
+instance Ptera.LiftType Span where
+    liftType _ = [t|Span|]
 
 spanFromLoc :: Loc -> Span
 spanFromLoc lc = Span

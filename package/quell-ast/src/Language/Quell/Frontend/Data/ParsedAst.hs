@@ -2,14 +2,16 @@
 
 module Language.Quell.Frontend.Data.ParsedAst where
 
-import qualified Language.Quell.Data.TextId as TextId
 import           Language.Quell.Prelude
 
+import qualified Language.Quell.Data.TextId as TextId
 
-data Program tag = Program {
-    expr  :: Expr tag,
-    extra :: XProgram tag
-}
+
+data Program tag = Program
+    {
+        expr  :: Expr tag,
+        extra :: XProgram tag
+    }
 
 type family XProgram (tag :: a) :: Type
 
@@ -82,11 +84,10 @@ data Expr tag
     | ExprMatch [Expr tag] (Expr tag) (XExprMatch tag)
     | ExprCase [CaseItem tag] (XExprCase tag)
     | ExprIf [CaseItem tag] (XExprIf tag)
-    | ExprBlock [BlockStmt tag] (XExprBlock tag)
-    | ExprBlockBranch [BlockItem tag] (XExprBlockBranch tag)
+    | ExprBlock [Block tag] (XExprBlock tag)
     | ExprLiteral (Literal tag) (XExprLiteral tag)
     | ExprInterpString [InterpStringItem tag] (XExprInterpString tag)
-    | ExprTuple [ExprTupleItem tag] (XExprTuple tag)
+    | ExprTuple (Tuple tag) (XExprTuple tag)
     | ExprVar Name (XExprVar tag)
 
 type family XExprWithDecl (tag :: a) :: Type
@@ -98,7 +99,6 @@ type family XExprMatch (tag :: a) :: Type
 type family XExprCase (tag :: a) :: Type
 type family XExprIf (tag :: a) :: Type
 type family XExprBlock (tag :: a) :: Type
-type family XExprBlockBranch (tag :: a) :: Type
 type family XExprLiteral (tag :: a) :: Type
 type family XExprInterpString (tag :: a) :: Type
 type family XExprTuple (tag :: a) :: Type
@@ -116,7 +116,6 @@ type MapXExpr f tag =
         f (XExprCase tag),
         f (XExprIf tag),
         f (XExprBlock tag),
-        f (XExprBlockBranch tag),
         f (XExprLiteral tag),
         f (XExprInterpString tag),
         f (XExprTuple tag),
@@ -165,6 +164,22 @@ deriving instance EqXAll tag => Eq (CaseItem tag)
 deriving instance ShowXAll tag => Show (CaseItem tag)
 
 
+data Block tag
+    = Block [BlockStmt tag] (XBlock tag)
+    | BlockBranch [BlockItem tag] (XBlockBranch tag)
+
+type family XBlock (tag :: a) :: Type
+type family XBlockBranch (tag :: a) :: Type
+
+type MapXBlock :: (Type -> Constraint) -> a -> Constraint
+type MapXBlock f tag =
+    (
+        f (XBlock tag),
+        f (XBlockBranch tag)
+    )
+deriving instance EqXAll tag => Eq (Block tag)
+deriving instance ShowXAll tag => Show (Block tag)
+
 data BlockStmt tag
     = BlockStmtExpr (Expr tag) (XBlockStmtExpr tag)
     | BlockStmtLocal (LocalDecl tag) (XBlockStmtLocal tag)
@@ -212,30 +227,43 @@ deriving instance EqXAll tag => Eq (InterpStringItem tag)
 deriving instance ShowXAll tag => Show (InterpStringItem tag)
 
 
-data ExprTupleItem tag
-    = ExprTupleItemBindExpr Name (Expr tag) (XExprTupleItemBindExpr tag)
-    | ExprTupleItemBindPromType Name (TypeExpr tag) (XExprTupleItemBindPromType tag)
-    | ExprTupleItemExpr (Expr tag) (XExprTupleItemExpr tag)
-    | ExprTupleItemPromType (TypeExpr tag) (XExprTupleItemPromType tag)
-    | ExprTupleItemLocal (LocalDecl tag) (XExprTupleItemLocal tag)
+data Tuple tag = Tuple [TupleItem tag] (XTuple tag)
 
-type family XExprTupleItemBindExpr (tag :: a) :: Type
-type family XExprTupleItemBindPromType (tag :: a) :: Type
-type family XExprTupleItemExpr (tag :: a) :: Type
-type family XExprTupleItemPromType (tag :: a) :: Type
-type family XExprTupleItemLocal (tag :: a) :: Type
+type family XTuple (tag :: a) :: Type
 
-type MapXExprTupleItem :: (Type -> Constraint) -> a -> Constraint
-type MapXExprTupleItem f tag =
+type MapXTuple :: (Type -> Constraint) -> a -> Constraint
+type MapXTuple f tag =
     (
-        f (XExprTupleItemBindExpr tag),
-        f (XExprTupleItemBindPromType tag),
-        f (XExprTupleItemExpr tag),
-        f (XExprTupleItemPromType tag),
-        f (XExprTupleItemLocal tag)
+        f (XTuple tag)
     )
-deriving instance EqXAll tag => Eq (ExprTupleItem tag)
-deriving instance ShowXAll tag => Show (ExprTupleItem tag)
+deriving instance EqXAll tag => Eq (Tuple tag)
+deriving instance ShowXAll tag => Show (Tuple tag)
+
+
+data TupleItem tag
+    = TupleItemBindExpr Name (Expr tag) (XTupleItemBindExpr tag)
+    | TupleItemBindPromType Name (TypeExpr tag) (XTupleItemBindPromType tag)
+    | TupleItemExpr (Expr tag) (XTupleItemExpr tag)
+    | TupleItemPromType (TypeExpr tag) (XTupleItemPromType tag)
+    | TupleItemLocal (LocalDecl tag) (XTupleItemLocal tag)
+
+type family XTupleItemBindExpr (tag :: a) :: Type
+type family XTupleItemBindPromType (tag :: a) :: Type
+type family XTupleItemExpr (tag :: a) :: Type
+type family XTupleItemPromType (tag :: a) :: Type
+type family XTupleItemLocal (tag :: a) :: Type
+
+type MapXTupleItem :: (Type -> Constraint) -> a -> Constraint
+type MapXTupleItem f tag =
+    (
+        f (XTupleItemBindExpr tag),
+        f (XTupleItemBindPromType tag),
+        f (XTupleItemExpr tag),
+        f (XTupleItemPromType tag),
+        f (XTupleItemLocal tag)
+    )
+deriving instance EqXAll tag => Eq (TupleItem tag)
+deriving instance ShowXAll tag => Show (TupleItem tag)
 
 
 data TypeExpr tag
@@ -497,10 +525,12 @@ type MapXAll f tag =
         MapXInfixAppExpr f tag,
         MapXAppExpr f tag,
         MapXCaseItem f tag,
+        MapXBlock f tag,
         MapXBlockStmt f tag,
         MapXBlockItem f tag,
         MapXInterpStringItem f tag,
-        MapXExprTupleItem f tag,
+        MapXTuple f tag,
+        MapXTupleItem f tag,
         MapXTypeExpr f tag,
         MapXInfixAppTypeExpr f tag,
         MapXAppTypeExpr f tag,
@@ -537,7 +567,6 @@ type instance XExprMatch (Bundle a) = a
 type instance XExprCase (Bundle a) = a
 type instance XExprIf (Bundle a) = a
 type instance XExprBlock (Bundle a) = a
-type instance XExprBlockBranch (Bundle a) = a
 type instance XExprLiteral (Bundle a) = a
 type instance XExprInterpString (Bundle a) = a
 type instance XExprTuple (Bundle a) = a
@@ -545,16 +574,19 @@ type instance XExprVar (Bundle a) = a
 type instance XInfixAppExpr (Bundle a) = a
 type instance XAppExpr (Bundle a) = a
 type instance XCaseItem (Bundle a) = a
+type instance XBlock (Bundle a) = a
+type instance XBlockBranch (Bundle a) = a
 type instance XBlockStmtExpr (Bundle a) = a
 type instance XBlockStmtLocal (Bundle a) = a
 type instance XBlockItem (Bundle a) = a
 type instance XInterpStringItemPart (Bundle a) = a
 type instance XInterpStringItemExpr (Bundle a) = a
-type instance XExprTupleItemBindPromType (Bundle a) = a
-type instance XExprTupleItemBindExpr (Bundle a) = a
-type instance XExprTupleItemPromType (Bundle a) = a
-type instance XExprTupleItemExpr (Bundle a) = a
-type instance XExprTupleItemLocal (Bundle a) = a
+type instance XTuple (Bundle a) = a
+type instance XTupleItemBindPromType (Bundle a) = a
+type instance XTupleItemBindExpr (Bundle a) = a
+type instance XTupleItemPromType (Bundle a) = a
+type instance XTupleItemExpr (Bundle a) = a
+type instance XTupleItemLocal (Bundle a) = a
 type instance XTypeExprWithDecl (Bundle a) = a
 type instance XTypeExprWithAnn (Bundle a) = a
 type instance XTypeExprInfix (Bundle a) = a
