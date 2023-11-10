@@ -133,7 +133,6 @@ type_tuple_sig_item := "^" declvar ":" type
                      / declvar ":" type
                      / "^" type_infix
                      / type_infix
-                     / local_type_decl
 ```
 
 ## Pattern

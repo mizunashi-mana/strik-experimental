@@ -39,6 +39,9 @@ data LexToken
     | SpSemi
     | SpDot
 
+    | KwLet
+    | KwRec
+
     | KwBraceOpen
     | KwBrackOpen
     | KwParenOpen

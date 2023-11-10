@@ -29,6 +29,7 @@ common language
         NoStarIsType
 
         BlockArguments
+        FunctionalDependencies
         LambdaCase
         MagicHash
         Strict

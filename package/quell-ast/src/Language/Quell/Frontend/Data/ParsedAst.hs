@@ -23,6 +23,9 @@ type MapXProgram f tag =
 deriving instance EqXAll tag => Eq (Program tag)
 deriving instance ShowXAll tag => Show (Program tag)
 
+instance NormalizeXAll tag a => ExtractX tag a Program where
+    extractX x = normalizeX @tag Proxy do extra x
+
 
 data Decl tag
     = DeclLocal [LocalDecl tag] (XDeclLocal tag)
@@ -43,6 +46,15 @@ type MapXDecl f tag =
 deriving instance EqXAll tag => Eq (Decl tag)
 deriving instance ShowXAll tag => Show (Decl tag)
 
+instance NormalizeXAll tag a => ExtractX tag a Decl where
+    extractX = \case
+        DeclLocal _ x ->
+            normalizeX @tag Proxy x
+        DeclVar _ _ _ x ->
+            normalizeX @tag Proxy x
+        DeclTypeVar _ _ _ x ->
+            normalizeX @tag Proxy x
+
 
 data LocalDecl tag
     = DeclLet [LetItem tag] (XDeclLet tag)
@@ -60,19 +72,36 @@ type MapXLocalDecl f tag =
 deriving instance EqXAll tag => Eq (LocalDecl tag)
 deriving instance ShowXAll tag => Show (LocalDecl tag)
 
+instance NormalizeXAll tag a => ExtractX tag a LocalDecl where
+    extractX = \case
+        DeclLet _ x ->
+            normalizeX @tag Proxy x
+        DeclRec _ x ->
+            normalizeX @tag Proxy x
+
 
 data LetItem tag
     = LetVarExpr Name (Expr tag) (XLetVarExpr tag)
+    | LetVarType Name (TypeExpr tag) (XLetVarType tag)
 
 type family XLetVarExpr (tag :: a) :: Type
+type family XLetVarType (tag :: a) :: Type
 
 type MapXLetItem :: (Type -> Constraint) -> a -> Constraint
 type MapXLetItem f tag =
     (
-        f (XLetVarExpr tag)
+        f (XLetVarExpr tag),
+        f (XLetVarType tag)
     )
 deriving instance EqXAll tag => Eq (LetItem tag)
 deriving instance ShowXAll tag => Show (LetItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a LetItem where
+    extractX = \case
+        LetVarExpr _ _ x ->
+            normalizeX @tag Proxy x
+        LetVarType _ _ x ->
+            normalizeX @tag Proxy x
 
 
 data Expr tag
@@ -124,6 +153,35 @@ type MapXExpr f tag =
 deriving instance EqXAll tag => Eq (Expr tag)
 deriving instance ShowXAll tag => Show (Expr tag)
 
+instance NormalizeXAll tag a => ExtractX tag a Expr where
+    extractX = \case
+        ExprWithDecl _ _ x ->
+            normalizeX @tag Proxy x
+        ExprWithAnn _ _ x ->
+            normalizeX @tag Proxy x
+        ExprInfix _ _ x ->
+            normalizeX @tag Proxy x
+        ExprApp _ _ x ->
+            normalizeX @tag Proxy x
+        ExprAbs _ x ->
+            normalizeX @tag Proxy x
+        ExprMatch _ _ x ->
+            normalizeX @tag Proxy x
+        ExprCase _ x ->
+            normalizeX @tag Proxy x
+        ExprIf _ x ->
+            normalizeX @tag Proxy x
+        ExprBlock _ x ->
+            normalizeX @tag Proxy x
+        ExprLiteral _ x ->
+            normalizeX @tag Proxy x
+        ExprInterpString _ x ->
+            normalizeX @tag Proxy x
+        ExprTuple _ x ->
+            normalizeX @tag Proxy x
+        ExprVar _ x ->
+            normalizeX @tag Proxy x
+
 
 data InfixAppExpr tag = InfixAppExpr (Expr tag) (Expr tag) (XInfixAppExpr tag)
 
@@ -136,6 +194,11 @@ type MapXInfixAppExpr f tag =
     )
 deriving instance EqXAll tag => Eq (InfixAppExpr tag)
 deriving instance ShowXAll tag => Show (InfixAppExpr tag)
+
+instance NormalizeXAll tag a => ExtractX tag a InfixAppExpr where
+    extractX = \case
+        InfixAppExpr _ _ x ->
+            normalizeX @tag Proxy x
 
 
 data AppExpr tag = AppExpr (Expr tag) (XAppExpr tag)
@@ -150,6 +213,11 @@ type MapXAppExpr f tag =
 deriving instance EqXAll tag => Eq (AppExpr tag)
 deriving instance ShowXAll tag => Show (AppExpr tag)
 
+instance NormalizeXAll tag a => ExtractX tag a AppExpr where
+    extractX = \case
+        AppExpr _ x ->
+            normalizeX @tag Proxy x
+
 
 data CaseItem tag = CaseItem (View tag) (Expr tag) (XCaseItem tag)
 
@@ -162,6 +230,11 @@ type MapXCaseItem f tag =
     )
 deriving instance EqXAll tag => Eq (CaseItem tag)
 deriving instance ShowXAll tag => Show (CaseItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a CaseItem where
+    extractX = \case
+        CaseItem _ _ x ->
+            normalizeX @tag Proxy x
 
 
 data Block tag
@@ -180,6 +253,14 @@ type MapXBlock f tag =
 deriving instance EqXAll tag => Eq (Block tag)
 deriving instance ShowXAll tag => Show (Block tag)
 
+instance NormalizeXAll tag a => ExtractX tag a Block where
+    extractX = \case
+        Block _ x ->
+            normalizeX @tag Proxy x
+        BlockBranch _ x ->
+            normalizeX @tag Proxy x
+
+
 data BlockStmt tag
     = BlockStmtExpr (Expr tag) (XBlockStmtExpr tag)
     | BlockStmtLocal (LocalDecl tag) (XBlockStmtLocal tag)
@@ -196,6 +277,13 @@ type MapXBlockStmt f tag =
 deriving instance EqXAll tag => Eq (BlockStmt tag)
 deriving instance ShowXAll tag => Show (BlockStmt tag)
 
+instance NormalizeXAll tag a => ExtractX tag a BlockStmt where
+    extractX = \case
+        BlockStmtExpr _ x ->
+            normalizeX @tag Proxy x
+        BlockStmtLocal _ x ->
+            normalizeX @tag Proxy x
+
 
 data BlockItem tag = BlockItem [Pat tag] (Maybe (View tag)) (Expr tag) (XBlockItem tag)
 
@@ -208,6 +296,11 @@ type MapXBlockItem f tag =
     )
 deriving instance EqXAll tag => Eq (BlockItem tag)
 deriving instance ShowXAll tag => Show (BlockItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a BlockItem where
+    extractX = \case
+        BlockItem _ _ _ x ->
+            normalizeX @tag Proxy x
 
 
 data InterpStringItem tag
@@ -226,6 +319,13 @@ type MapXInterpStringItem f tag =
 deriving instance EqXAll tag => Eq (InterpStringItem tag)
 deriving instance ShowXAll tag => Show (InterpStringItem tag)
 
+instance NormalizeXAll tag a => ExtractX tag a InterpStringItem where
+    extractX = \case
+        InterpStringItemPart _ x ->
+            normalizeX @tag Proxy x
+        InterpStringItemExpr _ x ->
+            normalizeX @tag Proxy x
+
 
 data Tuple tag = Tuple [TupleItem tag] (XTuple tag)
 
@@ -238,6 +338,11 @@ type MapXTuple f tag =
     )
 deriving instance EqXAll tag => Eq (Tuple tag)
 deriving instance ShowXAll tag => Show (Tuple tag)
+
+instance NormalizeXAll tag a => ExtractX tag a Tuple where
+    extractX = \case
+        Tuple _ x ->
+            normalizeX @tag Proxy x
 
 
 data TupleItem tag
@@ -264,6 +369,19 @@ type MapXTupleItem f tag =
     )
 deriving instance EqXAll tag => Eq (TupleItem tag)
 deriving instance ShowXAll tag => Show (TupleItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a TupleItem where
+    extractX = \case
+        TupleItemBindExpr _ _ x ->
+            normalizeX @tag Proxy x
+        TupleItemBindPromType _ _ x ->
+            normalizeX @tag Proxy x
+        TupleItemExpr _ x ->
+            normalizeX @tag Proxy x
+        TupleItemPromType _ x ->
+            normalizeX @tag Proxy x
+        TupleItemLocal _ x ->
+            normalizeX @tag Proxy x
 
 
 data TypeExpr tag
@@ -303,6 +421,27 @@ type MapXTypeExpr f tag =
 deriving instance EqXAll tag => Eq (TypeExpr tag)
 deriving instance ShowXAll tag => Show (TypeExpr tag)
 
+instance NormalizeXAll tag a => ExtractX tag a TypeExpr where
+    extractX = \case
+        TypeExprWithDecl _ _ x ->
+            normalizeX @tag Proxy x
+        TypeExprWithAnn _ _ x ->
+            normalizeX @tag Proxy x
+        TypeExprInfix _ _ x ->
+            normalizeX @tag Proxy x
+        TypeExprApp _ _ x ->
+            normalizeX @tag Proxy x
+        TypeExprBlock _ x ->
+            normalizeX @tag Proxy x
+        TypeExprLiteral _ x ->
+            normalizeX @tag Proxy x
+        TypeExprTuple _ x ->
+            normalizeX @tag Proxy x
+        TypeExprTupleSig _ x ->
+            normalizeX @tag Proxy x
+        TypeExprVar _ x ->
+            normalizeX @tag Proxy x
+
 
 data InfixAppTypeExpr tag = InfixAppTypeExpr (TypeExpr tag) (TypeExpr tag) (XInfixAppTypeExpr tag)
 
@@ -316,6 +455,11 @@ type MapXInfixAppTypeExpr f tag =
 deriving instance EqXAll tag => Eq (InfixAppTypeExpr tag)
 deriving instance ShowXAll tag => Show (InfixAppTypeExpr tag)
 
+instance NormalizeXAll tag a => ExtractX tag a InfixAppTypeExpr where
+    extractX = \case
+        InfixAppTypeExpr _ _ x ->
+            normalizeX @tag Proxy x
+
 
 data AppTypeExpr tag = AppTypeExpr (TypeExpr tag) (XAppTypeExpr tag)
 
@@ -328,6 +472,11 @@ type MapXAppTypeExpr f tag =
     )
 deriving instance EqXAll tag => Eq (AppTypeExpr tag)
 deriving instance ShowXAll tag => Show (AppTypeExpr tag)
+
+instance NormalizeXAll tag a => ExtractX tag a AppTypeExpr where
+    extractX = \case
+        AppTypeExpr _ x ->
+            normalizeX @tag Proxy x
 
 
 data TypeBlockStmt tag
@@ -345,6 +494,13 @@ type MapXTypeBlockStmt f tag =
     )
 deriving instance EqXAll tag => Eq (TypeBlockStmt tag)
 deriving instance ShowXAll tag => Show (TypeBlockStmt tag)
+
+instance NormalizeXAll tag a => ExtractX tag a TypeBlockStmt where
+    extractX = \case
+        TypeBlockStmtType _ x ->
+            normalizeX @tag Proxy x
+        TypeBlockStmtLocal _ x ->
+            normalizeX @tag Proxy x
 
 
 data TypeTupleItem tag
@@ -372,19 +528,30 @@ type MapXTypeTupleItem f tag =
 deriving instance EqXAll tag => Eq (TypeTupleItem tag)
 deriving instance ShowXAll tag => Show (TypeTupleItem tag)
 
+instance NormalizeXAll tag a => ExtractX tag a TypeTupleItem where
+    extractX = \case
+        TypeTupleItemBindPromType _ _ _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleItemBindType _ _ _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleItemPromType _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleItemType _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleItemLocal _ x ->
+            normalizeX @tag Proxy x
+
 
 data TypeTupleSigItem tag
     = TypeTupleSigItemNamedPromType Name (TypeExpr tag) (XTypeTupleSigItemNamedPromType tag)
     | TypeTupleSigItemNamedType Name (TypeExpr tag) (XTypeTupleSigItemNamedType tag)
     | TypeTupleSigItemPromType (TypeExpr tag) (XTypeTupleSigItemPromType tag)
     | TypeTupleSigItemType (TypeExpr tag) (XTypeTupleSigItemType tag)
-    | TypeTupleSigItemLocal (LocalDecl tag) (XTypeTupleSigItemLocal tag)
 
 type family XTypeTupleSigItemNamedPromType (tag :: a) :: Type
 type family XTypeTupleSigItemNamedType (tag :: a) :: Type
 type family XTypeTupleSigItemPromType (tag :: a) :: Type
 type family XTypeTupleSigItemType (tag :: a) :: Type
-type family XTypeTupleSigItemLocal (tag :: a) :: Type
 
 type MapXTypeTupleSigItem :: (Type -> Constraint) -> a -> Constraint
 type MapXTypeTupleSigItem f tag =
@@ -392,11 +559,21 @@ type MapXTypeTupleSigItem f tag =
         f (XTypeTupleSigItemNamedPromType tag),
         f (XTypeTupleSigItemNamedType tag),
         f (XTypeTupleSigItemPromType tag),
-        f (XTypeTupleSigItemType tag),
-        f (XTypeTupleSigItemLocal tag)
+        f (XTypeTupleSigItemType tag)
     )
 deriving instance EqXAll tag => Eq (TypeTupleSigItem tag)
 deriving instance ShowXAll tag => Show (TypeTupleSigItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a TypeTupleSigItem where
+    extractX = \case
+        TypeTupleSigItemNamedPromType _ _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleSigItemNamedType _ _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleSigItemPromType _ x ->
+            normalizeX @tag Proxy x
+        TypeTupleSigItemType _ x ->
+            normalizeX @tag Proxy x
 
 
 data Pat tag
@@ -427,6 +604,21 @@ type MapXPat f tag =
 deriving instance EqXAll tag => Eq (Pat tag)
 deriving instance ShowXAll tag => Show (Pat tag)
 
+instance NormalizeXAll tag a => ExtractX tag a Pat where
+    extractX = \case
+        PatWithAnn _ _ x ->
+            normalizeX @tag Proxy x
+        PatInfix _ _ x ->
+            normalizeX @tag Proxy x
+        PatApp _ _ x ->
+            normalizeX @tag Proxy x
+        PatLiteral _ x ->
+            normalizeX @tag Proxy x
+        PatTuple _ x ->
+            normalizeX @tag Proxy x
+        PatVar _ x ->
+            normalizeX @tag Proxy x
+
 
 data InfixAppPat tag = InfixAppPat Name (Pat tag) (XInfixAppPat tag)
 
@@ -440,6 +632,11 @@ type MapXInfixAppPat f tag =
 deriving instance EqXAll tag => Eq (InfixAppPat tag)
 deriving instance ShowXAll tag => Show (InfixAppPat tag)
 
+instance NormalizeXAll tag a => ExtractX tag a InfixAppPat where
+    extractX = \case
+        InfixAppPat _ _ x ->
+            normalizeX @tag Proxy x
+
 
 data AppPat tag = AppPat (Pat tag) (XAppPat tag)
 
@@ -452,6 +649,11 @@ type MapXAppPat f tag =
     )
 deriving instance EqXAll tag => Eq (AppPat tag)
 deriving instance ShowXAll tag => Show (AppPat tag)
+
+instance NormalizeXAll tag a => ExtractX tag a AppPat where
+    extractX = \case
+        AppPat _ x ->
+            normalizeX @tag Proxy x
 
 
 data PatTupleItem tag
@@ -469,6 +671,13 @@ type MapXPatTupleItem f tag =
     )
 deriving instance EqXAll tag => Eq (PatTupleItem tag)
 deriving instance ShowXAll tag => Show (PatTupleItem tag)
+
+instance NormalizeXAll tag a => ExtractX tag a PatTupleItem where
+    extractX = \case
+        PatTupleItemNamedPat _ _ x ->
+            normalizeX @tag Proxy x
+        PatTupleItemPat _ x ->
+            normalizeX @tag Proxy x
 
 
 data View tag
@@ -490,6 +699,15 @@ type MapXView f tag =
 deriving instance EqXAll tag => Eq (View tag)
 deriving instance ShowXAll tag => Show (View tag)
 
+instance NormalizeXAll tag a => ExtractX tag a View where
+    extractX = \case
+        ViewBlock _ x ->
+            normalizeX @tag Proxy x
+        ViewLetDecl _ _ x ->
+            normalizeX @tag Proxy x
+        ViewExpr _ x ->
+            normalizeX @tag Proxy x
+
 
 data Literal tag
     = LitString Text (XLitString tag)
@@ -509,6 +727,15 @@ type MapXLiteral f tag =
     )
 deriving instance EqXAll tag => Eq (Literal tag)
 deriving instance ShowXAll tag => Show (Literal tag)
+
+instance NormalizeXAll tag a => ExtractX tag a Literal where
+    extractX = \case
+        LitString _ x ->
+            normalizeX @tag Proxy x
+        LitRational _ x ->
+            normalizeX @tag Proxy x
+        LitInteger _ x ->
+            normalizeX @tag Proxy x
 
 
 type Name = TextId.T
@@ -548,6 +775,14 @@ type MapXAll f tag =
 class MapXAll Eq tag => EqXAll tag
 class MapXAll Show tag => ShowXAll tag
 
+class NormalizeX tag a x | tag -> a where
+    normalizeX :: Proxy tag -> x -> a
+
+class MapXAll (NormalizeX tag a) tag => NormalizeXAll tag a
+
+class NormalizeXAll tag a => ExtractX tag a f where
+    extractX :: f tag -> a
+
 
 data Bundle a
 
@@ -558,6 +793,7 @@ type instance XDeclRec (Bundle a) = a
 type instance XDeclTypeVar (Bundle a) = a
 type instance XDeclVar (Bundle a) = a
 type instance XLetVarExpr (Bundle a) = a
+type instance XLetVarType (Bundle a) = a
 type instance XExprWithDecl (Bundle a) = a
 type instance XExprWithAnn (Bundle a) = a
 type instance XExprInfix (Bundle a) = a
@@ -609,7 +845,6 @@ type instance XTypeTupleSigItemNamedPromType (Bundle a) = a
 type instance XTypeTupleSigItemNamedType (Bundle a) = a
 type instance XTypeTupleSigItemPromType (Bundle a) = a
 type instance XTypeTupleSigItemType (Bundle a) = a
-type instance XTypeTupleSigItemLocal (Bundle a) = a
 type instance XPatWithAnn (Bundle a) = a
 type instance XPatInfix (Bundle a) = a
 type instance XPatApp (Bundle a) = a
@@ -629,3 +864,8 @@ type instance XLitInteger (Bundle a) = a
 
 instance Eq a => EqXAll (Bundle a)
 instance Show a => ShowXAll (Bundle a)
+
+instance NormalizeX (Bundle a) a a where
+    normalizeX _ x = x
+
+instance NormalizeXAll (Bundle a) a

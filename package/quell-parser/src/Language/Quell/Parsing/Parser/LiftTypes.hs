@@ -29,5 +29,11 @@ instance Ptera.LiftType tag => Ptera.LiftType (TypeExpr tag) where
 instance Ptera.LiftType tag => Ptera.LiftType (Decl tag) where
     liftType _ = [t|Decl $(Ptera.liftType do Proxy @tag)|]
 
+instance Ptera.LiftType tag => Ptera.LiftType (LocalDecl tag) where
+    liftType _ = [t|LocalDecl $(Ptera.liftType do Proxy @tag)|]
+
+instance Ptera.LiftType tag => Ptera.LiftType (LetItem tag) where
+    liftType _ = [t|LetItem $(Ptera.liftType do Proxy @tag)|]
+
 instance Ptera.LiftType a => Ptera.LiftType (Bundle a) where
     liftType _ = [t|Bundle $(Ptera.liftType do Proxy @a)|]
