@@ -1,10 +1,10 @@
 module Language.Strik.Parsing.Parser.AstParsedTag where
 
-import Language.Strik.Prelude
+import           Language.Strik.Prelude
 
 import qualified Language.Strik.Frontend.Data.ParsedAst as ParsedAst
-import qualified Language.Strik.Parsing.Spanned as Spanned
-import qualified Language.Strik.Parsing.Parser.Layout as Layout
+import qualified Language.Strik.Parsing.Parser.Layout   as Layout
+import qualified Language.Strik.Parsing.Spanned         as Spanned
 
 
 type T = AstParsedTag

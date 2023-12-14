@@ -1,0 +1,38 @@
+% TODO: Use English
+\documentclass[
+  luatex,
+  japanese,
+  unicode,
+  titlepage,
+  pdfusetitle
+]{ltjsarticle}
+
+\input{config/common.tex}
+\input{config/layout.tex}
+\input{config/macro.tex}
+\IfFileExists{config/macro.local.tex}{
+  \input{config/macro.local.tex}
+}{}
+\input{config/math.tex}
+
+\input{title}
+
+\begin{document}
+% A hack to avoid "ignoring duplicate destination with the name 'page.1'"
+\pagenumbering{roman}
+\maketitle
+
+\pagenumbering{Roman}
+\input{section/abstract.tex}
+
+\pagenumbering{arabic}
+\tableofcontents
+\clearpage
+
+\include{section/preliminaries}
+\include{section/syntax}
+\include{section/type-system}
+\bibliography{section/reference}
+\include{section/appendix}
+
+\end{document}

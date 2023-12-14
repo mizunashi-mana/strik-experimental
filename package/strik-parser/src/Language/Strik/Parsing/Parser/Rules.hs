@@ -2,21 +2,22 @@
 
 module Language.Strik.Parsing.Parser.Rules where
 
-import Language.Strik.Prelude
+import           Language.Strik.Prelude
 
-import qualified Language.Strik.Parsing.Parser.Layout as Layout
-import qualified Language.Strik.Frontend.Data.Token as Token
-import qualified Language.Strik.Frontend.Data.ParsedAst as ParsedAst
-import Language.Strik.Parsing.Spanned (Spanned (..), Span)
-import qualified Language.Parser.Ptera.TH                as Ptera
-import qualified Language.Haskell.TH as TH
-import Language.Strik.Parsing.Parser.AstParsedTag (AstParsedTag, tokenSpan, (<>>))
-import           Language.Parser.Ptera.TH                (pattern (:*),
-                                                          pattern HNil,
-                                                          ruleExpr, varA, tokA, eps,
-                                                          (<:>), (<^>))
-import Language.Strik.Parsing.Parser.LiftTypes ()
-import Language.Strik.Frontend.Data.ParsedAst (extractX)
+import qualified Language.Haskell.TH                        as TH
+import           Language.Parser.Ptera.TH                   (eps, pattern (:*),
+                                                             pattern HNil,
+                                                             ruleExpr, tokA,
+                                                             varA, (<:>), (<^>))
+import qualified Language.Parser.Ptera.TH                   as Ptera
+import           Language.Strik.Frontend.Data.ParsedAst     (extractX)
+import qualified Language.Strik.Frontend.Data.ParsedAst     as ParsedAst
+import qualified Language.Strik.Frontend.Data.Token         as Token
+import           Language.Strik.Parsing.Parser.AstParsedTag (AstParsedTag,
+                                                             tokenSpan, (<>>))
+import qualified Language.Strik.Parsing.Parser.Layout       as Layout
+import           Language.Strik.Parsing.Parser.LiftTypes    ()
+import           Language.Strik.Parsing.Spanned             (Span, Spanned (..))
 
 type Token = Layout.TokenWithL
 
@@ -513,7 +514,7 @@ rLbImpOpen = ruleExpr
     [ tokA @"{"
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]
@@ -523,7 +524,7 @@ rLbExpOpen = ruleExpr
     [ tokA @"#{"
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]
@@ -533,7 +534,7 @@ rLbClose = ruleExpr
     [ tokA @"}"
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]
@@ -553,7 +554,7 @@ rLpImpOpen = ruleExpr
     [ tokA @"("
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]
@@ -563,7 +564,7 @@ rLpExpOpen = ruleExpr
     [ tokA @"#("
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]
@@ -573,7 +574,7 @@ rLpClose = ruleExpr
     [ tokA @")"
         <:> \(tok1 :* HNil) ->
             [||case tokenSpan $$(tok1) of
-                Just x -> x
+                Just x  -> x
                 Nothing -> error "unreachable: expect a span."
             ||]
     ]

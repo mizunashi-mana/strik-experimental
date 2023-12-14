@@ -54,8 +54,8 @@ literal := string
 
 ```
 rational := sign_char? (! zero_char) decimal num_dot_sym_char decimal
-integer := number_prefix ("x" / "X") heximal
-         / number_prefix ("d" / "D") decimal
+integer := number_prefix hexit_prefix_char heximal
+         / number_prefix digit_prefix_char decimal
          / sign_char? (! zero_char) decimal
 number_prefix := sign_char? zero_char
 decimal := digit_char (digit_char / num_sep_sym_char)* ! (digit_char / num_sep_sym_char)
@@ -68,6 +68,8 @@ num_sep_sym_char := "_"
 hexit_char := digit_char
             / "A" / "B" / ... / "F"
             / "a" / "b" / ... / "f"
+hexit_prefix_char := "x" / "X"
+digit_prefix_char := "d" / "D"
 ```
 
 ## String Literal
@@ -76,33 +78,33 @@ hexit_char := digit_char
 interp_string_part := interp_string_start
                     / interp_string_cont
                     / interp_string_end
-string := str_sep_char interp_string_graphic* interp_string_sep_char
+string := string_sep_char interp_string_graphic* string_sep_char
 
-interp_string_start = str_sep_char interp_string_graphic* interp_open
+interp_string_start = string_sep_char interp_string_graphic* interp_open
 interp_string_cont := interp_close interp_string_graphic* interp_open
-interp_string_end := interp_close interp_string_graphic* str_sep_char
+interp_string_end := interp_close interp_string_graphic* string_sep_char
 
 interp_open := interp_open_char "{"
 interp_close := keyword_prefix_char "}"
 
 escape_open_char := '\'
 interp_open_char := keyword_prefix_char
-str_sep_char := '"'
 interp_string_graphic := uni_escape
                        / bstr_graphic 
 bstr_graphic := byte_escape
               / char_escape
               / bstr_graphic_char
 bstr_graphic_char := white_char
-                   / ! (escape_open_char / str_sep_char / interp_open_char) graphic_char
-uni_escape := escape_open_char ("u" / "U") "{" hexit_char+ "}"
-byte_escape := escape_open_char ("x" / "X") hexit_char hexit_char
+                   / (! (escape_open_char / string_sep_char / interp_open_char)) graphic_char
+uni_escape := escape_open_char unicode_prefix_char "{" hexit_char+ "}"
+byte_escape := escape_open_char hexit_prefix_char hexit_char hexit_char
 char_escape := escape_open_char charesc_char
 charesc_char := "0" / "a" / "b" / "f" / "n" / "r" / "t" / "v"
-              / escape_open_char / str_sep_char / interp_open_char
+              / escape_open_char / string_sep_char / interp_open_char
+unicode_prefix_char := "u" / "U"
 ```
 
-## Whitespace
+## White Space
 
 ```
 whitespace := whitestuff+
@@ -187,10 +189,10 @@ special_char := "{"
               / ";"
               / "."
 other_special_char := keyword_prefix_char
-                    / interp_string_sep_char
+                    / string_sep_char
                     / "'"
 keyword_prefix_char := "#"
-interp_string_sep_char := '"'
+string_sep_char := '"'
 
 other_graphic_char := ! (symbol_cat_char / special_char / other_special_char) other_graphic_cat_char
 other_graphic_cat_char := "\p{General_Category=Punctuation}"

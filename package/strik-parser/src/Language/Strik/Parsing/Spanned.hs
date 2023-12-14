@@ -17,7 +17,7 @@ module Language.Strik.Parsing.Spanned (
 
 import           Language.Strik.Prelude
 
-import qualified Language.Parser.Ptera.TH                as Ptera
+import qualified Language.Parser.Ptera.TH as Ptera
 
 
 type T = Spanned

@@ -4,12 +4,12 @@
 
 module Language.Strik.Parsing.Parser.LiftTypes where
 
-import Language.Strik.Prelude
+import           Language.Strik.Prelude
 
-import qualified Language.Parser.Ptera.TH                as Ptera
-import Language.Strik.Frontend.Data.ParsedAst
-import Language.Strik.Frontend.Data.Token
-import Language.Strik.Parsing.Parser.Layout
+import qualified Language.Parser.Ptera.TH               as Ptera
+import           Language.Strik.Frontend.Data.ParsedAst
+import           Language.Strik.Frontend.Data.Token
+import           Language.Strik.Parsing.Parser.Layout
 
 instance Ptera.LiftType Token where
     liftType _ = [t|Token|]

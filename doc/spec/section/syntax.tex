@@ -1,0 +1,179 @@
+\section{Syntax}
+
+\subsection{Lexical}
+
+Overview:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{lexical\_program}
+        &\Coloneq &(\mathit{whitespace} \mathrel{/} \mathit{lexeme}){*}\; \mathbf{EOS} \\
+        \mathit{lexeme}
+        &\Coloneq &\mathit{literal\_part} \\
+        &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{special\_char} \\
+        &\mathrel{/} &\mathit{keyword\_id} \\
+        &\mathrel{/} &\mathit{keyword\_sym} \\
+        &\mathrel{/} &\mathit{free\_id} \\
+        &\mathrel{/} &\mathit{var\_id} \\
+        &\mathrel{/} &\mathit{var\_sym} \\
+        &\mathrel{/} &\mathit{con\_id} \\
+        &\mathrel{/} &\mathit{con\_sym}
+    \end{array}
+\end{align*}
+
+Identifier:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{var\_id}
+        &\Coloneq &\mathit{id\_small\_char}\; \mathit{id\_char}{*}\; \mathop{!} \mathit{id\_char} \\
+        \mathit{con\_id}
+        &\Coloneq &\mathit{id\_large\_char}\; \mathit{id\_char}{*}\; \mathop{!} \mathit{id\_char} \\
+        \mathit{var\_sym}
+        &\Coloneq &\mathit{sym\_normal\_char}\; \mathit{sym\_char}{*}\; \mathop{!} \mathit{sym\_char} \\
+        \mathit{con\_sym}
+        &\Coloneq &\mathit{sym\_sp\_char}\; \mathit{sym\_char}{*}\; \mathop{!} \mathit{sym\_char} \\
+        \mathit{free\_id}
+        &\Coloneq &\mathit{keyword\_prefix\_char}\; \mathit{string}
+    \end{array}
+\end{align*}
+
+Reserved:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{keyword\_prefixed}
+        &\Coloneq &\mathit{keyword\_prefix\_char}\; \mathit{id\_char}{+}\; \mathop{!} \mathit{id\_char} \\
+        &\mathrel{/} &\mathit{keyword\_prefix\_char}\; \mathit{sym\_char}{+}\; \mathop{!} \mathit{sym\_char} \\
+        &\mathrel{/} &\mathit{keyword\_prefix\_char}\; (\texttt{"\{"} \mathrel{/} \texttt{"["} \mathrel{/} \texttt{"("}) \\
+        \mathit{keyword\_id}
+        &\Coloneq &\mathit{keyword\_id\_unit}\; \mathop{!} \mathit{id\_char} \\
+        \mathit{keyword\_id\_unit}
+        &\Coloneq &\texttt{"\_"} \\
+        \mathit{keyword\_sym}
+        &\Coloneq &\mathit{keyword\_sym\_unit}\; \mathop{!} \mathit{sym\_char} \\
+        \mathit{keyword\_sym\_unit}
+        &\Coloneq &\texttt{"="} \\
+        &\mathrel{/} &\texttt{"\^{}"} \\
+        &\mathrel{/} &\texttt{":"} \\
+        &\mathrel{/} &\texttt{"\textbackslash"}
+    \end{array}
+\end{align*}
+
+Literal Overview:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{literal\_part}
+        &\Coloneq &\mathit{interp\_string\_part} \\
+        \mathit{literal}
+        &\Coloneq &\mathit{string} \\
+        &\mathrel{/} &\mathit{rational} \\
+        &\mathrel{/} &\mathit{integer}
+    \end{array}
+\end{align*}
+
+Number Literal:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{rational}
+        &\Coloneq &\mathit{sign\_char}{?}\; (\mathop{!} \mathit{zero\_char})\; \mathit{decimal}\; \mathit{num\_dot\_sym\_char}\; \mathit{decimal} \\
+        \mathit{integer}
+        &\Coloneq &\mathit{number\_prefix}\; \mathit{hexit\_prefix\_char}\; \mathit{heximal} \\
+        &\mathrel{/} &\mathit{number\_prefix}\; \mathit{digit\_prefix\_char}\; \mathit{decimal} \\
+        &\mathrel{/} &\mathit{sign\_char}{?}\; (\mathop{!} \mathit{zero\_char})\; \mathit{decimal} \\
+        \mathit{number\_prefix}
+        &\Coloneq &\mathit{sign\_char}{?}\; \mathit{zero\_char} \\
+        \mathit{decimal}
+        &\Coloneq &\mathit{digit\_char}\; (\mathit{digit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}){*}\; \mathop{!} (\mathit{digit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}) \\
+        \mathit{heximal}
+        &\Coloneq &\mathit{hexit\_char}\; (\mathit{hexit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}){*}\; \mathop{!} (\mathit{hexit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}) \\
+        \mathit{sign\_char}
+        &\Coloneq &\texttt{"+"} \\
+        &\mathrel{/} &\texttt{"-"} \\
+        \mathit{zero\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{Digit=0\}"} \\
+        \mathit{num\_dot\_sym\_char}
+        &\Coloneq &\texttt{"."} \\
+        \mathit{num\_sep\_sym\_char}
+        &\Coloneq &\texttt{"\_"} \\
+        \mathit{hexit\_char}
+        &\Coloneq &\mathit{digit\_char} \\
+        &\mathrel{/} &\texttt{"A"} \mathrel{/} \texttt{"B"} \mathrel{/} \cdots \mathrel{/} \texttt{"F"} \\
+        &\mathrel{/} &\texttt{"a"} \mathrel{/} \texttt{"b"} \mathrel{/} \cdots \mathrel{/} \texttt{"f"} \\
+        \mathit{hexit\_prefix\_char}
+        &\Coloneq &\texttt{"x"} \mathrel{/} \texttt{"X"} \\
+        \mathit{digit\_prefix\_char}
+        &\Coloneq &\texttt{"d"} \mathrel{/} \texttt{"D"}
+    \end{array}
+\end{align*}
+
+String Literal:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{interp\_string\_part}
+        &\Coloneq &\mathit{interp\_string\_start} \\
+        &\mathrel{/} &\mathit{interp\_string\_cont} \\
+        &\mathrel{/} &\mathit{interp\_string\_end} \\
+        \mathit{string}
+        &\Coloneq &\mathit{string\_sep\_char}\; \mathit{interp\_string\_graphic}{*}\; \mathit{string\_sep\_char} \\
+        \mathit{interp\_string\_start}
+        &\Coloneq &\mathit{string\_sep\_char}\; \mathit{interp\_string\_graphic}{*}\; \mathit{interp\_open} \\
+        \mathit{interp\_string\_cont}
+        &\Coloneq &\mathit{interp\_close}\; \mathit{interp\_string\_graphic}{*}\; \mathit{interp\_open} \\
+        \mathit{interp\_string\_end}
+        &\Coloneq &\mathit{interp\_close}\; \mathit{interp\_string\_graphic}{*}\; \mathit{string\_sep\_char} \\
+        \mathit{interp\_open}
+        &\Coloneq &\mathit{interp\_open\_char}\; \texttt{"\{"} \\
+        \mathit{interp\_close}
+        &\Coloneq &\mathit{keyword\_prefix\_char}\; \texttt{"\}"} \\
+        \mathit{escape\_open\_char}
+        &\Coloneq &\texttt{"\textbackslash"} \\
+        \mathit{interp\_open\_char}
+        &\Coloneq &\mathit{keyword\_prefix\_char} \\
+        \mathit{interp\_string\_graphic}
+        &\Coloneq &\mathit{uni\_escape} \\
+        &\mathrel{/} &\mathit{bstr\_graphic} \\
+        \mathit{bstr\_graphic}
+        &\Coloneq &\mathit{byte\_escape} \\
+        &\mathrel{/} &\mathit{char\_escape} \\
+        &\mathrel{/} &\mathit{bstr\_graphic\_char} \\
+        \mathit{bstr\_graphic\_char}
+        &\Coloneq &\mathit{white\_char} \\
+        &\mathrel{/} &(\mathop{!} (\mathit{escape\_open\_char} \mathrel{/} \mathit{string\_sep\_char} \mathrel{/} \mathit{interp\_open\_char}))\; \mathit{graphic\_char} \\
+        \mathit{uni\_escape}
+        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{unicode\_prefix\_char}\; \texttt{"\{"}\; \mathit{hexit\_char}{+}\; \texttt{"\}"} \\
+        \mathit{byte\_escape}
+        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{hexit\_prefix\_char}\; \mathit{hexit\_char}\; \mathit{hexit\_char} \\
+        \mathit{char\_escape}
+        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{charesc\_char} \\
+        \mathit{charesc\_char}
+        &\Coloneq &\texttt{"0"} \mathrel{/} \texttt{"a"} \mathrel{/} \texttt{"b"} \mathrel{/} \texttt{"f"} \mathrel{/} \texttt{"n"} \mathrel{/} \texttt{"r"} \mathrel{/} \texttt{"t"} \mathrel{/} \texttt{"v"} \\
+        &\mathrel{/} &\mathit{escape\_open\_char} \mathrel{/} \mathit{string\_sep\_char} \mathrel{/} \mathit{interp\_open\_char} \\
+        \mathit{unicode\_prefix\_char}
+        &\Coloneq &\texttt{"u"} \mathrel{/} \texttt{"U"}
+    \end{array}
+\end{align*}
+
+White Space:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{whitespace}
+        &\Coloneq &\mathit{whitestuff}{+} \\
+        \mathit{whitestuff}
+        &\Coloneq &\mathit{white\_char} \\
+        &\mathrel{/} &\mathit{comment}
+    \end{array}
+\end{align*}
+
+\subsection{Layout}
+
+\subsection{Grammar}
+
+\cite{Ford:2002}
+
+\subsection{Abstract Tree}
