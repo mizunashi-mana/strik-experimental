@@ -170,10 +170,555 @@ White Space:
     \end{array}
 \end{align*}
 
+Comment:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{comment}
+        &\Coloneq &\mathit{line\_comment} \\
+        &\mathrel{/} &\mathit{multiline\_comment} \\
+        \mathit{line\_comment}
+        &\Coloneq &\mathit{line\_comment\_open}\; \mathit{any\_1l\_char}{*}\; (\mathit{newline} \mathrel{/} \mathbf{EOS}) \\
+        \mathit{multiline\_comment}
+        &\Coloneq &\mathit{multiline\_comment\_open}; \mathit{anys}\; (\mathit{multiline\_comment\_close} \mathrel{/} \mathbf{EOS}) \\
+        \mathit{line\_comment\_open}
+        &\Coloneq &\texttt{"//"} \\
+        \mathit{multiline\_comment\_open}
+        &\Coloneq &\texttt{"/*"} \\
+        \mathit{multiline\_comment\_close}
+        &\Coloneq &\texttt{"*/"} \\
+        \mathit{any\_1l\_char}
+        &\Coloneq &\mathit{graphic\_char} \\
+        &\mathrel{/} &\mathit{space\_char} \\
+        \mathit{anys}
+        &\Coloneq &((\mathop{!} \mathit{multiline\_comment\_close})\; \mathit{any\_char}){*} \\
+        \mathit{any\_char}
+        &\Coloneq &\mathit{graphic\_char} \\
+        &\mathrel{/} &\mathit{white\_char}
+    \end{array}
+\end{align*}
+
+Base Unit:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{graphic\_char}
+        &\Coloneq &\mathit{small\_char} \\
+        &\mathrel{/} &\mathit{large\_char} \\
+        &\mathrel{/} &\mathit{symbol\_char} \\
+        &\mathrel{/} &\mathit{digit\_char} \\
+        &\mathrel{/} &\mathit{other\_char} \\
+        &\mathrel{/} &\mathit{special\_char} \\
+        &\mathrel{/} &\mathit{other\_special\_char} \\
+        &\mathrel{/} &\mathit{other\_graphic\_char} \\
+        \mathit{id\_char}
+        &\Coloneq &\mathit{id\_small\_char} \\
+        &\mathrel{/} &\mathit{id\_large\_char} \\
+        &\mathrel{/} &\mathit{digit\_char} \\
+        &\mathrel{/} &\mathit{other\_char} \\
+        \mathit{id\_small\_char}
+        &\Coloneq &\mathit{small\_char} \\
+        \mathit{id\_large\_char}
+        &\Coloneq &\mathit{large\_char} \\
+        \mathit{sym\_char}
+        &\Coloneq &\mathit{sym\_normal\_char} \\
+        &\mathrel{/} &\mathit{sym\_sp\_char} \\
+        &\mathrel{/} &\mathit{other\_char} \\
+        \mathit{sym\_normal\_char}
+        &\Coloneq &(\mathop{!} \mathit{sym\_sp\_char})\; \mathit{symbol\_char} \\
+        \mathit{sym\_sp\_char}
+        &\Coloneq &\texttt{"\textasciitilde"} \\
+        \mathit{white\_char}
+        &\Coloneq &\texttt{"\textbackslash v"} \\
+        &\mathrel{/} &\mathit{space\_char} \\
+        &\mathrel{/} &\mathit{newline\_char} \\
+        \mathit{space\_char}
+        &\Coloneq &\texttt{"\textbackslash t"} \\
+        &\mathrel{/} &\texttt{"\textbackslash u\{200E\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash u\{200F\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Space\_Separator\}"} \\
+        \mathit{newline}
+        &\Coloneq &\texttt{"\textbackslash r\textbackslash n"} \\
+        &\mathrel{/} &\mathit{newline\_char} \\
+        \mathit{newline\_char}
+        &\Coloneq &\texttt{"\textbackslash r"} \\
+        &\mathrel{/} &\texttt{"\textbackslash n"} \\
+        &\mathrel{/} &\texttt{"\textbackslash f"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Line\_Separator\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Paragraph\_Separator\}"}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{small\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Lowercase\_Letter\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Other\_Letter\}"} \\
+        &\mathrel{/} &\texttt{"\_"} \\
+        \mathit{large\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Uppercase\_Letter\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Titlecase\_Letter\}"} \\
+        \mathit{symbol\_char}
+        &\Coloneq &(\mathop{!} (\mathit{special\_char} \mathrel{/} \mathit{other\_special\_char} \mathrel{/} "\_"))\; \mathit{symbol\_cat\_char} \\
+        \mathit{symbol\_cat\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Connector\_Punctuation\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Dash\_Punctuation\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Other\_Punctuation\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Symbol\}"} \\
+        \mathit{digit\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Decimal\_Number\}"} \\
+        \mathit{other\_char}
+        &\Coloneq &(\mathop{!} \mathit{white\_char})\; \mathit{other\_cat\_char} \\
+        \mathit{other\_cat\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Modifier\_Letter\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Mark\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Letter\_Number\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Other\_Number\}"} \\
+        &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Format\}"}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{special\_char}
+        &\Coloneq &\texttt{"\{"} \\
+        &\mathrel{/} &\texttt{"\}"} \\
+        &\mathrel{/} &\texttt{"["} \\
+        &\mathrel{/} &\texttt{"]"} \\
+        &\mathrel{/} &\texttt{"("} \\
+        &\mathrel{/} &\texttt{")"} \\
+        &\mathrel{/} &\texttt{";"} \\
+        &\mathrel{/} &\texttt{".""} \\
+        \mathit{other\_special\_char}
+        &\Coloneq &\mathit{keyword\_prefix\_char} \\
+        &\mathrel{/} &\mathit{string\_sep\_char} \\
+        &\mathrel{/} &\texttt{"'"} \\
+        \mathit{keyword\_prefix\_char}
+        &\Coloneq &\texttt{"\#"} \\
+        \mathit{string\_sep\_char}
+        &\Coloneq &\texttt{"\textbackslash \textbackslash "} \\
+        \mathit{other\_graphic\_char}
+        &\Coloneq &(\mathop{!} (\mathit{symbol\_cat\_char} \mathrel{/} \mathit{special\_char} \mathrel{/} \mathit{other\_special\_char}))\; \mathit{other\_graphic\_cat\_char} \\
+        \mathit{other\_graphic\_cat\_char}
+        &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Punctuation\}"}
+    \end{array}
+\end{align*}
+
 \subsection{Layout}
+
+Pre-Process:
+
+\begin{algorithmic}[1]
+    \Procedure{PRE\_PARSE}{}
+        \State{$\mathit{pre\_line} \assign 1$}
+        \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
+        \Comment{Insert the top-level implicit layout.}
+        \While{$(\mathit{current\_token}, \mathit{current\_line}, \mathit{current\_col}) \assign \mathbf{consume}$}
+            \If{$\mathit{current\_token} \not\in \mathit{lexeme}$}
+                \State{$\mathbf{continue}$}
+                \Comment{Skip white-spaces.}
+            \EndIf
+            \If{$\mathit{should\_open\_imp\_layout}$}
+                \State{$\mathbf{yield}\; \{\mathrm{open\_imp}(\mathit{current\_col})\}$}
+                \State{$\mathit{should\_open\_imp\_layout} \assign \bot$}
+            \EndIf
+            \If{$\mathit{pre\_line} < \mathit{current\_line}$}
+                \State{$\mathbf{yield}\; \{\mathrm{newline}(\mathit{current\_col})\}$}
+                \State{$\mathit{pre\_line} \assign \mathit{current\_line}$}
+            \EndIf
+            \State{$\mathbf{yield}\; \mathit{current\_token}$}
+            \If{$\mathit{current\_token} \in \mathit{lb\_imp\_open} \cup \mathit{lp\_imp\_open}$}
+                \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
+            \ElsIf{$\mathit{current\_token} \in \mathit{lb\_exp\_open} \cup \mathit{lp\_exp\_open}$}
+                \State{$\mathbf{yield}\; \{\mathrm{open\_exp}\}$}
+            \ElsIf{$\mathit{current\_token} \in \mathit{lb\_close} \cup \mathit{lp\_close}$}
+                \State{$\mathbf{yield}\; \{\mathrm{close}\}$}
+            \EndIf
+        \EndWhile
+        \If{$\mathit{should\_open\_imp\_layout}$}
+            \State{$\mathbf{yield}\; \{\mathrm{open\_imp}(0)\}$}
+            \State{$\mathit{should\_open\_imp\_layout} \assign \bot$}
+        \EndIf
+        \State{$\mathbf{yield}\; \{\mathrm{close}\}$}
+    \EndProcedure
+\end{algorithmic}
+
+Add Layout Tokens:
+
+\begin{algorithmic}[1]
+    \Procedure{WITH\_LAYOUT\_TOKEN}{}
+        \State{$\mathit{layout\_stack} \assign []$}
+        \While{$\mathit{current\_token} \assign \mathbf{consume}$}
+            \If{$\{\mathrm{open\_imp}(m)\} \assign \mathit{current\_token}$}
+                \State{$\mathit{layout\_stack}.\mathbf{push}(\{m\})$}
+            \ElsIf{$\{\mathrm{open\_exp}\} \assign \mathit{current\_token}$}
+                \State{$\mathit{layout\_stack}.\mathbf{push}(\{-\})$}
+            \ElsIf{$\{\mathrm{close}\} \assign \mathit{current\_token}$}
+                \If{$\mathit{layout\_stack}.\mathbf{is\_empty}()$}
+                    \State{$\mathbf{error}$}
+                    \Comment{Too many layout closing.}
+                \Else
+                    \State{$\mathit{layout\_stack}.\mathbf{pop}()$}
+                \EndIf
+            \ElsIf{$\{\mathrm{newline}(c)\} \assign \mathit{current\_token}$}
+                \If{$\mathit{layout\_stack}.\mathbf{is\_empty}()$}
+                    \State{$\mathbf{error}$}
+                    \Comment{Too early layout closing.}
+                \ElsIf{$\{m\} \assign \mathit{layout\_stack}.\mathbf{get}()$}
+                    \If{$c < m$}
+                        \State{$\mathbf{error}$}
+                        \Comment{Less indentation in the current implicit layout.}
+                    \ElsIf{$c = m$}
+                        \State{$\mathbf{yield}\;\texttt{<;>}$}
+                    \ElsIf{$c > m$}
+                        \State{$\mathbf{continue}$}
+                    \EndIf
+                \ElsIf{$\{-\} \assign \mathit{layout\_stack}.\mathbf{get}()$}
+                    \State{$\mathbf{continue}$}
+                    \Comment{Skip newlines in explicit layouts.}
+                \EndIf
+            \Else
+                \State{$\mathbf{yield}\;\mathit{current\_token}$}
+            \EndIf
+        \EndWhile
+    \EndProcedure
+\end{algorithmic}
 
 \subsection{Grammar}
 
-\cite{Ford:2002}
+Program:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{program}
+        &\Coloneq &\mathit{expr}\; \mathbf{EOS}
+    \end{array}
+\end{align*}
+
+Local Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{local\_decl}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_body} \\
+        &\mathrel{/} &\texttt{"\#rec"}\; \mathit{let\_body} \\
+        \mathit{local\_type\_decl}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_type\_body} \\
+        \mathit{let\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_body\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{let\_body\_item} \\
+        \mathit{let\_body\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        \mathit{let\_body\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_expr} \\
+        \mathit{let\_type\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_type\_body\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{let\_type\_body\_item} \\
+        \mathit{let\_type\_body\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_type\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_type\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        \mathit{let\_type\_body\_item}
+        &\Coloneq &\mathit{bind\_type}
+    \end{array}
+\end{align*}
+
+Where Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{where\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{where\_body\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{where\_body\_item} \\
+        \mathit{where\_body\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{where\_body\_item}\; (\mathit{lsemis}\; \mathit{where\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{where\_body\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_expr} \\
+        &\mathrel{/} &\mathit{local\_decl} \\
+        \mathit{bind\_expr}
+        &\Coloneq &\mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr} \\
+        \mathit{bind\_type}
+        &\Coloneq &\mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type} \\
+        \mathit{bind\_prom\_type}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type}
+    \end{array}
+\end{align*}
+
+Expression:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr}
+        &\Coloneq &\mathit{expr\_ann}\; (\texttt{"\#where"}\; \mathit{where\_body}){*} \\
+        \mathit{expr\_ann}
+        &\Coloneq &\mathit{expr\_infix}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{expr\_infix} \\
+        \mathit{expr\_infix}
+        &\Coloneq &\mathit{expr\_apps}\; (\mathit{expr\_op}\; \mathit{expr\_apps}){*} \\
+        \mathit{expr\_op}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{expr}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
+        &\mathrel{/} &\mathit{sym} \\
+        \mathit{expr\_apps}
+        &\Coloneq &\mathit{expr\_struct}\; \mathit{expr\_struct}{*} \\
+        \mathit{expr\_struct}
+        &\Coloneq &\texttt{"\textbackslash"}\; \mathit{expr} \\
+        &\mathrel{/} &\texttt{"\#match"}\; \mathit{expr\_tuple\_items}\; \texttt{"\#in"}\; \mathit{expr} \\
+        &\mathrel{/} &\texttt{"\#case"}\; \mathit{case\_body} \\
+        &\mathrel{/} &\texttt{"\#if"}\; \mathit{case\_body} \\
+        &\mathrel{/} &\mathit{expr\_atomic} \\
+        \mathit{expr\_atomic}
+        &\Coloneq &\mathit{expr\_block} \\
+        &\mathrel{/} &\mathit{expr\_literal} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var} \\
+        \mathit{expr\_literal}
+        &\Coloneq &\mathit{literal} \\
+        &\mathrel{/} &\mathit{expr\_interp\_string} \\
+        &\mathrel{/} &\mathit{expr\_tuple}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{case\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{case\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{case\_item} \\
+        \mathit{case\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{case\_item}\; (\mathit{lsemis}\; \mathit{case\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{case\_item}
+        &\Coloneq &\mathit{view}\; \texttt{"\#>"}\; \mathit{expr}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr\_block}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_block\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{lb\_open}\; \mathit{expr\_block\_stmts}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
+        \mathit{expr\_block\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
+        \mathit{expr\_block\_item}
+        &\Coloneq &\mathit{expr\_block\_pats}\; \mathit{expr\_block\_guard}{?}\; \texttt{"\#>"}\; \mathit{expr} \\
+        \mathit{expr\_block\_pats}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{pat}\; (\mathit{lsemis}\; \mathit{pat}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{expr\_block\_guard}
+        &\Coloneq &\texttt{"\#if"}\; \mathit{view} \\
+        \mathit{expr\_block\_stmts}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_stmt}\; (\mathit{lsemis}\; \mathit{expr\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        \mathit{expr\_block\_stmt}
+        &\Coloneq &\mathit{expr} \\
+        &\mathrel{/} &\mathit{local\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr\_interp\_string}
+        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block\_stmts}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
+        \mathit{expr\_interp\_string\_item}
+        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block\_stmts}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr\_tuple}
+        &\Coloneq &\mathit{lp\_open}\; \mathit{expr\_tuple\_items}\; \mathit{lp\_close} \\
+        \mathit{expr\_tuple\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_tuple\_item}\; (\mathit{lsemis}\; \mathit{expr\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{expr\_tuple\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_expr} \\
+        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{expr} \\
+        &\mathrel{/} &\mathit{local\_decl}
+    \end{array}
+\end{align*}
+
+Type Expression:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type}
+        &\Coloneq &\mathit{type\_ann}\; (\texttt{"\#where"}\; \mathit{where\_body}){*} \\
+        \mathit{type\_ann}
+        &\Coloneq &\mathit{type\_infix}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{type\_infix} \\
+        \mathit{type\_infix}
+        &\Coloneq &\mathit{type\_apps}\; (\mathit{type\_op}\; \mathit{type\_apps}){*} \\
+        \mathit{type\_op}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{type}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
+        &\mathrel{/} &\mathit{sym} \\
+        \mathit{type\_apps}
+        &\Coloneq &\mathit{type\_atomic}\; \mathit{type\_atomic}{*} \\
+        \mathit{type\_atomic}
+        &\Coloneq &\mathit{type\_block} \\
+        &\mathrel{/} &\mathit{type\_literal} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var} \\
+        \mathit{type\_literal}
+        &\Coloneq &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_tuple} \\
+        &\mathrel{/} &\mathit{type\_tuple\_sig}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_block}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_stmts}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{lb\_open}\; \mathit{type\_block\_stmts}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
+        \mathit{type\_block\_stmts}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_stmt}\; (\mathit{lsemis}\; \mathit{type\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        \mathit{type\_block\_stmt}
+        &\Coloneq &\mathit{type} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_tuple}
+        &\Coloneq &\mathit{lp\_open}\; \mathit{type\_tuple\_items}\; \mathit{lp\_close} \\
+        \mathit{type\_tuple\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_tuple\_item}\; (\mathit{lsemis}\; \mathit{type\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{type\_tuple\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_type} \\
+        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type\_infix} \\
+        &\mathrel{/} &\mathit{type\_infix} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_tuple\_sig}
+        &\Coloneq &\mathit{lp\_open}\; \mathit{type\_tuple\_sig\_items}\; \mathit{lp\_close} \\
+        \mathit{type\_tuple\_sig\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_tuple\_sig\_item}\; (\mathit{lsemis}\; \mathit{type\_tuple\_sig\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{type\_tuple\_sig\_item}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{declvar}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{declvar}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type\_infix} \\
+        &\mathrel{/} &\mathit{type\_infix}
+    \end{array}
+\end{align*}
+
+Pattern:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{pat}
+        &\Coloneq &\mathit{pat\_ann} \\
+        \mathit{pat\_ann}
+        &\Coloneq &\mathit{pat\_infix}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{pat\_infix} \\
+        \mathit{pat\_infix}
+        &\Coloneq &\mathit{pat\_apps}\; (\mathit{pat\_op}\; \mathit{pat\_apps}){*} \\
+        \mathit{pat\_op}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{con}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
+        &\mathrel{/} &\mathit{con\_sym} \\
+        \mathit{pat\_apps}
+        &\Coloneq &\mathit{con}\; \mathit{pat\_atomic}{*} \\
+        \mathit{pat\_atomic}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{pat}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{pat\_literal} \\
+        &\mathrel{/} &\mathit{var} \\
+        \mathit{pat\_literal}
+        &\Coloneq &\mathit{literal} \\
+        &\mathrel{/} &\mathit{pat\_tuple}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{pat\_tuple}
+        &\Coloneq &\mathit{lp\_open}\; \mathit{pat\_tuple\_items}\; \mathit{lp\_close} \\
+        \mathit{pat\_tuple\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{pat\_tuple\_item}\; (\mathit{lsemis}\; \mathit{pat\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{pat\_tuple\_item}
+        &\Coloneq &\mathit{declvar}\; \texttt{"="}\; \mathit{pat} \\
+        &\mathrel{/} &\mathit{pat}
+    \end{array}
+\end{align*}
+
+View:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{view}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_and\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\texttt{"\#let"}\; \mathit{let\_pat\_body} \\
+        &\mathrel{/} &\mathit{expr} \\
+        \mathit{view\_and\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view}\; (\mathit{lsemis}\; \mathit{view}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{let\_pat\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_pat\_body\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{let\_pat\_body\_item} \\
+        \mathit{let\_pat\_body\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_pat\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_pat\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        \mathit{let\_pat\_body\_item}
+        &\Coloneq &\mathit{pat}\; \texttt{"="}\; \mathit{expr}
+    \end{array}
+\end{align*}
+
+Base Unit:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{declvar}
+        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; (\mathit{var\_sym}\; \mathrel{/} \mathit{var\_id})\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
+        &\mathrel{/} &\mathit{var\_id} \\
+        &\mathrel{/} &\mathit{free\_id} \\
+        \mathit{sym}
+        &\Coloneq &\mathit{con\_sym} \\
+        &\mathrel{/} &\mathit{var\_sym} \\
+        \mathit{con}
+        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; (\mathit{con\_sym}\; \mathrel{/} \mathit{con\_id})\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
+        &\mathrel{/} &\mathit{con\_id} \\
+        \mathit{var}
+        &\Coloneq &\mathit{declvar}
+    \end{array}
+\end{align*}
+
+Layout Unit:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{lb\_open}
+        &\Coloneq &\mathit{lb\_imp\_open} \\
+        &\mathrel{/} &\mathit{lb\_exp\_open} \\
+        \mathit{lb\_imp\_open}
+        &\Coloneq &\texttt{"\{"} \\
+        \mathit{lb\_exp\_open}
+        &\Coloneq &\texttt{"\#\{"} \\
+        \mathit{lb\_close}
+        &\Coloneq &\texttt{"\}"} \\
+        \mathit{lp\_open}
+        &\Coloneq &\mathit{lp\_imp\_open} \\
+        &\mathrel{/} &\mathit{lp\_exp\_open} \\
+        \mathit{lp\_imp\_open}
+        &\Coloneq &\texttt{"("} \\
+        \mathit{lp\_exp\_open}
+        &\Coloneq &\texttt{"\#("} \\
+        \mathit{lp\_close}
+        &\Coloneq &\texttt{")"} \\
+        \mathit{lsemis}
+        &\Coloneq &(\texttt{<;>}\; \mathrel{/} \texttt{";"}){+}
+    \end{array}
+\end{align*}
+
+\subsection{Fixity Resolution}
 
 \subsection{Abstract Tree}
