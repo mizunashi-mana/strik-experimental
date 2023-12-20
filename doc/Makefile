@@ -7,9 +7,11 @@ all: dist
 dist: public/spec.pdf
 	npm run build
 
-public/spec.pdf: public
-	make -C spec main.pdf
-	cp spec/main.pdf public/spec.pdf
+public/spec.pdf: public spec/main.pdf
+	cp spec/main.pdf $@
 
 public:
 	mkdir -p $@
+
+spec/main.pdf:
+	make -C spec main.pdf

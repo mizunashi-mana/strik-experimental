@@ -1,0 +1,12 @@
+dist
+**/*.stamp
+**/*.pdf
+
+# for Astro
+**/.astro
+
+# for Poetry
+**/.venv
+
+# for Node.js
+**/node_modules

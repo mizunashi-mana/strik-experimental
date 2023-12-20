@@ -1,0 +1,74 @@
+name: Documents Deployment
+
+on:
+    push:
+        # Publish
+        branches:
+        - main
+
+    # Run tests for any PRs.
+    pull_request:
+
+jobs:
+    build:
+        runs-on: ubuntu-latest
+
+        steps:
+        -   uses: actions/checkout@v4
+
+        -   name: Login to GitHub Packages
+            uses: docker/login-action@v3
+            with:
+                registry: ghcr.io
+                username: ${{ github.actor }}
+                password: ${{ secrets.GITHUB_TOKEN }}
+
+        -   name: Set up Docker Buildx
+            uses: docker/setup-buildx-action@v3
+
+        -   name: Build dist
+            uses: docker/build-push-action@v5
+            with:
+                context: doc
+                load: true
+                target: debcontainer
+                tags: ghcr.io/${{ github.repository }}/doc-dist
+                cache-from: type=gha
+                cache-to: type=gha
+
+        -   name: Copy dist
+            run: |
+                docker create --name dist-container ghcr.io/${{ github.repository }}/doc-dist
+                docker cp dist-container:/dist ./doc/dist
+                docker rm dist-container
+
+        -   name: Archive deb artifact
+            uses: actions/upload-artifact@v3
+            with:
+                name: doc-dist
+                retention-days: 1
+                path: |
+                    ./doc/dist
+
+    deploy:
+        needs: build
+
+        runs-on: ubuntu-latest
+        if: github.ref == 'refs/heads/main'
+        permissions:
+            pages: write
+            id-token: write
+
+        steps:
+        -   name: Download dist
+            uses: actions/download-artifact@v3
+            with:
+                name: doc-dist
+
+        -   name: Upload Pages artifact
+            uses: actions/upload-pages-artifact@v2
+            with:
+                path: doc/dist/
+
+        -   name: Deploy to GitHub Pages
+            uses: actions/deploy-pages@v2
