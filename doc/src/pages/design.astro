@@ -7,7 +7,7 @@ interface Frontmatter {
 }
 export const posts = await Astro.glob<Frontmatter>('./design/**/*.md');
 
-function getTitleFromPost(post: Astro.MarkdownInstance<Frontmatter>, defaultTitle: string): string {
+function getTitleFromPost(post: Astro.MarkdownInstance<Frontmatter>, defaultTitle: string | undefined): string | undefined {
     if (post.frontmatter?.title !== undefined) {
         return post.frontmatter?.title;
     }
@@ -19,13 +19,26 @@ function getTitleFromPost(post: Astro.MarkdownInstance<Frontmatter>, defaultTitl
 
     return defaultTitle;
 }
+
+function calculateRelativePathToRoot(normalizedAbsPath: string): string {
+    const nestingCount = normalizedAbsPath.split('/').filter(x => x != '').length;
+    if (nestingCount === 0) {
+        return './';
+    } else {
+        return `${'../'.repeat(nestingCount)}`;
+    }
+}
+
+const baseUrl = calculateRelativePathToRoot(Astro.url.pathname);
 ---
 <!-- TODO: Support nesting structure. -->
 
 <Layout title="Design Documents">
     <ul>
-        {posts.map(post => (
-            <li><a href={post.url}>{getTitleFromPost(post, post.url)}</a></li>
-        ))}
+        {posts.map(post => {
+            // require(post.url.startsWith('/'));
+            const postUrl = `${baseUrl}${post.url?.slice(1)}`;
+            return (<li><a href={postUrl}>{getTitleFromPost(post, post.url)}</a></li>);
+        })}
     </ul>
 </Layout>
