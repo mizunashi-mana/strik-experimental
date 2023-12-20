@@ -31,7 +31,6 @@ jobs:
             with:
                 context: doc
                 load: true
-                target: debcontainer
                 tags: ghcr.io/${{ github.repository }}/doc-dist
                 cache-from: type=gha
                 cache-to: type=gha
