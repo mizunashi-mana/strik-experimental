@@ -41,7 +41,7 @@ jobs:
                 docker cp dist-container:/dist ./doc/dist
                 docker rm dist-container
 
-        -   name: Archive deb artifact
+        -   name: Archive artifact
             uses: actions/upload-artifact@v3
             with:
                 name: doc-dist
@@ -63,11 +63,12 @@ jobs:
             uses: actions/download-artifact@v3
             with:
                 name: doc-dist
+                path: dist
 
         -   name: Upload Pages artifact
             uses: actions/upload-pages-artifact@v2
             with:
-                path: doc/dist/
+                path: dist/
 
         -   name: Deploy to GitHub Pages
             uses: actions/deploy-pages@v2

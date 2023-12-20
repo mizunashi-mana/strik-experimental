@@ -21,7 +21,6 @@ COPY --from=spec-builder /workdir/spec/main.pdf /workdir/spec/main.pdf
 
 WORKDIR /workdir
 RUN <<EOT
-npm install
 make dist
 EOT
 

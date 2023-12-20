@@ -1,5 +1,4 @@
 # output
-*.stamp
 *.pdf
 *.backup.tex
 *.diff.tex
