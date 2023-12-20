@@ -1,0 +1,31 @@
+---
+import Layout from '@layouts/Layout.astro';
+
+interface Frontmatter {
+  title?: string;
+  description?: string;
+}
+export const posts = await Astro.glob<Frontmatter>('./design/**/*.md');
+
+function getTitleFromPost(post: Astro.MarkdownInstance<Frontmatter>, defaultTitle: string): string {
+    if (post.frontmatter?.title !== undefined) {
+        return post.frontmatter?.title;
+    }
+
+    const headings = post.getHeadings();
+    if (headings[0]?.text !== undefined) {
+        return headings[0].text;
+    }
+
+    return defaultTitle;
+}
+---
+<!-- TODO: Support nesting structure. -->
+
+<Layout title="Design Documents">
+    <ul>
+        {posts.map(post => (
+            <li><a href={post.url}>{getTitleFromPost(post, post.url)}</a></li>
+        ))}
+    </ul>
+</Layout>

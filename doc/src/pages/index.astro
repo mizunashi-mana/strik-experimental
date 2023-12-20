@@ -1,0 +1,12 @@
+---
+import Layout from '@layouts/MarkdownLayout.astro';
+import * as Content from '../../README.md';
+
+const frontmatter: {
+    title: string;
+} = Content.frontmatter;
+---
+
+<Layout {...frontmatter}>
+    <Content.default />
+</Layout>
