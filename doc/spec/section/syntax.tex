@@ -501,10 +501,7 @@ Expression:
         \mathit{expr\_block\_items}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
         \mathit{expr\_block\_item}
-        &\Coloneq &\mathit{expr\_block\_pats}\; \mathit{expr\_block\_guard}{?}\; \texttt{"\#>"}\; \mathit{expr} \\
-        \mathit{expr\_block\_pats}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{pat}\; (\mathit{lsemis}\; \mathit{pat}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
+        &\Coloneq &\mathit{pat_tuple_items}\; \mathit{expr\_block\_guard}{?}\; \texttt{"\#>"}\; \mathit{expr} \\
         \mathit{expr\_block\_guard}
         &\Coloneq &\texttt{"\#if"}\; \mathit{view} \\
         \mathit{expr\_block\_stmts}
@@ -729,5 +726,48 @@ Program:
     \begin{array}{rcll}
         \mathit{program}
         &\Coloneq &\mathit{expr}
+    \end{array}
+\end{align*}
+
+Expression:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr}
+        &\Coloneq &\mathrm{where}(\mathit{expr}; \mathit{where\_body}) \\
+        &\mathrel{/} &\mathrm{ann}(\mathit{expr}; \mathit{type}) \\
+        &\mathrel{/} &\mathrm{infix}(\mathit{expr}; \mathit{expr}; \mathit{expr}) \\
+        &\mathrel{/} &\mathrm{app}(\mathit{expr}; \mathit{expr}) \\
+        &\mathrel{/} &\lambda(\mathit{expr}) \\
+        &\mathrel{/} &\mathrm{match}(\mathit{expr\_tuple\_body}; \mathit{expr}) \\
+        &\mathrel{/} &\mathrm{case}(\mathit{case\_body}) \\
+        &\mathrel{/} &\mathrm{if}(\mathit{case\_body}) \\
+        &\mathrel{/} &\mathrm{block}(\mathit{expr\_block\_body}) \\
+        &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathrm{expr\_interp\_string}(\mathit{expr\_interp\_string\_body}) \\
+        &\mathrel{/} &\mathrm{expr\_tuple}(\mathit{expr\_tuple\_body})
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{case\_body}
+        &\Coloneq &\mathit{case\_item}{*} \\
+        \mathit{case\_item}
+        &\Coloneq &\mathrm{item}(\mathit{view}; \mathit{expr})
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr\_block\_body}
+        &\Coloneq &\mathrm{items}(\mathit{expr\_block\_item}{*}) \\
+        &\mathrel{/} &\mathrm{stmts}(\mathit{expr\_block\_stmt}{*}) \\
+        \mathit{expr\_block\_item}
+        &\Coloneq &\mathit{expr} \\
+        &\mathrel{/} &\mathit{local\_decl} \\
+        \mathit{expr\_block\_stmt}
+        &\Coloneq &\mathit{expr} \\
+        &\mathrel{/} &\mathit{local\_decl}
     \end{array}
 \end{align*}
