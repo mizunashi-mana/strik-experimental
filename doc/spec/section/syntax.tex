@@ -469,13 +469,11 @@ Expression:
         &\mathrel{/} &\mathit{expr\_atomic} \\
         \mathit{expr\_atomic}
         &\Coloneq &\mathit{expr\_block} \\
-        &\mathrel{/} &\mathit{expr\_literal} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var} \\
-        \mathit{expr\_literal}
-        &\Coloneq &\mathit{literal} \\
+        &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{expr\_interp\_string} \\
-        &\mathrel{/} &\mathit{expr\_tuple}
+        &\mathrel{/} &\mathit{expr\_tuple} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var}
     \end{array}
 \end{align*}
 
@@ -555,13 +553,12 @@ Type Expression:
         &\Coloneq &\mathit{type\_atomic}\; \mathit{type\_atomic}{*} \\
         \mathit{type\_atomic}
         &\Coloneq &\mathit{type\_block} \\
-        &\mathrel{/} &\mathit{type\_literal} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var} \\
-        \mathit{type\_literal}
-        &\Coloneq &\mathit{literal} \\
+        &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
-        &\mathrel{/} &\mathit{type\_tuple\_sig}
+        &\mathrel{/} &\mathit{type\_tuple\_sig} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var}
+        &\Coloneq &
     \end{array}
 \end{align*}
 
@@ -626,13 +623,13 @@ Pattern:
         &\mathrel{/} &\mathit{con\_sym} \\
         \mathit{pat\_apps}
         &\Coloneq &\mathit{con}\; \mathit{pat\_atomic}{*} \\
+        &\mathrel{/} &\mathit{pat\_atomic} \\
         \mathit{pat\_atomic}
         &\Coloneq &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{pat}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{pat\_literal} \\
-        &\mathrel{/} &\mathit{var} \\
-        \mathit{pat\_literal}
-        &\Coloneq &\mathit{literal} \\
-        &\mathrel{/} &\mathit{pat\_tuple}
+        &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{pat\_tuple} \\
+        &\mathrel{/} &\mathit{var}
+        &\Coloneq &
     \end{array}
 \end{align*}
 
