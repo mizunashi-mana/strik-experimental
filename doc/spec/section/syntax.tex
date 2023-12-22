@@ -599,9 +599,7 @@ Type Expression:
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{type\_tuple\_sig\_item}
         &\Coloneq &\texttt{"\^{}"}\; \mathit{declvar}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{declvar}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type\_infix} \\
-        &\mathrel{/} &\mathit{type\_infix}
+        &\mathrel{/} &\mathit{declvar}\; \texttt{":"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -817,5 +815,28 @@ Type Expression:
         \mathit{type\_block\_stmt}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_tuple}
+        &\Coloneq &\mathrm{\#tuple}(\mathit{type\_tuple\_item}*) \\
+        \mathit{type\_tuple\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_type} \\
+        &\mathrel{/} &\mathrm{\#prom}(\mathit{type}) \\
+        &\mathrel{/} &\mathit{type} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_tuple\_sig}
+        &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}*) \\
+        \mathit{type\_tuple\_sig\_item}
+        &\Coloneq &\mathrm{\#prom}(\mathit{var}; \mathit{type}) \\
+        &\mathrel{/} &\mathit{var}: \mathit{type}
     \end{array}
 \end{align*}
