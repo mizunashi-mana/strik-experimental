@@ -565,7 +565,6 @@ Type Expression:
     \begin{array}{rcll}
         \mathit{type\_block}
         &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_stmts}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{lb\_open}\; \mathit{type\_block\_stmts}\; \mathit{lb\_close} \\
         &\mathrel{/} &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
         \mathit{type\_block\_stmts}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_stmt}\; (\mathit{lsemis}\; \mathit{type\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
@@ -790,5 +789,33 @@ Expression:
         &\mathrel{/} &\mathrm{\#prom}(\mathit{type}) \\
         &\mathrel{/} &\mathit{expr} \\
         &\mathrel{/} &\mathit{local\_decl}
+    \end{array}
+\end{align*}
+
+Type Expression:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type}
+        &\Coloneq &\mathit{type}\;\mathrm{\#where}\;\mathit{where\_body} \\
+        &\mathrel{/} &\mathit{type}: \mathit{type} \\
+        &\mathrel{/} &\mathrm{\#infix}(\mathit{type}; \mathit{type}; \mathit{type}) \\
+        &\mathrel{/} &\mathit{type}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{type\_block} \\
+        &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_tuple} \\
+        &\mathrel{/} &\mathit{type\_tuple\_sig} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_block}
+        &\Coloneq &\mathrm{\#block\_stmts}(\mathit{type\_block\_stmt}{*}) \\
+        \mathit{type\_block\_stmt}
+        &\Coloneq &\mathit{type} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}
     \end{array}
 \end{align*}
