@@ -409,6 +409,7 @@ Local Declaration:
         &\mathrel{/} &\mathit{let\_body\_item} \\
         \mathit{let\_body\_items}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{let\_body\_item}
         &\Coloneq &\mathit{bind\_prom\_type} \\
         &\mathrel{/} &\mathit{bind\_expr} \\
@@ -417,6 +418,7 @@ Local Declaration:
         &\mathrel{/} &\mathit{let\_type\_body\_item} \\
         \mathit{let\_type\_body\_items}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_type\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_type\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{let\_type\_body\_item}
         &\Coloneq &\mathit{bind\_type}
     \end{array}
@@ -426,6 +428,8 @@ Where Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
+        \mathit{where\_decl}
+        &\Coloneq &\texttt{"\#where"}\; \mathit{where\_body} \\
         \mathit{where\_body}
         &\Coloneq &\mathit{lb\_open}\; \mathit{where\_body\_items}\; \mathit{lb\_close} \\
         &\mathrel{/} &\mathit{where\_body\_item} \\
@@ -450,7 +454,7 @@ Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{expr}
-        &\Coloneq &\mathit{expr\_ann}\; (\texttt{"\#where"}\; \mathit{where\_body}){*} \\
+        &\Coloneq &\mathit{expr\_ann}\; \mathit{where\_decl}{*} \\
         \mathit{expr\_ann}
         &\Coloneq &\mathit{expr\_infix}\; \texttt{":"}\; \mathit{type} \\
         &\mathrel{/} &\mathit{expr\_infix} \\
@@ -494,14 +498,12 @@ Expression:
     \begin{array}{rcll}
         \mathit{expr\_block}
         &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_block\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{lb\_open}\; \mathit{expr\_block\_stmts}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
         \mathit{expr\_block\_items}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?}\; \mathit{expr\_block\_stmt}\; (\mathit{lsemis}\; \mathit{expr\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{expr\_block\_item}
         &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#>"}\; \mathit{expr} \\
-        \mathit{expr\_block\_stmts}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_stmt}\; (\mathit{lsemis}\; \mathit{expr\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
         \mathit{expr\_block\_stmt}
         &\Coloneq &\mathit{expr} \\
         &\mathrel{/} &\mathit{local\_decl}
@@ -538,7 +540,7 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type}
-        &\Coloneq &\mathit{type\_ann}\; (\texttt{"\#where"}\; \mathit{where\_body}){*} \\
+        &\Coloneq &\mathit{type\_ann}\; \mathit{where\_decl}{*} \\
         \mathit{type\_ann}
         &\Coloneq &\mathit{type\_infix}\; \texttt{":"}\; \mathit{type} \\
         &\mathrel{/} &\mathit{type\_infix} \\
@@ -562,10 +564,10 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_block}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_stmts}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
-        \mathit{type\_block\_stmts}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_items}\; \mathit{lb\_close} \\
+        \mathit{type\_block\_items}
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_stmt}\; (\mathit{lsemis}\; \mathit{type\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{type\_block\_stmt}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
@@ -619,12 +621,21 @@ Pattern:
         &\Coloneq &\mathit{con}\; \mathit{pat\_atomic}{*} \\
         &\mathrel{/} &\mathit{pat\_atomic} \\
         \mathit{pat\_atomic}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{lsemis}{?}\; \mathit{pat}\; \mathit{lsemis}{?}\; \mathit{lb\_close} \\
+        &\Coloneq &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\
         &\mathrel{/} &\mathit{var} \\
         \mathit{pat\_guard}
         &\Coloneq &\texttt{"\#if"}\; \mathit{view}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{pat\_block}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{pat\_block\_items}\; \mathit{lb\_close} \\
+        \mathit{pat\_block\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; (\mathit{view\_block\_item}\; \mathit{lsemis}){*}\; \mathit{pat}\; \mathit{lsemis}{?}
     \end{array}
 \end{align*}
 
@@ -646,19 +657,32 @@ View:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{view}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_and\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\texttt{"\#let"}\; \mathit{let\_pat\_body} \\
+        &\Coloneq &\mathit{view\_block} \\
+        &\mathrel{/} &\mathit{view\_bind} \\
         &\mathrel{/} &\mathit{expr} \\
-        \mathit{view\_and\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view}\; (\mathit{lsemis}\; \mathit{view}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{let\_pat\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_pat\_body\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{let\_pat\_body\_item} \\
-        \mathit{let\_pat\_body\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_pat\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_pat\_body\_item}){*}\; \mathit{lsemis}{?} \\
-        \mathit{let\_pat\_body\_item}
+        \mathit{view\_bind}
         &\Coloneq &\mathit{pat}\; \texttt{"="}\; \mathit{expr}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{view\_block}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_block\_items}\; \mathit{lb\_close} \\
+        \mathit{view\_block\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view\_block\_item}\; (\mathit{lsemis}\; \mathit{view\_block\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{view\_block\_item}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{view\_let\_body} \\
+        &\mathrel{/} &\mathit{view} \\
+        \mathit{view\_let\_body}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_let\_body\_items}\; \mathit{lb\_close} \\
+        &\mathrel{/} &\mathit{view\_let\_body\_item} \\
+        \mathit{view\_let\_body\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view\_let\_body\_item}\; (\mathit{lsemis}\; \mathit{view\_let\_body\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{view\_let\_body\_item}
+        &\Coloneq &\mathit{view\_bind}
     \end{array}
 \end{align*}
 
@@ -721,12 +745,48 @@ Program:
     \end{array}
 \end{align*}
 
+Local Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{local\_decl}
+        &\Coloneq &\mathrm{\#let}(\mathit{let\_item}{*}) \\
+        &\mathrel{/} &\mathrm{\#rec}(\mathit{let\_item}{*}) \\
+        \mathit{local\_type\_decl}
+        &\Coloneq &\mathrm{\#let}(\mathit{let\_type\_item}{*}) \\
+        \mathit{let\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_expr} \\
+        \mathit{let\_type\_item}
+        &\Coloneq &\mathit{bind\_type} \\
+    \end{array}
+\end{align*}
+
+Where Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{where\_decl}
+        &\Coloneq &\mathrm{\#where}(\mathit{where\_item}{*}) \\
+        \mathit{where\_item}
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_expr} \\
+        &\mathrel{/} &\mathit{local\_decl} \\
+        \mathit{bind\_expr}
+        &\Coloneq &\mathit{declvar}\; \mathit{type}{?}\; \mathrm{\#eq}(\mathit{expr}) \\
+        \mathit{bind\_type}
+        &\Coloneq &\mathit{declvar}\; \mathit{type}{?}\; \mathrm{\#eq}(\mathit{type}) \\
+        \mathit{bind\_prom\_type}
+        &\Coloneq &\mathrm{\#prom}(\mathit{declvar}\; \mathit{type}{?}\; \mathrm{\#eq}(\mathit{type}))
+    \end{array}
+\end{align*}
+
 Expression:
 
 \begin{align*}
     \begin{array}{rcll}
         \mathit{expr}
-        &\Coloneq &\mathit{expr}\;\mathrm{\#where}\;\mathit{where\_body} \\
+        &\Coloneq &\mathit{expr}\; \mathit{where\_decl} \\
         &\mathrel{/} &\mathit{expr}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}; \mathit{expr}; \mathit{expr}) \\
         &\mathrel{/} &\mathit{expr}\; \mathit{expr} \\
@@ -780,7 +840,7 @@ Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{expr\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{expr\_tuple\_item}*) \\
+        &\Coloneq &\mathrm{\#tuple}(\mathit{expr\_tuple\_item}{*}) \\
         \mathit{expr\_tuple\_item}
         &\Coloneq &\mathit{bind\_prom\_type} \\
         &\mathrel{/} &\mathit{bind\_expr} \\
@@ -795,7 +855,7 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type}
-        &\Coloneq &\mathit{type}\;\mathrm{\#where}\;\mathit{where\_body} \\
+        &\Coloneq &\mathit{type}\; \mathit{where\_decl} \\
         &\mathrel{/} &\mathit{type}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{type}; \mathit{type}; \mathit{type}) \\
         &\mathrel{/} &\mathit{type}\; \mathit{type} \\
@@ -821,7 +881,7 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{type\_tuple\_item}*) \\
+        &\Coloneq &\mathrm{\#tuple}(\mathit{type\_tuple\_item}{*}) \\
         \mathit{type\_tuple\_item}
         &\Coloneq &\mathit{bind\_prom\_type} \\
         &\mathrel{/} &\mathit{bind\_type} \\
@@ -834,7 +894,7 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_tuple\_sig}
-        &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}*) \\
+        &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}{*}) \\
         \mathit{type\_tuple\_sig\_item}
         &\Coloneq &\mathrm{\#prom}(\mathit{var}; \mathit{type}) \\
         &\mathrel{/} &\mathit{var}: \mathit{type}
@@ -849,7 +909,8 @@ Pattern:
         &\Coloneq &\mathit{pat}\; \mathrm{\#if}\; \mathit{view} \\
         &\mathrel{/} &\mathit{pat}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{pat}; \mathit{con}; \mathit{pat}) \\
-        &\mathrel{/} &\mathit{con}\; \mathit{pat}* \\
+        &\mathrel{/} &\mathit{con}\; \mathit{pat}{*} \\
+        &\mathrel{/} &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\
         &\mathrel{/} &\mathit{var}
@@ -858,10 +919,44 @@ Pattern:
 
 \begin{align*}
     \begin{array}{rcll}
+        \mathit{pat\_block}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}{*}; \mathit{pat})
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
         \mathit{pat\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{pat\_tuple\_item}*) \\
+        &\Coloneq &\mathrm{\#tuple}(\mathit{pat\_tuple\_item}{*}) \\
         \mathit{pat\_tuple\_item}
         &\Coloneq &\mathrm{\#bind}(\mathit{declvar}, \mathit{pat}) \\
         &\mathrel{/} &\mathit{pat}
+    \end{array}
+\end{align*}
+
+View:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{view}
+        &\Coloneq &\mathit{view\_block} \\
+        &\mathrel{/} &\mathit{view\_bind} \\
+        &\mathrel{/} &\mathit{expr} \\
+        \mathit{view\_bind}
+        &\Coloneq &\mathrm{\#bind}(\mathit{pat}; \mathit{expr})
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{view\_block}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}{*}) \\
+        \mathit{view\_block\_item}
+        &\Coloneq &\mathit{view\_let\_decl} \\
+        &\mathrel{/} &\mathit{view} \\
+        \mathit{view\_let\_decl}
+        &\Coloneq &\mathrm{\#let}(\mathit{view\_let\_item}{*}) \\
+        \mathit{view\_let\_item}
+        &\Coloneq &\mathit{view\_bind}
     \end{array}
 \end{align*}
