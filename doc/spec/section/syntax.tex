@@ -464,7 +464,9 @@ Expression:
         &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{expr}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
         &\mathrel{/} &\mathit{sym} \\
         \mathit{expr\_apps}
-        &\Coloneq &\mathit{expr\_struct}\; \mathit{expr\_struct}{*} \\
+        &\Coloneq &\mathit{expr\_struct}\; \mathit{expr\_app\_arg}{*} \\
+        \mathit{expr\_app\_arg}
+        &\Coloneq &\mathit{expr\_tuple} \\
         \mathit{expr\_struct}
         &\Coloneq &\texttt{"\textbackslash"}\; \mathit{expr} \\
         &\mathrel{/} &\texttt{"\#match"}\; \mathit{expr\_tuple\_items}\; \texttt{"\#in"}\; \mathit{expr} \\
@@ -550,7 +552,9 @@ Type Expression:
         &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{type}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
         &\mathrel{/} &\mathit{sym} \\
         \mathit{type\_apps}
-        &\Coloneq &\mathit{type\_atomic}\; \mathit{type\_atomic}{*} \\
+        &\Coloneq &\mathit{type\_atomic}\; \mathit{type\_app\_arg}{*} \\
+        \mathit{type\_app\_arg}
+        &\Coloneq &\mathit{type\_tuple} \\
         \mathit{type\_atomic}
         &\Coloneq &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
@@ -609,6 +613,8 @@ Pattern:
     \begin{array}{rcll}
         \mathit{pat}
         &\Coloneq &\mathit{pat\_ann}\; \mathit{pat\_guard}{*} \\
+        \mathit{pat\_guard}
+        &\Coloneq &\texttt{"\#if"}\; \mathit{view} \\
         \mathit{pat\_ann}
         &\Coloneq &\mathit{pat\_infix}\; \texttt{":"}\; \mathit{type} \\
         &\mathrel{/} &\mathit{pat\_infix} \\
@@ -618,15 +624,15 @@ Pattern:
         &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{con}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
         &\mathrel{/} &\mathit{con\_sym} \\
         \mathit{pat\_apps}
-        &\Coloneq &\mathit{con}\; \mathit{pat\_atomic}{*} \\
+        &\Coloneq &\mathit{con}\; \mathit{pat\_app\_arg}{*} \\
+        \mathit{pat\_app\_arg}
+        &\Coloneq &\mathit{pat\_tuple} \\
         &\mathrel{/} &\mathit{pat\_atomic} \\
         \mathit{pat\_atomic}
         &\Coloneq &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{declvar} \\
-        \mathit{pat\_guard}
-        &\Coloneq &\texttt{"\#if"}\; \mathit{view}
+        &\mathrel{/} &\mathit{declvar}
     \end{array}
 \end{align*}
 
@@ -792,7 +798,7 @@ Expression:
         &\Coloneq &\mathit{expr}\; \mathit{where\_decl} \\
         &\mathrel{/} &\mathit{expr}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}; \mathit{expr}; \mathit{expr}) \\
-        &\mathrel{/} &\mathit{expr}\; \mathit{expr} \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}) \\
         &\mathrel{/} &\lambda(\mathit{expr}) \\
         &\mathrel{/} &\mathrm{\#match}(\mathit{expr\_tuple}; \mathit{expr}) \\
         &\mathrel{/} &\mathrm{\#case}(\mathit{case\_body}) \\
@@ -861,7 +867,7 @@ Type Expression:
         &\Coloneq &\mathit{type}\; \mathit{where\_decl} \\
         &\mathrel{/} &\mathit{type}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{type}; \mathit{type}; \mathit{type}) \\
-        &\mathrel{/} &\mathit{type}\; \mathit{type} \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}) \\
         &\mathrel{/} &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
@@ -912,7 +918,7 @@ Pattern:
         &\Coloneq &\mathit{pat}\; \mathrm{\#if}\; \mathit{view} \\
         &\mathrel{/} &\mathit{pat}: \mathit{type} \\
         &\mathrel{/} &\mathrm{\#infix}(\mathit{pat}; \mathit{con}; \mathit{pat}) \\
-        &\mathrel{/} &\mathit{con}\; \mathit{pat}{*} \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{con}; \mathit{pat_tuple}) \\
         &\mathrel{/} &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\

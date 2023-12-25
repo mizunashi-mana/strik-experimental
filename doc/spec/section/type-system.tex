@@ -2,6 +2,24 @@
 
 \subsection{Declarative}
 
+$\fbox{$\Gamma \vdash \mathit{expr}: \mathit{type}$}$
+
+\begin{align*}
+    \infer{\Gamma \vdash \mathit{expr}\; \mathit{where\_decl}: \mathit{type}}{
+        \Gamma \vdash \mathit{where\_decl} \mid \Delta
+        &
+        \Delta \vdash \mathit{expr}: \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash (\mathit{expr}: \mathit{type}): \mathit{type}}{
+        \Gamma \vdash \mathit{expr}: \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash \mathrm{\#infix}(\mathit{expr}_1; \mathit{expr}_2; \mathit{expr}_3): \mathit{type}}{
+        \Gamma \vdash \mathrm{\#app}(\mathit{expr}_2; \mathrm{#tuple}(\mathit{expr_1}; \mathit{expr}_3)): \mathit{type}
+    }
+\end{align*}
+
 \subsection{Bidirectional}
 
 \subsection{Algorithmic Bidirectional}
