@@ -20,7 +20,17 @@ $\fbox{$\Gamma \vdash \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
+        \Gamma \vdash \mathit{expr}: \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
+        &
         \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
+        \Gamma \vdash \mathrm{\#app}(\lambda(\mathit{expr}); \mathit{expr\_tuple}): \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash \lambda(\mathit{expr}): \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})}{
+        \Gamma \vdash \mathit{expr}: \mathrm{\#block\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
     }
 \end{gather*}
 

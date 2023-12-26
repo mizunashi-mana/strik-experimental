@@ -576,6 +576,7 @@ Type Expression:
         &\Coloneq &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{type\_func\_sig} \\
+        &\mathrel{/} &\mathit{type\_block\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
@@ -586,7 +587,9 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_func\_sig}
-        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type}
+        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type} \\
+        \mathit{type\_block\_sig}
+        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#-|"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -909,6 +912,7 @@ Type Expression:
         &\mathrel{/} &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{type\_func\_sig} \\
+        &\mathrel{/} &\mathit{type\_block\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
@@ -930,6 +934,13 @@ Type Expression:
     \begin{array}{rcll}
         \mathit{type\_func\_sig}
         &\Coloneq &\Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_func\_sig}
+        &\Coloneq &\mathrm{\#block\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
     \end{array}
 \end{align*}
 
