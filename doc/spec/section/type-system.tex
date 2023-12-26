@@ -16,7 +16,7 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#infix}(\mathit{expr}_1; \mathit{expr}_2; \mathit{expr}_3): \mathit{type}}{
-        \Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}_2; \mathrm{\#tuple}(\mathit{expr_1}; \mathit{expr}_3)): \mathit{type}
+        \Gamma \vdash_\mathrm{e} \mathit{expr}_2(\mathit{expr_1}; \mathit{expr}_3): \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
@@ -50,15 +50,23 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_block}: \mathit{type}}{
-        \text{TODO}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{literal}: \mathit{type}}{
-        \Gamma \vdash_\mathrm{l} \mathit{literal}: \mathit{type}
+        \mathit{literal} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta
+        &
+        \Gamma \vdash \Delta
+        &
+        \Gamma; \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_interp\_string}: \mathit{type}}{
-        \text{TODO}
+        \mathit{expr\_interp\_string} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta
+        &
+        \Gamma \vdash \Delta
+        &
+        \Gamma; \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_tuple}: \mathit{type}}{
@@ -71,6 +79,116 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{var}: \mathit{type}}{
         \mathit{var}: \mathit{type} \in \Gamma
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
+        \begin{array}{c}
+            \Gamma_0 = \Gamma
+            \hspace{1em}
+            \mathit{type}_0 = \mathrm{\#tuple}()
+            \\
+            \Gamma_0 \vdash_{\mathrm{e}; \mathrm{b}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
+            \hspace{1em}
+            \Gamma_1 = \Gamma_0; \Delta_1
+            \hspace{1em}
+            \cdots
+            \hspace{1em}
+            \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{b}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
+            \hspace{1em}
+            \Gamma_n = \Gamma_{n - 1}; \Delta_n
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block\_item}: \mathit{type} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr}: \mathit{type} \mid \Gamma}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{local\_decl}: \mathrm{\#tuple}() \mid \Delta}{
+        \Gamma \vdash \mathit{local\_decl} \mid \Delta
+    }
+\end{gather*}
+
+$\fbox{$\mathit{literal} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\mathit{string} \rightsquigarrow_\mathrm{e} (\mathrm{\#var}(\mathit{fromString}))(\mathrm{\#var}(x)) \mid x: \mathrm{\#String}}{
+        x \in \mathbf{fresh}
+    }
+    \\
+    \infer{\mathit{integer} \rightsquigarrow_\mathrm{e} (\mathrm{\#var}(\mathit{fromInteger}))(\mathrm{\#var}(x)) \mid x: \mathrm{\#Integer}}{
+        x \in \mathbf{fresh}
+    }
+    \\
+    \infer{\mathit{rational} \rightsquigarrow_\mathrm{e} (\mathrm{\#var}(\mathit{fromRational}))(\mathrm{\#var}(x)) \mid x: \mathrm{\#Rational}}{
+        x \in \mathbf{fresh}
+    }
+\end{gather*}
+
+$\fbox{$\mathit{expr\_interp\_string} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\mathit{interp\_string\_start}\; \mathit{expr}_0\; \mathit{expr\_interp\_string\_item}_1\; \cdots\; \mathit{expr\_interp\_string\_item}_n\; \mathit{interp\_string\_end} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta}{
+        \begin{array}{c}
+            \Delta_0 = \epsilon
+            \hspace{1em}
+            \mathit{parts}_0 = \mathrm{\#var}(\mathit{emptyOfInterpStringParts})
+            \\
+            x_\mathrm{start} \in \mathbf{fresh}
+            \hspace{1em}
+            \Delta_1 = \Delta_0; x_\mathrm{start}: \mathrm{\#String}
+            \hspace{1em}
+            \mathit{parts}_1 = (\mathrm{\#var}(\mathit{addInterpStringPartLit}))(\mathit{parts}_0; \mathrm{\#var}(x_\mathrm{start}))
+            \\
+            \Delta_2 = \Delta_1
+            \hspace{1em}
+            \mathit{parts}_2 = (\mathrm{\#var}(\mathit{addInterpStringPart}))(\mathit{parts}_1; \mathit{expr}_0)
+            \\
+            \mathit{expr\_interp\_string\_item}_1; \mathit{parts}_2 \rightsquigarrow_\mathrm{e} \mathit{parts}_3 \mid \Omega_1
+            \hspace{1em}
+            \Delta_3 = \Delta_2; \Omega_1
+            \\
+            \vdots
+            \\
+            \mathit{expr\_interp\_string\_item}_n; \mathit{parts}_{1 + n} \rightsquigarrow_\mathrm{e} \mathit{parts}_{2 + n} \mid \Omega_n
+            \hspace{1em}
+            \Delta_{2 + n} = \Delta_2; \Omega_n
+            \\
+            x_\mathrm{end} \in \mathbf{fresh}
+            \hspace{1em}
+            \Delta = \Delta_{2 + n}; x_\mathrm{end}: \mathrm{\#String}
+            \hspace{1em}
+            \mathit{parts} = (\mathrm{\#var}(\mathit{addInterpStringPartLit}))(\mathit{parts}_{2 + n}; \mathrm{\#var}(x_\mathrm{end}))
+            \\
+            \mathit{expr} = (\mathrm{\#var}(\mathit{fromInterpStringParts}))(\mathit{parts})
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\mathit{expr\_interp\_string\_item}; \mathit{expr} \rightsquigarrow_\mathrm{e} \mathit{expr} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\mathit{interp\_string\_cont}\; \mathit{expr}; \mathit{parts}_0 \rightsquigarrow_\mathrm{e} \mathit{parts} \mid \Delta}{
+        \begin{array}{c}
+            \Delta_0 = \epsilon
+            \\
+            x_\mathrm{cont} \in \mathbf{fresh}
+            \hspace{1em}
+            \Delta_1 = x_\mathrm{cont}: \mathrm{\#String}
+            \hspace{1em}
+            \mathit{parts}_1 = (\mathrm{\#var}(\mathit{addInterpStringPartLit}))(\mathit{parts}_0; \mathrm{\#var}(x_\mathrm{cont}))
+            \\
+            \Delta = \Delta_1
+            \hspace{1em}
+            \mathit{parts} = (\mathrm{\#var}(\mathit{addInterpStringPartLit}))(\mathit{parts}_1; \mathit{expr})
+        \end{array}
     }
 \end{gather*}
 

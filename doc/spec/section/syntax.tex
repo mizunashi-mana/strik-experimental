@@ -585,21 +585,13 @@ Type Expression:
         \mathit{type\_atomic}
         &\Coloneq &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_literal} \\
         &\mathrel{/} &\mathit{type\_func\_sig} \\
         &\mathrel{/} &\mathit{type\_block\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
         &\mathrel{/} &\mathit{var}
-    \end{array}
-\end{align*}
-
-\begin{align*}
-    \begin{array}{rcll}
-        \mathit{type\_func\_sig}
-        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type} \\
-        \mathit{type\_block\_sig}
-        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#-|"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -613,6 +605,24 @@ Type Expression:
         \mathit{type\_block\_item}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_literal}
+        &\Coloneq &\mathrm{\#String} \\
+        &\mathrel{/} &\mathrm{\#Integer} \\
+        &\mathrel{/} &\mathrm{\#Rational}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_func\_sig}
+        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type} \\
+        \mathit{type\_block\_sig}
+        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#-|"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -928,6 +938,7 @@ Type Expression:
         &\mathrel{/} &\mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}) \\
         &\mathrel{/} &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_literal} \\
         &\mathrel{/} &\mathit{type\_func\_sig} \\
         &\mathrel{/} &\mathit{type\_proc\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
@@ -944,6 +955,15 @@ Type Expression:
         \mathit{type\_block\_item}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_literal}
+        &\Coloneq &\mathrm{\#String} \\
+        &\mathrel{/} &\mathrm{\#Integer} \\
+        &\mathrel{/} &\mathrm{\#Rational}
     \end{array}
 \end{align*}
 
@@ -1055,4 +1075,10 @@ Basic Unit:
         \mathit{var}
         &\Coloneq &\mathit{declvar}
     \end{array}
+\end{align*}
+
+\subsection{Convenient Notation}
+
+\begin{align*}
+    \mathit{expr}(\cdots) = \mathrm{\#app}(\mathit{expr}; \mathrm{\#tuple}(\cdots))
 \end{align*}
