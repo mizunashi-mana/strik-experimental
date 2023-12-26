@@ -2,35 +2,75 @@
 
 \subsection{Declarative}
 
-$\fbox{$\Gamma \vdash \mathit{expr}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash \mathit{expr}\; \mathit{where\_decl}: \mathit{type}}{
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr}\; \mathit{where\_decl}: \mathit{type}}{
         \Gamma \vdash \mathit{where\_decl} \mid \Delta
         &
-        \Delta \vdash \mathit{expr}: \mathit{type}
+        \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
-    \infer{\Gamma \vdash (\mathit{expr}: \mathit{type}): \mathit{type}}{
-        \Gamma \vdash \mathit{expr}: \mathit{type}
+    \infer{\Gamma \vdash_\mathrm{e} (\mathit{expr}: \mathit{type}): \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
-    \infer{\Gamma \vdash \mathrm{\#infix}(\mathit{expr}_1; \mathit{expr}_2; \mathit{expr}_3): \mathit{type}}{
-        \Gamma \vdash \mathrm{\#app}(\mathit{expr}_2; \mathrm{\#tuple}(\mathit{expr_1}; \mathit{expr}_3)): \mathit{type}
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#infix}(\mathit{expr}_1; \mathit{expr}_2; \mathit{expr}_3): \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}_2; \mathrm{\#tuple}(\mathit{expr_1}; \mathit{expr}_3)): \mathit{type}
     }
     \\
-    \infer{\Gamma \vdash \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
-        \Gamma \vdash \mathit{expr}: \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
         &
         \text{TODO}
     }
     \\
-    \infer{\Gamma \vdash \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
-        \Gamma \vdash \mathrm{\#app}(\lambda(\mathit{expr}); \mathit{expr\_tuple}): \mathit{type}
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathrm{\#app}(\lambda(\mathit{expr}); \mathit{expr\_tuple}): \mathit{type}
     }
     \\
-    \infer{\Gamma \vdash \lambda(\mathit{expr}): \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})}{
-        \Gamma \vdash \mathit{expr}: \mathrm{\#block\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
+    \infer{\Gamma \vdash_\mathrm{e} \lambda(\mathit{expr}): \Lambda(\mathit{type\_tuple\_sig}; \mathit{type})}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#match}(\mathit{expr\_tuple}; \mathit{expr}): \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#case}(\mathit{case\_body}): \mathit{type}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#when}(\mathit{case\_body}): \mathrm{\#tuple}()}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_proc}: \mathit{type}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_block}: \mathit{type}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{literal}: \mathit{type}}{
+        \Gamma \vdash_\mathrm{l} \mathit{literal}: \mathit{type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_interp\_string}: \mathit{type}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_tuple}: \mathit{type}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{con}: \mathit{type}}{
+        \mathit{con}: \mathit{type} \in \Gamma
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{var}: \mathit{type}}{
+        \mathit{var}: \mathit{type} \in \Gamma
     }
 \end{gather*}
 

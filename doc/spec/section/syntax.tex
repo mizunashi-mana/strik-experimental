@@ -491,7 +491,8 @@ Expression:
         &\mathrel{/} &\texttt{"\#when"}\; \mathit{case\_body} \\
         &\mathrel{/} &\mathit{expr\_atomic} \\
         \mathit{expr\_atomic}
-        &\Coloneq &\mathit{expr\_block} \\
+        &\Coloneq &\mathit{expr\_proc} \\
+        &\mathrel{/} &\mathit{expr\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{expr\_interp\_string} \\
         &\mathrel{/} &\mathit{expr\_tuple} \\
@@ -515,15 +516,24 @@ Expression:
 
 \begin{align*}
     \begin{array}{rcll}
+        \mathit{expr\_proc}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_proc\_items}\; \mathit{lb\_close} \\
+        \mathit{expr\_proc\_items}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_proc\_item}\; (\mathit{lsemis}\; \mathit{expr\_proc\_item}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?} \\
+        \mathit{expr\_proc\_item}
+        &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#-"}\; \mathit{expr}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
         \mathit{expr\_block}
         &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_block\_items}\; \mathit{lb\_close} \\
         \mathit{expr\_block\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?}\; \mathit{expr\_block\_stmt}\; (\mathit{lsemis}\; \mathit{expr\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{expr\_block\_item}
-        &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#-"}\; \mathit{expr} \\
-        \mathit{expr\_block\_stmt}
         &\Coloneq &\mathit{expr} \\
         &\mathrel{/} &\mathit{local\_decl}
     \end{array}
@@ -532,9 +542,9 @@ Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{expr\_interp\_string}
-        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block\_stmts}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
+        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block\_items}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
         \mathit{expr\_interp\_string\_item}
-        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block\_stmts}
+        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block\_items}
     \end{array}
 \end{align*}
 
@@ -598,9 +608,9 @@ Type Expression:
         \mathit{type\_block}
         &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_items}\; \mathit{lb\_close} \\
         \mathit{type\_block\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_stmt}\; (\mathit{lsemis}\; \mathit{type\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_item}\; (\mathit{lsemis}\; \mathit{type\_block\_item}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{type\_block\_stmt}
+        \mathit{type\_block\_item}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
     \end{array}
@@ -844,6 +854,7 @@ Expression:
         &\mathrel{/} &\mathrm{\#match}(\mathit{expr\_tuple}; \mathit{expr}) \\
         &\mathrel{/} &\mathrm{\#case}(\mathit{case\_body}) \\
         &\mathrel{/} &\mathrm{\#when}(\mathit{case\_body}) \\
+        &\mathrel{/} &\mathit{expr\_proc} \\
         &\mathrel{/} &\mathit{expr\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{expr\_interp\_string} \\
@@ -864,26 +875,32 @@ Expression:
 
 \begin{align*}
     \begin{array}{rcll}
+        \mathit{expr\_proc}
+        &\Coloneq &\mathrm{\#proc\_items}(\mathit{expr\_proc\_item}{*}) \\
+        \mathit{expr\_proc\_item}
+        &\Coloneq &\mathrm{\#proc\_item}(\mathit{pat\_tuple}; \mathit{expr\_proc\_guard}; \mathit{expr}) \\
+        \mathit{expr\_proc\_guard}
+        &\Coloneq &\mathrm{\#proc\_guard}(\mathit{view}) \\
+        &\mathrel{/} &\mathrm{\#proc\_guard\_nothing}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
         \mathit{expr\_block}
         &\Coloneq &\mathrm{\#block\_items}(\mathit{expr\_block\_item}{*}) \\
-        &\mathrel{/} &\mathrm{\#block\_stmts}(\mathit{expr\_block\_stmt}{*}) \\
         \mathit{expr\_block\_item}
-        &\Coloneq &\mathrm{\#block\_item}(\mathit{pat\_tuple}; \mathit{expr\_block\_guard}; \mathit{expr}) \\
-        \mathit{expr\_block\_stmt}
         &\Coloneq &\mathit{expr} \\
-        &\mathrel{/} &\mathit{local\_decl} \\
-        \mathit{expr\_block\_guard}
-        &\Coloneq &\mathrm{\#block\_guard}(\mathit{view}) \\
-        &\mathrel{/} &\mathrm{\#block\_guard\_nothing}
+        &\mathrel{/} &\mathit{local\_decl}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
         \mathit{expr\_interp\_string}
-        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block\_stmt}{*}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
+        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
         \mathit{expr\_interp\_string\_item}
-        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block\_stmt}{*}
+        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block}
     \end{array}
 \end{align*}
 
@@ -912,7 +929,7 @@ Type Expression:
         &\mathrel{/} &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{type\_func\_sig} \\
-        &\mathrel{/} &\mathit{type\_block\_sig} \\
+        &\mathrel{/} &\mathit{type\_proc\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
@@ -923,8 +940,8 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_block}
-        &\Coloneq &\mathrm{\#block\_stmts}(\mathit{type\_block\_stmt}{*}) \\
-        \mathit{type\_block\_stmt}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{type\_block\_item}{*}) \\
+        \mathit{type\_block\_item}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
     \end{array}
@@ -939,8 +956,8 @@ Type Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_func\_sig}
-        &\Coloneq &\mathrm{\#block\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
+        \mathit{type\_proc\_sig}
+        &\Coloneq &\mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
     \end{array}
 \end{align*}
 
@@ -1036,6 +1053,6 @@ Basic Unit:
         \mathit{con}
         &\Coloneq &\mathrm{\#con}(x) \\
         \mathit{var}
-        &\Coloneq &\mathrm{\#var}(x)
+        &\Coloneq &\mathit{declvar}
     \end{array}
 \end{align*}
