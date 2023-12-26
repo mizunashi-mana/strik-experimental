@@ -391,7 +391,25 @@ Program:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{program}
-        &\Coloneq &\mathit{expr}\; \mathbf{EOS}
+        &\Coloneq &\mathit{lb\_open}\; \mathit{program\_body}\; \mathit{lb\_close}\; \mathbf{EOS} \\
+        &\mathrel{/} &\mathit{program\_body}\; \mathbf{EOS} \\
+        \mathit{program\_body}
+        &\Coloneq &\mathit{lsemis}{?}\; \mathit{decl}\; (\mathit{lsemis}\; \mathit{decl}){*}\; \mathit{lsemis}{?} \\
+        &\mathrel{/} &\mathit{lsemis}{?}
+    \end{array}
+\end{align*}
+
+Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{decl}
+        &\Coloneq &\mathit{decl\_func} \\
+        &\mathrel{/} &\mathit{decl\_type} \\
+        \mathit{decl\_func}
+        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr} \\
+        \mathit{decl\_type}
+        &\Coloneq &\texttt{"\#type"}\; \mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type} \\
     \end{array}
 \end{align*}
 
@@ -402,6 +420,7 @@ Local Declaration:
         \mathit{local\_decl}
         &\Coloneq &\texttt{"\#let"}\; \mathit{let\_body} \\
         &\mathrel{/} &\texttt{"\#rec"}\; \mathit{let\_body} \\
+        &\mathrel{/} &\mathit{decl\_func} \\
         \mathit{local\_type\_decl}
         &\Coloneq &\texttt{"\#let"}\; \mathit{let\_type\_body} \\
         \mathit{let\_body}
@@ -492,7 +511,7 @@ Expression:
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{case\_item}\; (\mathit{lsemis}\; \mathit{case\_item}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{case\_item}
-        &\Coloneq &\mathit{view}\; \texttt{"\#>"}\; \mathit{expr}
+        &\Coloneq &\mathit{view}\; \texttt{"\#-"}\; \mathit{expr}
     \end{array}
 \end{align*}
 
@@ -505,7 +524,7 @@ Expression:
         &\mathrel{/} &\mathit{lsemis}{?}\; \mathit{expr\_block\_stmt}\; (\mathit{lsemis}\; \mathit{expr\_block\_stmt}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{expr\_block\_item}
-        &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#>"}\; \mathit{expr} \\
+        &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#-"}\; \mathit{expr} \\
         \mathit{expr\_block\_stmt}
         &\Coloneq &\mathit{expr} \\
         &\mathrel{/} &\mathit{local\_decl}
@@ -558,10 +577,18 @@ Type Expression:
         \mathit{type\_atomic}
         &\Coloneq &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_func\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
         &\mathrel{/} &\mathit{var}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_func\_sig}
+        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -747,7 +774,24 @@ Program:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{program}
-        &\Coloneq &\mathit{expr}
+        &\Coloneq &\mathrm{\#prog}(\mathit{decl}*)
+    \end{array}
+\end{align*}
+
+Declaration:
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{decl}
+        &\Coloneq &\mathit{decl\_func} \\
+        &\mathrel{/} &\mathit{decl\_type} \\
+        \mathit{decl\_func}
+        &\Coloneq &\mathrm{\#fun}(\mathit{declvar}; \mathit{type\_tuple\_sig}; \mathit{decl\_sig}; \mathit{expr}) \\
+        \mathit{decl\_type}
+        &\Coloneq &\mathrm{\#type}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type}) \\
+        \mathit{decl\_sig}
+        &\Coloneq &\mathrm{\#decl\_sig}(\mathit{type}) \\
+        &\mathrel{/} &\mathrm{\#decl\_sig\_nothing}
     \end{array}
 \end{align*}
 
@@ -779,14 +823,11 @@ Where Declaration:
         &\mathrel{/} &\mathit{bind\_expr} \\
         &\mathrel{/} &\mathit{local\_decl} \\
         \mathit{bind\_expr}
-        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{declvar}; \mathit{bind\_sig}; \mathit{expr}) \\
+        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{expr}) \\
         \mathit{bind\_type}
-        &\Coloneq &\mathrm{\#bind\_type}(\mathit{declvar}; \mathit{bind\_sig}; \mathit{type}) \\
+        &\Coloneq &\mathrm{\#bind\_type}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type}) \\
         \mathit{bind\_prom\_type}
-        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{declvar}; \mathit{bind\_sig}; \mathit{type}) \\
-        \mathit{bind\_sig}
-        &\Coloneq &\mathrm{\#bind\_sig}(\mathit{type}) \\
-        &\mathrel{/} &\mathrm{\#bind\_sig\_nothing}
+        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type})
     \end{array}
 \end{align*}
 
@@ -870,6 +911,7 @@ Type Expression:
         &\mathrel{/} &\mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}) \\
         &\mathrel{/} &\mathit{type\_block} \\
         &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_func\_sig} \\
         &\mathrel{/} &\mathit{type\_tuple} \\
         &\mathrel{/} &\mathit{type\_tuple\_sig} \\
         &\mathrel{/} &\mathit{con} \\
@@ -884,6 +926,13 @@ Type Expression:
         \mathit{type\_block\_stmt}
         &\Coloneq &\mathit{type} \\
         &\mathrel{/} &\mathit{local\_type\_decl}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_func\_sig}
+        &\Coloneq &\Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
     \end{array}
 \end{align*}
 

@@ -18,6 +18,10 @@ $\fbox{$\Gamma \vdash \mathit{expr}: \mathit{type}$}$
     \infer{\Gamma \vdash \mathrm{\#infix}(\mathit{expr}_1; \mathit{expr}_2; \mathit{expr}_3): \mathit{type}}{
         \Gamma \vdash \mathrm{\#app}(\mathit{expr}_2; \mathrm{\#tuple}(\mathit{expr_1}; \mathit{expr}_3)): \mathit{type}
     }
+    \\
+    \infer{\Gamma \vdash \mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}): \mathit{type}}{
+        \Gamma \vdash \mathit{expr}:
+    }
 \end{gather*}
 
 \subsection{Bidirectional}
