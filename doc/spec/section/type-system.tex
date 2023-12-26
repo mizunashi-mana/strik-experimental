@@ -8,7 +8,7 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr}\; \mathit{where\_decl}: \mathit{type}}{
         \Gamma \vdash \mathit{where\_decl} \mid \Delta
         &
-        \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+        \Gamma; \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} (\mathit{expr}: \mathit{type}): \mathit{type}}{
@@ -79,6 +79,12 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{var}: \mathit{type}}{
         \mathit{var}: \mathit{type} \in \Gamma
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}_0
+        &
+        \Gamma \vdash_\mathrm{t} \mathit{type}_0 \preceq \mathit{type}
     }
 \end{gather*}
 
@@ -189,6 +195,24 @@ $\fbox{$\mathit{expr\_interp\_string\_item}; \mathit{expr} \rightsquigarrow_\mat
             \hspace{1em}
             \mathit{parts} = (\mathrm{\#var}(\mathit{addInterpStringPartLit}))(\mathit{parts}_1; \mathit{expr})
         \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type}\; \mathit{where\_decl}: \mathit{type}_0}{
+        \Gamma \vdash \mathit{where\_decl} \mid \Delta
+        &
+        \Gamma; \Delta \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} (\mathit{type}: \mathit{type}_0): \mathit{type}_0}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathrm{\#infix}(\mathit{type}_1; \mathit{type}_2; \mathit{type}_3): \mathit{type}_0}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}_2(\mathit{type_1}; \mathit{type}_3): \mathit{type}_0
     }
 \end{gather*}
 
