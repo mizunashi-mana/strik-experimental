@@ -405,11 +405,9 @@ Declaration:
     \begin{array}{rcll}
         \mathit{decl}
         &\Coloneq &\mathit{decl\_func} \\
-        &\mathrel{/} &\mathit{decl\_type} \\
+        &\mathrel{/} &\mathit{bind\_prom\_type} \\
         \mathit{decl\_func}
-        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr} \\
-        \mathit{decl\_type}
-        &\Coloneq &\texttt{"\#type"}\; \mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type} \\
+        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr}
     \end{array}
 \end{align*}
 
@@ -784,11 +782,9 @@ Declaration:
     \begin{array}{rcll}
         \mathit{decl}
         &\Coloneq &\mathit{decl\_func} \\
-        &\mathrel{/} &\mathit{decl\_type} \\
+        &\mathrel{/} &\mathit{bind\_prom\_type} \\
         \mathit{decl\_func}
         &\Coloneq &\mathrm{\#fun}(\mathit{declvar}; \mathit{type\_tuple\_sig}; \mathit{decl\_sig}; \mathit{expr}) \\
-        \mathit{decl\_type}
-        &\Coloneq &\mathrm{\#type}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type}) \\
         \mathit{decl\_sig}
         &\Coloneq &\mathrm{\#decl\_sig}(\mathit{type}) \\
         &\mathrel{/} &\mathrm{\#decl\_sig\_nothing}
@@ -802,6 +798,7 @@ Local Declaration:
         \mathit{local\_decl}
         &\Coloneq &\mathrm{\#let}(\mathit{let\_item}{*}) \\
         &\mathrel{/} &\mathrm{\#rec}(\mathit{let\_item}{*}) \\
+        &\mathrel{/} &\mathit{decl\_func} \\
         \mathit{local\_type\_decl}
         &\Coloneq &\mathrm{\#let}(\mathit{let\_type\_item}{*}) \\
         \mathit{let\_item}
