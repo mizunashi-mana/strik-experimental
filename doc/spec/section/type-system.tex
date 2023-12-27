@@ -91,7 +91,7 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
         \begin{array}{c}
             \Gamma_0 = \Gamma
             \hspace{1em}
@@ -222,35 +222,31 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_block}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{b}} \mathit{type\_block}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{literal}: \mathit{type}_0}{
-        \mathit{literal} \rightsquigarrow_\mathrm{t} \mathit{type} \mid \Delta
-        &
-        \Gamma \vdash \Delta
-        &
-        \Gamma; \Delta \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{literal}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_literal}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_literal}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_literal}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_func\_sig}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_func\_sig}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_func\_sig}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_proc\_sig}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_proc\_sig}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_proc\_sig}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_tuple}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_tuple}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_tuple}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_tuple\_sig}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_tuple\_sig}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_tuple\_sig}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{con}: \mathit{type}_0}{
@@ -268,32 +264,116 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_literal}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#Type}: \mathrm{\#Type}}{}
-    \\
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#String}: \mathrm{\#Type}}{}
-    \\
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#Integer}: \mathrm{\#Type}}{}
-    \\
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#Rational}: \mathrm{\#Type}}{}
-    \\
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#Proc}: \mathrm{\#Type}}{}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
+        \begin{array}{c}
+            \Gamma_0 = \Gamma
+            \hspace{1em}
+            \mathit{type}_0 = \mathrm{\#tuple}()
+            \\
+            \Gamma_0 \vdash_{\mathrm{t}; \mathrm{b}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
+            \hspace{1em}
+            \Gamma_1 = \Gamma_0; \Delta_1
+            \hspace{1em}
+            \cdots
+            \hspace{1em}
+            \Gamma_{n - 1} \vdash_{\mathrm{t}; \mathrm{b}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
+            \hspace{1em}
+            \Gamma_n = \Gamma_{n - 1}; \Delta_n
+        \end{array}
+    }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_func\_sig}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block\_item}: \mathit{type} \mid \Delta$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \Lambda(\mathit{type\_tuple\_sig}; \mathit{type}): \mathrm{\#Type}}{
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type}: \mathit{type}_0 \mid \Gamma}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{local\_type\_decl}: \mathrm{\#tuple}() \mid \Delta}{
+        \Gamma \vdash \mathit{local\_type\_decl} \mid \Delta
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{literal}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{string}: \mathrm{\#String}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{integer}: \mathrm{\#Integer}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{rational}: \mathrm{\#Rational}}{}
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_literal}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#Type}: \mathrm{\#Type}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#String}: \mathrm{\#Type}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#Integer}: \mathrm{\#Type}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#Rational}: \mathrm{\#Type}}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#Proc}: \mathrm{\#Type}}{}
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_func\_sig}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \Lambda(\mathit{type\_tuple\_sig}; \mathit{type}): \mathrm{\#Type}}{
         \text{TODO}
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathit{type\_proc\_sig}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_proc\_sig}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{t}, \mathrm{l}} \mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}; \mathit{type}): \mathrm{\#Proc}}{
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}; \mathit{type}): \mathrm{\#Proc}}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_tuple}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_n)}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_tuple\_sig}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#tuple\_sig}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#Type}}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat}\; \mathrm{\#if}\; \mathit{view}: \mathit{type} \mid \Delta}{
+        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta_1
+        &
+        \Gamma; \Delta_1 \vdash_\mathrm{v} \mathit{view} \mid \Delta_2
+        &
+        \Delta = \Delta_1; \Delta_2
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} (\mathit{pat}: \mathit{type}): \mathit{type} \mid \Delta}{
+        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathrm{\#infix}(\mathit{pat}_1; \mathit{con}; \mathit{pat}_2): \mathit{type} \mid \Delta}{
+        \Gamma \vdash_\mathrm{p} \mathit{con}(\mathit{pat}_1; \mathit{pat}_2): \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathrm{\#app}(\mathit{con}; \mathit{pat\_tuple}): \mathit{type} \mid \Delta}{
         \text{TODO}
     }
 \end{gather*}
