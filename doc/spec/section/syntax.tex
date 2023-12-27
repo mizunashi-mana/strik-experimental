@@ -961,9 +961,11 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_literal}
-        &\Coloneq &\mathrm{\#String} \\
+        &\Coloneq &\mathrm{\#Type} \\
+        &\mathrel{/} &\mathrm{\#String} \\
         &\mathrel{/} &\mathrm{\#Integer} \\
-        &\mathrel{/} &\mathrm{\#Rational}
+        &\mathrel{/} &\mathrm{\#Rational} \\
+        &\mathrel{/} &\mathrm{\#Proc}
     \end{array}
 \end{align*}
 
