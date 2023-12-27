@@ -522,6 +522,16 @@ $\fbox{$\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_block\_item} \mid \
     }
 \end{gather*}
 
+$\fbox{$\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_bind} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathrm{\#bind}(\mathit{pat}; \mathit{expr}) \mid \Delta}{
+        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta
+        &
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+    }
+\end{gather*}
+
 \section{Bidirectional}
 
 \section{Algorithmic Bidirectional}
