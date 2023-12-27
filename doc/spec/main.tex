@@ -1,11 +1,10 @@
-% TODO: Use English
 \documentclass[
   luatex,
-  japanese,
+  english,
   unicode,
   titlepage,
   pdfusetitle
-]{ltjsarticle}
+]{ltjsreport}
 
 \input{config/common.tex}
 \input{config/layout.tex}
@@ -23,19 +22,21 @@
 \maketitle
 
 \pagenumbering{Roman}
-\input{section/abstract.tex}
+\input{chapter/abstract.tex}
 
 \pagenumbering{arabic}
 \tableofcontents
 \clearpage
 
-\include{section/preliminaries}
-\include{section/syntax}
-\include{section/type-system}
-\include{section/kernel}
-\include{section/machine}
+\include{chapter/preface}
+\include{chapter/preliminaries}
+\include{chapter/introduction}
+\include{chapter/syntax}
+\include{chapter/type-system}
+\include{chapter/kernel}
+\include{chapter/machine}
 
-\bibliography{section/reference}
-\include{section/appendix}
+\bibliography{chapter/reference}
+\include{chapter/appendix}
 
 \end{document}

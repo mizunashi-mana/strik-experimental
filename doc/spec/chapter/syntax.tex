@@ -1,6 +1,6 @@
-\section{Syntax}
+\chapter{Syntax}
 
-\subsection{Lexical}
+\section{Lexical}
 
 Overview:
 
@@ -304,7 +304,7 @@ Base Unit:
     \end{array}
 \end{align*}
 
-\subsection{Layout}
+\section{Layouting}
 
 Pre-Process:
 
@@ -384,7 +384,7 @@ Add Layout Tokens:
     \EndProcedure
 \end{algorithmic}
 
-\subsection{Grammar}
+\section{The Grammar}
 
 Program:
 
@@ -611,9 +611,11 @@ Type Expression:
 \begin{align*}
     \begin{array}{rcll}
         \mathit{type\_literal}
-        &\Coloneq &\mathrm{\#String} \\
+        &\Coloneq &\mathrm{\#Type} \\
+        &\mathrel{/} &\mathrm{\#String} \\
         &\mathrel{/} &\mathrm{\#Integer} \\
-        &\mathrel{/} &\mathrm{\#Rational}
+        &\mathrel{/} &\mathrm{\#Rational} \\
+        &\mathrel{/} &\mathrm{\#Proc}
     \end{array}
 \end{align*}
 
@@ -786,9 +788,9 @@ Layout Unit:
     \end{array}
 \end{align*}
 
-\subsection{Fixity Resolution}
+\section{Fixity Resolution}
 
-\subsection{Abstract Tree}
+\section{The Abstract Tree}
 
 Program:
 
@@ -1057,10 +1059,8 @@ View:
         \mathit{view\_block}
         &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}{*}) \\
         \mathit{view\_block\_item}
-        &\Coloneq &\mathit{view\_let\_decl} \\
-        &\mathrel{/} &\mathit{view} \\
-        \mathit{view\_let\_decl}
         &\Coloneq &\mathrm{\#let}(\mathit{view\_let\_item}{*}) \\
+        &\mathrel{/} &\mathit{view} \\
         \mathit{view\_let\_item}
         &\Coloneq &\mathit{view\_bind}
     \end{array}
@@ -1079,7 +1079,7 @@ Basic Unit:
     \end{array}
 \end{align*}
 
-\subsection{Convenient Notation}
+\subsection{Convenient Notations}
 
 \begin{align*}
     \mathit{expr}(\cdots) = \mathrm{\#app}(\mathit{expr}; \mathrm{\#tuple}(\cdots))

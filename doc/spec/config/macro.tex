@@ -51,22 +51,6 @@
 % xypic
 \def\objectstyle{\displaystyle}
 
-% caption
-\renewcommand{\lstlistingname}{リスト}
-\makeatletter
-\renewcommand{\ALG@name}{アルゴリズム}
-\newcommand{\figcaption}[1]{\def\@captype{figure}\caption{#1}}
-\newcommand{\tblcaption}[1]{\def\@captype{table}\caption{#1}}
-\makeatother
-
-% creveref
-\crefname{chapter}{第}{第}
-\creflabelformat{chapter}{#2#1章#3}
-\crefname{section}{第}{第}
-\creflabelformat{section}{#2#1節#3}
-\crefname{subsection}{第}{第}
-\creflabelformat{subsection}{#2#1小節#3}
-
 % cite seen
 \newcommand{\scite}[2][]{~\ifthenelse{\equal{#1}{}}{\cite{#2}}{\cite[#1]{#2}}}
 
@@ -87,7 +71,6 @@
   { }% space after theorem head; " " = normal interword space
   {\thmname{#1 }\thmnumber{#2}\thmnote{ (#3)}}
 \renewcommand{\qedsymbol}{\ensuremath\QED}
-\renewcommand\proofname{証明}
 \expandafter\let\expandafter\oldproof\csname\string\proof\endcsname
 \let\oldendproof\endproof
 \renewenvironment{proof}[1][\proofname]{%
@@ -95,47 +78,42 @@
 }{\oldendproof}
 \theoremstyle{mytheorem}
 \newcommand{\theoremsymbol}{\ensuremath\enclosesquare}
-\newtheorem{_theorem}{定理}
+\newtheorem{_theorem}{Theorem}
 \newenvironment{theorem}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_theorem}}{\begin{_theorem}[#1]}}
   {\hfill\theoremsymbol\end{_theorem}}
-\newtheorem{_definition}[_theorem]{定義}
+\newtheorem{_definition}[_theorem]{Definition}
 \newenvironment{definition}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_definition}}{\begin{_definition}[#1]}}
   {\hfill\theoremsymbol\end{_definition}}
-\newtheorem{_lemma}[_theorem]{補題}
+\newtheorem{_lemma}[_theorem]{Lemma}
 \newenvironment{lemma}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_lemma}}{\begin{_lemma}[#1]}}
   {\hfill\theoremsymbol\end{_lemma}}
-\newtheorem{_corollary}[_theorem]{系}
+\newtheorem{_corollary}[_theorem]{Colorollary}
 \newenvironment{corollary}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_corollary}}{\begin{_corollary}[#1]}}
   {\hfill\theoremsymbol\end{_corollary}}
-\newtheorem{_proposition}[_theorem]{命題}
+\newtheorem{_proposition}[_theorem]{Proposition}
 \newenvironment{proposition}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_proposition}}{\begin{_proposition}[#1]}}
   {\hfill\theoremsymbol\end{_proposition}}
-\newtheorem{_example}[_theorem]{例}
+\newtheorem{_example}[_theorem]{Example}
 \newenvironment{example}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_example}}{\begin{_example}[#1]}}
   {\hfill\theoremsymbol\end{_example}}
-\newtheorem{_principle}[_theorem]{原理}
+\newtheorem{_principle}[_theorem]{Principle}
 \newenvironment{principle}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_principle}}{\begin{_principle}[#1]}}
   {\hfill\theoremsymbol\end{_principle}}
-\newtheorem{_claim}[_theorem]{主張}
+\newtheorem{_claim}[_theorem]{Claim}
 \newenvironment{claim}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_claim}}{\begin{_claim}[#1]}}
   {\hfill\theoremsymbol\end{_claim}}
-\newtheorem{_conjecture}[_theorem]{予想}
+\newtheorem{_conjecture}[_theorem]{Conjecture}
 \newenvironment{conjecture}[1][]
   {\ifthenelse{\equal{#1}{}}{\begin{_conjecture}}{\begin{_conjecture}[#1]}}
   {\hfill\theoremsymbol\end{_conjecture}}
-\newtheorem{_exercise}[_theorem]{演習}
-\newenvironment{exercise}[1][]
-  {\ifthenelse{\equal{#1}{}}{\begin{_exercise}}{\begin{_exercise}[#1]}}
-  {\hfill\theoremsymbol\end{_exercise}}
-
 
 % listing
 \lstset{

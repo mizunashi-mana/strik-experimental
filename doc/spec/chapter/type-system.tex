@@ -1,6 +1,6 @@
-\section{Type System}
+\chapter{Type System}
 
-\subsection{Declarative}
+\section{Declarative}
 
 $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
 
@@ -46,11 +46,11 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_proc}: \mathit{type}}{
-        \text{TODO}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_block}: \mathit{type}}{
-        \Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block}: \mathit{type}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_block}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{literal}: \mathit{type}}{
@@ -88,36 +88,44 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#proc\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_block}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
         \begin{array}{c}
             \Gamma_0 = \Gamma
             \hspace{1em}
             \mathit{type}_0 = \mathrm{\#tuple}()
             \\
-            \Gamma_0 \vdash_{\mathrm{e}; \mathrm{b}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
+            \Gamma_0 \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
             \hspace{1em}
             \Gamma_1 = \Gamma_0; \Delta_1
             \hspace{1em}
             \cdots
             \hspace{1em}
-            \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{b}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
+            \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
             \hspace{1em}
             \Gamma_n = \Gamma_{n - 1}; \Delta_n
         \end{array}
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr\_block\_item}: \mathit{type} \mid \Delta$}$
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_block\_item}: \mathit{type} \mid \Delta$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{expr}: \mathit{type} \mid \Gamma}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr}: \mathit{type} \mid \epsilon}{
         \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
     }
     \\
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{b}} \mathit{local\_decl}: \mathrm{\#tuple}() \mid \Delta}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{local\_decl}: \mathrm{\#tuple}() \mid \Delta}{
         \Gamma \vdash \mathit{local\_decl} \mid \Delta
     }
 \end{gather*}
@@ -198,6 +206,14 @@ $\fbox{$\mathit{expr\_interp\_string\_item}; \mathit{expr} \rightsquigarrow_\mat
     }
 \end{gather*}
 
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_n)}{
+        \text{TODO}
+    }
+\end{gather*}
+
 $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
 
 \begin{gather*}
@@ -222,7 +238,7 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_block}: \mathit{type}_0}{
-        \Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block}: \mathit{type}_0
+        \Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_block}: \mathit{type}_0
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{literal}: \mathit{type}_0}{
@@ -264,36 +280,36 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_block}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}_n}{
         \begin{array}{c}
             \Gamma_0 = \Gamma
             \hspace{1em}
             \mathit{type}_0 = \mathrm{\#tuple}()
             \\
-            \Gamma_0 \vdash_{\mathrm{t}; \mathrm{b}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
+            \Gamma_0 \vdash_{\mathrm{t}; \mathrm{l}} \mathit{item}_1: \mathit{type}_1 \mid \Delta_1
             \hspace{1em}
             \Gamma_1 = \Gamma_0; \Delta_1
             \hspace{1em}
             \cdots
             \hspace{1em}
-            \Gamma_{n - 1} \vdash_{\mathrm{t}; \mathrm{b}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
+            \Gamma_{n - 1} \vdash_{\mathrm{t}; \mathrm{l}} \mathit{item}_n: \mathit{type}_n \mid \Delta_n
             \hspace{1em}
             \Gamma_n = \Gamma_{n - 1}; \Delta_n
         \end{array}
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type\_block\_item}: \mathit{type} \mid \Delta$}$
+$\fbox{$\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type\_block\_item}: \mathit{type} \mid \Delta$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{type}: \mathit{type}_0 \mid \Gamma}{
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{type}: \mathit{type}_0 \mid \epsilon}{
         \Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
     }
     \\
-    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{b}} \mathit{local\_type\_decl}: \mathrm{\#tuple}() \mid \Delta}{
+    \infer{\Gamma \vdash_{\mathrm{t}; \mathrm{l}} \mathit{local\_type\_decl}: \mathrm{\#tuple}() \mid \Delta}{
         \Gamma \vdash \mathit{local\_type\_decl} \mid \Delta
     }
 \end{gather*}
@@ -378,7 +394,7 @@ $\fbox{$\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{p} \mathit{pat\_block}: \mathit{type} \mid \Delta}{
-        \Gamma \vdash_{\mathrm{p}; \mathrm{b}} \mathit{pat\_block}: \mathit{type} \mid \Delta
+        \Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{pat\_block}: \mathit{type} \mid \Delta
     }
     \\
     \infer{\Gamma \vdash_\mathrm{p} \mathit{literal}: \mathit{type} \mid \Delta}{
@@ -393,13 +409,119 @@ $\fbox{$\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta$}$
         \Gamma \vdash_\mathrm{t} \mathit{type}: \mathrm{\#Type}
     }
     \\
-    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type}}{
-        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type}_0
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta}{
+        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type}_0 \mid \Delta
         &
         \Gamma \vdash_\mathrm{t} \mathit{type} \preceq \mathit{type}_0
     }
 \end{gather*}
 
-\subsection{Bidirectional}
+$\fbox{$\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{pat\_block}: \mathit{type} \mid \Delta$}$
 
-\subsection{Algorithmic Bidirectional}
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n; \mathit{pat}): \mathit{type} \mid \Delta}{
+        \begin{array}{c}
+            \Gamma_0 = \Gamma
+            \\
+            \Gamma_0 \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_1 \mid \Delta_1
+            \hspace{1em}
+            \Gamma_1 = \Gamma_0; \Delta_1
+            \hspace{1em}
+            \cdots
+            \hspace{1em}
+            \Gamma_{n - 1} \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_n \mid \Delta_n
+            \hspace{1em}
+            \Gamma_n = \Gamma_{n - 1}; \Delta_n
+            \\
+            \Gamma_n \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta_{n + 1}
+            \hspace{1em}
+            \Delta = \Delta_1; \cdots; \Delta_n; \Delta_{n + 1}
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{literal}: \mathit{type} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{string}: \mathrm{\#String} \mid \epsilon}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{integer}: \mathrm{\#Integer} \mid \epsilon}{}
+    \\
+    \infer{\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{rational}: \mathrm{\#Rational} \mid \epsilon}{}
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{pat\_tuple}: \mathit{type} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_n) \mid \Delta}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{v} \mathit{view} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{v} \mathit{view\_block} \mid \Delta}{
+        \Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_block} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{v} \mathit{view\_bind} \mid \Delta}{
+        \Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_bind} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{v} \mathit{expr} \mid \Delta}{
+        \Gamma \vdash_\mathrm{v} \mathrm{\#bind}(\mathrm{\#con}(\mathit{True})(); \mathit{expr}) \mid \Delta
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_block} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n) \mid \Delta}{
+        \begin{array}{c}
+            \Gamma_0 = \Gamma
+            \\
+            \Gamma_0 \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_1 \mid \Omega_1 \mid \Delta_1
+            \hspace{1em}
+            \Gamma_1 = \Gamma_0; \Omega_1
+            \hspace{1em}
+            \cdots
+            \hspace{1em}
+            \Gamma_{n - 1} \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_n \mid \Omega_n \mid \Delta_n
+            \hspace{1em}
+            \Gamma_n = \Gamma_{n - 1}; \Omega_n
+            \\
+            \Delta = \Delta_1; \cdots; \Delta_n
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view\_block\_item} \mid \Omega \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathrm{\#let}(\mathit{item}_1; \cdots; \mathit{item}_n) \mid \Omega \mid \epsilon}{
+        \begin{array}{c}
+            \Gamma_0 = \Gamma
+            \\
+            \Gamma_0 \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_1 \mid \Omega_1
+            \hspace{1em}
+            \Gamma_1 = \Gamma_0; \Omega_1
+            \hspace{1em}
+            \cdots
+            \hspace{1em}
+            \Gamma_{n - 1} \vdash_{\mathrm{v}; \mathrm{l}} \mathit{item}_n \mid \Omega_n
+            \hspace{1em}
+            \Gamma_n = \Gamma_{n - 1}; \Omega_n
+            \\
+            \Omega = \Omega_1; \cdots; \Omega_n
+        \end{array}
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{v}; \mathrm{l}} \mathit{view} \mid \Delta \mid \Delta}{
+        \Gamma \vdash_\mathrm{v} \mathit{view} \mid \Delta
+    }
+\end{gather*}
+
+\section{Bidirectional}
+
+\section{Algorithmic Bidirectional}
