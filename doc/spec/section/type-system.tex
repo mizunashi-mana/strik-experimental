@@ -376,6 +376,28 @@ $\fbox{$\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type} \mid \Delta$}$
     \infer{\Gamma \vdash_\mathrm{p} \mathrm{\#app}(\mathit{con}; \mathit{pat\_tuple}): \mathit{type} \mid \Delta}{
         \text{TODO}
     }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat\_block}: \mathit{type} \mid \Delta}{
+        \Gamma \vdash_{\mathrm{p}; \mathrm{b}} \mathit{pat\_block}: \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{literal}: \mathit{type} \mid \Delta}{
+        \Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{literal}: \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat\_tuple}: \mathit{type} \mid \Delta}{
+        \Gamma \vdash_{\mathrm{p}; \mathrm{l}} \mathit{pat\_tuple}: \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{declvar}: \mathit{type} \mid \mathit{declvar}: \mathit{type}}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}: \mathrm{\#Type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type}}{
+        \Gamma \vdash_\mathrm{p} \mathit{pat}: \mathit{type}_0
+        &
+        \Gamma \vdash_\mathrm{t} \mathit{type} \preceq \mathit{type}_0
+    }
 \end{gather*}
 
 \subsection{Bidirectional}
