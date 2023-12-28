@@ -38,11 +38,11 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#case}(\mathit{case\_body}): \mathit{type}}{
-        \text{TODO}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{\#case}} \mathit{case\_body}: \mathit{type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathrm{\#when}(\mathit{case\_body}): \mathrm{\#tuple}()}{
-        \text{TODO}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{\#when}} \mathit{case\_body}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_proc}: \mathit{type}}{
@@ -88,12 +88,76 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
 \end{gather*}
 
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{\#case}} \mathit{case\_body}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{\#case}} \mathrm{\#case\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}}{
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{type}
+        &
+        \cdots
+        &
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{type}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{\#when}} \mathit{case\_body}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{\#when}} \mathrm{\#case\_items}(\mathit{item}_1; \cdots; \mathit{item}_n)}{
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{type}_1
+        &
+        \cdots
+        &
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{type}_n
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{case\_item}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#case\_item}(\mathit{view}; \mathit{expr}): \mathit{type}}{
+        \Gamma \vdash_\mathrm{v} \mathit{view} \mid \Delta
+        &
+        \Gamma; \Delta \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+    }
+\end{gather*}
+
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc}: \mathit{type}$}$
 
 \begin{gather*}
     \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#proc\_items}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathit{type}}{
-        \text{TODO}
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{type}
+        &
+        \cdots
+        &
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{type}
     }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc\_item}: \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#proc\_item}(\mathit{pat\_tuple}; \mathit{expr\_proc\_guard}; \mathit{expr}): \Lambda(\mathit{type\_tuple\_sig} ;\mathit{type})}{
+        \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{pat\_tuple}: \mathit{type\_tuple\_sig} \mid \Delta_1
+        &
+        \Gamma_1 = \Gamma; \Delta_1
+        &
+        \Gamma_1 \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc\_guard} \mid \Delta_2
+        &
+        \Gamma_2 = \Gamma_1; \Delta_2
+        &
+        \Gamma_2 \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_proc\_guard} \mid \Delta$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#proc\_guard}(\mathit{view}) \mid \Delta}{
+        \Gamma \vdash_\mathrm{v} \mathit{view} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#proc\_guard\_nothing} \mid \epsilon}{}
 \end{gather*}
 
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_block}: \mathit{type}$}$
