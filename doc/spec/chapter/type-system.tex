@@ -41,7 +41,7 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
             \\
             \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type\_tuple\_sig} \mid \Delta
             \hspace{1em}
-            \Delta; \mathit{type}_1 \rightsquigarrow_\mathrm{t} \mathit{type}
+            \Delta; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}
         \end{array}
     }
     \\
@@ -108,12 +108,26 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
 \end{gather*}
 
-$\fbox{$\Gamma; \mathit{type} \rightsquigarrow_\mathrm{t} \mathit{type}$}$
+$\fbox{$\Gamma; \mathit{type} \rightsquigarrow_\mathrm{subst} \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\epsilon; \mathit{type} \rightsquigarrow_\mathrm{t} \mathit{type}}{}
+    \infer{\epsilon; \mathit{type} \rightsquigarrow_\mathrm{subst} \mathit{type}}{}
     \\
-    \infer{\Gamma; }{}
+    \infer{\Gamma; \mathit{con}: \mathit{type}_0; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2}{
+        \Gamma; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2
+    }
+    \\
+    \infer{\Gamma; \mathit{var}: \mathit{type}_0; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2}{
+        \Gamma; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2
+    }
+    \\
+    \infer{\Gamma; \mathrm{\#prom}(\mathit{var}): \mathit{type}_0; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2}{
+        \Gamma; \mathit{type}_1 \rightsquigarrow_\mathrm{subst} \mathit{type}_2
+    }
+    \\
+    \infer{\Gamma; \mathrm{\#prom}(\mathit{var}): \mathit{type}_0 = \mathit{type}_1; \mathit{type}_2 \rightsquigarrow_\mathrm{subst} \mathit{type}_3}{
+        \Gamma; \mathit{type}_2[\mathit{var} \assign \mathit{type}_1] \rightsquigarrow_\mathrm{subst} \mathit{type}_3
+    }
 \end{gather*}
 
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{\#case}} \mathit{case\_body}: \mathit{type}$}$
@@ -485,7 +499,9 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple\_item}: \math
 \begin{gather*}
     \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: \mathrm{\#prom}(\mathit{bindvar}; \mathit{type}_0) \mid \Delta}{
         \begin{array}{c}
-            \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: (\mathit{bindvar}: \mathit{type}_0 = \mathit{type})
+            \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: (\mathit{bindvar}_1: \mathit{type}_0 = \mathit{type})
+            \\
+            \mathit{bindvar}_1 \preceq_\mathrm{bindvar} \mathit{bindvar}
             \\
             \Delta = \left\{\begin{array}{ll}
                 \epsilon &(\mathit{bindvar} = \mathrm{\#noname}) \\
@@ -495,21 +511,43 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple\_item}: \math
     }
     \\
     \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_expr}: (\mathit{bindvar}: \mathit{type}) \mid \Delta}{
-        \Gamma \vdash_{\mathrm{e}; \mathrm{i}} \mathit{bind\_expr}: (\mathit{bindvar}: \mathit{type})
+        \begin{array}{c}
+            \Gamma \vdash_{\mathrm{e}; \mathrm{i}} \mathit{bind\_expr}: (\mathit{bindvar}_1: \mathit{type})
+            \\
+            \mathit{bindvar}_1 \preceq_\mathrm{bindvar} \mathit{bindvar}
+            \\
+            \Delta = \left\{\begin{array}{ll}
+                \epsilon &(\mathit{bindvar} = \mathrm{\#noname}) \\
+                \mathit{bindvar}: \mathit{type} &(\mathit{bindvar} \in \mathcal{A}_\mathit{declvar})
+            \end{array}\right.
+        \end{array}
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#prom}(\mathit{type}): \mathrm{\#prom}(\mathit{bindvar}; \mathit{type}_0) \mid \epsilon}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
+        &
+        \Delta = \left\{\begin{array}{ll}
+            \epsilon &(\mathit{bindvar} = \mathrm{\#noname}) \\
+            \mathit{bindvar}: \mathit{type}_0 = \mathit{type} &(\mathit{bindvar} \in \mathcal{A}_\mathit{declvar})
+        \end{array}\right.
+    }
+    \\
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr}: (\mathit{bindvar}: \mathit{type}) \mid \epsilon}{
+        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
         &
         \Delta = \left\{\begin{array}{ll}
             \epsilon &(\mathit{bindvar} = \mathrm{\#noname}) \\
             \mathit{bindvar}: \mathit{type} &(\mathit{bindvar} \in \mathcal{A}_\mathit{declvar})
         \end{array}\right.
     }
+\end{gather*}
+
+$\fbox{$\mathit{bindvar} \preceq_\mathrm{bindvar} \mathit{bindvar}$}$
+
+\begin{gather*}
+    \infer{\mathrm{\#noname} \preceq_\mathrm{bindvar} \mathit{bindvar}}{}
     \\
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#prom}(\mathit{type}): \mathrm{\#prom}(\mathrm{\#noname}; \mathit{type}_0) \mid \epsilon}{
-        \Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0
-    }
-    \\
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr}: (\mathrm{\#noname}: \mathit{type}) \mid \epsilon}{
-        \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
-    }
+    \infer{\mathrm{bindvar} \preceq_\mathrm{bindvar} \mathit{bindvar}}{}
 \end{gather*}
 
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: (\mathit{bindvar}: \mathit{type}_0 = \mathit{type})$}$
@@ -549,6 +587,77 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr} \vartriangleright \mathit{decl\_s
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr} \vartriangleright \mathrm{\#decl\_sig\_nothing}: \mathit{type}}{
         \Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type} \preceq \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type}_1 \preceq \mathit{type}_2}{
+        \text{TODO}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}$}$
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{weak\_norm\_type}
+        &\Coloneq &\mathrm{\#app}(\mathit{weak\_norm\_type}; \mathit{type\_tuple}) \\
+        &\mathrel{/} &\mathit{literal} \\
+        &\mathrel{/} &\mathit{type\_literal} \\
+        &\mathrel{/} &\mathit{type\_func\_sig} \\
+        &\mathrel{/} &\mathit{type\_proc\_sig} \\
+        &\mathrel{/} &\mathit{type\_tuple} \\
+        &\mathrel{/} &\mathit{type\_tuple\_sig} \\
+        &\mathrel{/} &\mathit{con} \\
+        &\mathrel{/} &\mathit{var}
+    \end{array}
+\end{align*}
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type}\; \mathit{where\_decl} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma \vdash \mathit{where\_decl} \mid \Delta
+        &
+        \Delta; \mathit{type} \rightsquigarrow_\mathrm{subst} \mathit{type}_1
+        &
+        \Gamma \vdash_\mathrm{t} \mathit{type}_1 \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}_0 \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathrm{\#infix}(\mathit{type}_1; \mathit{type}_2; \mathit{type}_3) \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}_2(\mathit{type}_1; \mathit{type}_3) \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}) \rightsquigarrow_\mathrm{weak} \mathrm{\#app}(\mathit{weak\_norm\_type}; \mathit{type\_tuple})}{
+        \Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_block} \rightsquigarrow_\mathrm{weak} \text{TODO}}{
+        \text{TODO}
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{literal} \rightsquigarrow_\mathrm{weak} \mathit{literal}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_literal} \rightsquigarrow_\mathrm{weak} \mathit{type\_literal}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_func\_sig} \rightsquigarrow_\mathrm{weak} \mathit{type\_func\_sig}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_proc\_sig} \rightsquigarrow_\mathrm{weak} \mathit{type\_proc\_sig}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_tuple} \rightsquigarrow_\mathrm{weak} \mathit{type\_tuple}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_tuple\_sig} \rightsquigarrow_\mathrm{weak} \mathit{type\_tuple\_sig}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{con} \rightsquigarrow_\mathrm{weak} \mathit{con}}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{var} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma; \mathit{var} \rightsquigarrow_\mathrm{subst} \mathit{type}_1
+        &
+        \Gamma \vdash \mathit{type}_1 \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
     }
 \end{gather*}
 
