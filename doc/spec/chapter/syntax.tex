@@ -314,7 +314,7 @@ Pre-Process:
         \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
         \Comment{Insert the top-level implicit layout.}
         \While{$(\mathit{current\_token}, \mathit{current\_line}, \mathit{current\_col}) \assign \mathbf{consume}$}
-            \If{$\mathit{current\_token} \not\in \mathit{lexeme}$}
+            \If{$\mathit{current\_token} \not\in \mathcal{A}_\mathit{lexeme}$}
                 \State{$\mathbf{continue}$}
                 \Comment{Skip white-spaces.}
             \EndIf
@@ -327,11 +327,11 @@ Pre-Process:
                 \State{$\mathit{pre\_line} \assign \mathit{current\_line}$}
             \EndIf
             \State{$\mathbf{yield}\; \mathit{current\_token}$}
-            \If{$\mathit{current\_token} \in \mathit{lb\_imp\_open} \cup \mathit{lp\_imp\_open}$}
+            \If{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_imp\_open} \cup \mathcal{A}_\mathit{lp\_imp\_open}$}
                 \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
-            \ElsIf{$\mathit{current\_token} \in \mathit{lb\_exp\_open} \cup \mathit{lp\_exp\_open}$}
+            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_exp\_open} \cup \mathcal{A}_\mathit{lp\_exp\_open}$}
                 \State{$\mathbf{yield}\; \{\mathrm{open\_exp}\}$}
-            \ElsIf{$\mathit{current\_token} \in \mathit{lb\_close} \cup \mathit{lp\_close}$}
+            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_close} \cup \mathcal{A}_\mathit{lp\_close}$}
                 \State{$\mathbf{yield}\; \{\mathrm{close}\}$}
             \EndIf
         \EndWhile
@@ -407,7 +407,9 @@ Declaration:
         &\Coloneq &\mathit{decl\_func} \\
         &\mathrel{/} &\mathit{bind\_prom\_type} \\
         \mathit{decl\_func}
-        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr}
+        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{expr} \\
+        \mathit{decl\_sig}
+        &\Coloneq &\texttt{":"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -437,7 +439,8 @@ Local Declaration:
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_type\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_type\_body\_item}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{let\_type\_body\_item}
-        &\Coloneq &\mathit{bind\_type}
+        &\Coloneq & \mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_type}
     \end{array}
 \end{align*}
 
@@ -458,11 +461,11 @@ Where Declaration:
         &\mathrel{/} &\mathit{bind\_expr} \\
         &\mathrel{/} &\mathit{local\_decl} \\
         \mathit{bind\_expr}
-        &\Coloneq &\mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{expr} \\
+        &\Coloneq &\mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{expr} \\
         \mathit{bind\_type}
-        &\Coloneq &\mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type} \\
+        &\Coloneq &\mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{type} \\
         \mathit{bind\_prom\_type}
-        &\Coloneq &\texttt{"\^{}"}\; \mathit{declvar}\; (\texttt{":"}\; \mathit{type}){?}\; \texttt{"="}\; \mathit{type}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -652,8 +655,8 @@ Type Expression:
         &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_tuple\_sig\_item}\; (\mathit{lsemis}\; \mathit{type\_tuple\_sig\_item}){*}\; \mathit{lsemis}{?} \\
         &\mathrel{/} &\mathit{lsemis}{?} \\
         \mathit{type\_tuple\_sig\_item}
-        &\Coloneq &\texttt{"\^{}"}\; \mathit{declvar}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{declvar}\; \texttt{":"}\; \mathit{type}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}\; \texttt{":"}\; \mathit{type} \\
+        &\mathrel{/} &\mathit{bindvar}\; \texttt{":"}\; \mathit{type}
     \end{array}
 \end{align*}
 
@@ -682,7 +685,7 @@ Pattern:
         &\Coloneq &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{declvar}
+        &\mathrel{/} &\mathit{bindvar}
     \end{array}
 \end{align*}
 
@@ -750,6 +753,9 @@ Base Unit:
         &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; (\mathit{var\_sym}\; \mathrel{/} \mathit{var\_id})\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
         &\mathrel{/} &\mathit{var\_id} \\
         &\mathrel{/} &\mathit{free\_id} \\
+        \mathit{bindvar}
+        &\Coloneq &\mathit{declvar} \\
+        &\mathrel{/} &\texttt{"\_"} \\
         \mathit{sym}
         &\Coloneq &\mathit{con\_sym} \\
         &\mathrel{/} &\mathit{var\_sym} \\
@@ -830,7 +836,8 @@ Local Declaration:
         &\Coloneq &\mathit{bind\_prom\_type} \\
         &\mathrel{/} &\mathit{bind\_expr} \\
         \mathit{let\_type\_item}
-        &\Coloneq &\mathit{bind\_type} \\
+        &\Coloneq &\mathit{bind\_prom\_type} \\
+        &\mathrel{/} &\mathit{bind\_type}
     \end{array}
 \end{align*}
 
@@ -845,11 +852,11 @@ Where Declaration:
         &\mathrel{/} &\mathit{bind\_expr} \\
         &\mathrel{/} &\mathit{local\_decl} \\
         \mathit{bind\_expr}
-        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{expr}) \\
+        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{expr}) \\
         \mathit{bind\_type}
-        &\Coloneq &\mathrm{\#bind\_type}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type}) \\
+        &\Coloneq &\mathrm{\#bind\_type}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type}) \\
         \mathit{bind\_prom\_type}
-        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{declvar}; \mathit{decl\_sig}; \mathit{type})
+        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type})
     \end{array}
 \end{align*}
 
@@ -1003,8 +1010,8 @@ Type Expression:
         \mathit{type\_tuple\_sig}
         &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}{*}) \\
         \mathit{type\_tuple\_sig\_item}
-        &\Coloneq &\mathrm{\#prom}(\mathit{declvar}; \mathit{type}) \\
-        &\mathrel{/} &\mathit{declvar}: \mathit{type}
+        &\Coloneq &\mathrm{\#prom}(\mathit{bindvar}; \mathit{type}) \\
+        &\mathrel{/} &\mathit{bindvar}: \mathit{type}
     \end{array}
 \end{align*}
 
@@ -1020,7 +1027,7 @@ Pattern:
         &\mathrel{/} &\mathit{pat\_block} \\
         &\mathrel{/} &\mathit{literal} \\
         &\mathrel{/} &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{declvar}
+        &\mathrel{/} &\mathit{bindvar}
     \end{array}
 \end{align*}
 
@@ -1072,6 +1079,9 @@ Basic Unit:
     \begin{array}{rcll}
         \mathit{declvar}
         &\Coloneq &\mathrm{\#var}(x) \\
+        \mathit{bindvar}
+        &\Coloneq &\mathit{declvar} \\
+        &\mathrel{/} &\mathrm{\#noname} \\
         \mathit{con}
         &\Coloneq &\mathrm{\#con}(x) \\
         \mathit{var}
