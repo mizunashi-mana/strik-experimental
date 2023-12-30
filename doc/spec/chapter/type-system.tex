@@ -292,19 +292,177 @@ $\fbox{$\mathit{expr\_interp\_string\_item}; \mathit{expr} \rightsquigarrow_\mat
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type}$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_n)}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m)}{
         \begin{array}{c}
-            \Gamma_0 = \Gamma
+            \Gamma \vdash_\mathrm{t} \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m): \mathrm{\#Type}
             \\
-            \Gamma_0 \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{sig\_item}_1 \mid \Delta_1
+            \mathit{item}_1; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_n
+            \\
+            \mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m \rightsquigarrow_\mathrm{bindvar} \mathit{sig\_bindvar}_1; \cdots; \mathit{sig\_bindvar}_m
+            \\
+            \mathit{sig\_bindvar}_1; \cdots; \mathit{sig\_bindvar}_m \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_n \rightsquigarrow_\mathrm{match\_bindvar} i_1; \cdots; i_n
+            \\
+            \Delta_0 = \Gamma
+            \hspace{1em}
+            \mathit{sig\_item}_0 = \mathrm{\#noname}: \mathrm{\#Type}
+            \\
+            \Gamma_0 \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_1: \mathit{sig\_item}_{i_1} \mid \Delta_1
             \hspace{1em}
             \Gamma_1 = \Gamma_0; \Delta_1
             \\
             \vdots
             \\
-            \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{sig\_item}_n \mid \Delta_n
+            \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{sig\_item}_{i_n} \mid \Delta_n
             \hspace{1em}
             \Gamma_n = \Gamma_{n - 1}; \Delta_n
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\mathit{expr\_tuple\_item}_1; \cdots; \mathit{expr\_tuple\_item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_n$}$
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{may\_bindvar}
+        &\Coloneq &\mathit{bindvar} \\
+        &\mathrel{/} &\mathrm{\#bindvar\_nothing} \\
+    \end{array}
+\end{align*}
+
+\begin{gather*}
+    \infer{\epsilon \rightsquigarrow_\mathrm{bindvar} \epsilon}{}
+    \\
+    \infer{\mathit{bind\_prom\_type}; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{bind\_prom\_type} \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}
+        &
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n
+    }
+    \\
+    \infer{\mathit{bind\_expr}; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}_1; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{bind\_expr} \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}
+        &
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n
+    }
+    \\
+    \infer{\mathrm{\#prom}(\mathit{type}); \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathrm{\#noname}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n
+    }
+    \\
+    \infer{\mathit{expr}; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathrm{\#noname}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n
+    }
+    \\
+    \infer{\mathit{local\_decl}; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathrm{\#bindvar\_nothing}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n
+    }
+\end{gather*}
+
+$\fbox{$\mathit{bind\_prom\_type} \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}$}$
+
+\begin{gather*}
+    \infer{\mathrm{\#bind\_prom}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type}) \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}}{}
+\end{gather*}
+
+$\fbox{$\mathit{bind\_expr} \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}$}$
+
+\begin{gather*}
+    \infer{\mathrm{\#bind\_expr}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{expr}) \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}}{}
+\end{gather*}
+
+$\fbox{$\mathit{type\_tuple\_sig\_item}_1; \cdots; \mathit{type\_tuple\_sig\_item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}_1; \cdots; \mathit{bindvar}_n$}$
+
+\begin{gather*}
+    \infer{\epsilon \rightsquigarrow_\mathrm{bindvar} \epsilon}{}
+    \\
+    \infer{\mathrm{\#prom}(\mathit{bindvar}; \mathit{type}); \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}_2 \cdots; \mathit{bindvar}_n
+    }
+    \\
+    \infer{(\mathit{bindvar}: \mathit{type}); \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}; \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n}{
+        \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{bindvar} \mathit{bindvar}_2 \cdots; \mathit{bindvar}_n
+    }
+\end{gather*}
+
+$\fbox{$\mathit{bindvar}_1; \cdots; \mathit{bindvar}_{n_1} \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_{n_2} \rightsquigarrow_\mathrm{match\_bindvar} i_1; \cdots; i_{n_2}$}$
+
+\begin{gather*}
+    \infer{\mathit{bindvar}_1; \cdots; \mathit{bindvar}_{n_1} \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_{n_2} \rightsquigarrow_\mathrm{match\_bindvar} i_1; \cdots; i_{n_2}}{
+        (\mathit{bindvar}_1; 1); \cdots; (\mathit{bindvar}_{n_1}; n_1) \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_{n_2} \rightsquigarrow_\mathrm{match\_bindvar} i_1; \cdots; i_{n_2} \mid \epsilon
+    }
+\end{gather*}
+
+$\fbox{$\begin{array}{r}
+    (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_{n_2}
+    \\
+    \rightsquigarrow_\mathrm{match\_bindvar} i_{2;1}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+\end{array}$}$
+
+\begin{gather*}
+    \infer{(\mathit{bindvar}_1; i_{1;1}); \cdots; (\mathit{bindvar}_m; i_{1;m}) \vdash \epsilon \rightsquigarrow_\mathrm{match\_bindvar} \epsilon \mid (\mathit{bindvar}_1; i_{1;1}); \cdots; (\mathit{bindvar}_m; i_{1;m})}{}
+    \\
+    \infer{\begin{array}{r}
+        (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{bindvar}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+        \\
+        \rightsquigarrow_\mathrm{match\_bindvar} i_{2;1}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+    \end{array}}{
+        \begin{array}{r}
+            (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{bindvar}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+            \\
+            \rightsquigarrow_\mathrm{match\_bindvar\_w} i_{2;1}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+        \end{array}
+    }
+    \\
+    \infer{\begin{array}{r}
+        (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathrm{\#bindvar\_nothing}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+        \\
+        \rightsquigarrow_\mathrm{match\_bindvar} 0; i_{2;2}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+    \end{array}}{
+        \begin{array}{r}
+            (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+            \\
+            \rightsquigarrow_\mathrm{match\_bindvar} i_{2;2}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+        \end{array}
+    }
+\end{gather*}
+
+$\fbox{$\begin{array}{r}
+    (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{bindvar}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+    \\
+    \rightsquigarrow_\mathrm{match\_bindvar\_w} i_{2;1}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+\end{array}$}$
+
+\begin{gather*}
+    \infer{\begin{array}{r}
+        (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{declvar}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+        \\
+        \rightsquigarrow_\mathrm{match\_bindvar\_w} i_{2;1}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+    \end{array}}{
+        \begin{array}{c}
+            \mathit{bindvar}_{1;i_3} = \mathit{declvar}
+            \hspace{1em}
+            i_{2;1} = i_{1;i_3}
+            \\
+            \begin{array}{r}
+                (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;i_3 - 1}; i_{1;i_3 - 1}); (\mathit{bindvar}_{1;i_3 + 1}; i_{1;i_3 + 1}); \cdots; (\mathit{bindvar}_{1;m}; i_{1;m})
+                \\
+                \vdash \mathit{may\_bindvar}_2 \cdots; \mathit{may\_bindvar}_n \rightsquigarrow_\mathrm{match\_bindvar} i_{2;2}; \cdots; i_{2;n}
+                \\
+                \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+            \end{array}
+        \end{array}
+    }
+    \\
+    \infer{\begin{array}{r}
+        (\mathit{bindvar}_{1;1}; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathrm{\#noname}; \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+        \\
+        \rightsquigarrow_\mathrm{match\_bindvar\_w} i_{3;n_3 + 1}; i_{2;2}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3})
+    \end{array}}{
+        \begin{array}{c}
+            \begin{array}{r}
+                (\mathit{bindvar}_1; i_{1;1}); \cdots; (\mathit{bindvar}_{1;n_1}; i_{1;n_1}) \vdash \mathit{may\_bindvar}_2; \cdots; \mathit{may\_bindvar}_{n_2}
+                \\
+                \rightsquigarrow_\mathrm{match\_bindvar} i_{2;2}; \cdots; i_{2;n_2} \mid (\mathit{bindvar}_{3;1}; i_{3;1}); \cdots; (\mathit{bindvar}_{3;n_3}; i_{3;n_3}); (\mathit{bindvar}_{3;n_3 + 1}; i_{3;n_3 + 1})
+            \end{array}
         \end{array}
     }
 \end{gather*}
