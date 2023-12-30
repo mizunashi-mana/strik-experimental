@@ -11,7 +11,10 @@ Typing Environment:
         &\mathrel{/} &\Gamma; \Gamma \\
         &\mathrel{/} &\mathit{con}: \mathit{type} \\
         &\mathrel{/} &\mathit{var}: \mathit{type} \\
+        &\mathrel{/} &\mathrm{\#prom}(\mathit{var}): \mathit{type} = \mathit{type} \\
         &\mathrel{/} &\mathrm{\#prom}(\mathit{var}): \mathit{type} \\
+        \Delta
+        &\Coloneq &\Gamma
     \end{array}
 \end{align*}
 
@@ -36,9 +39,9 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
         \begin{array}{c}
             \Gamma \vdash_\mathrm{e} \mathit{expr}: \Lambda(\mathit{type\_tuple\_sig}; \mathit{type}_1)
             \\
-            \Gamma \vdash_\mathrm{e} \mathit{expr\_tuple}: \mathit{type\_tuple\_sig}
-            \\
-            \mathit{expr\_tuple} \vartriangleright \mathit{type\_tuple\_sig}; \mathit{type}_1 \rightsquigarrow_\mathrm{e} \mathit{type}
+            \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type\_tuple\_sig} \mid \Delta
+            \hspace{1em}
+            \Delta; \mathit{type}_1 \rightsquigarrow_\mathrm{t} \mathit{type}
         \end{array}
     }
     \\
@@ -87,7 +90,7 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{expr\_tuple}: \mathit{type}}{
-        \Gamma \vdash_{\mathrm{e}, \mathrm{l}} \mathit{expr\_tuple}: \mathit{type}
+        \Gamma \vdash_{\mathrm{e}, \mathrm{l}} \mathit{expr\_tuple}: \mathit{type} \mid \Delta
     }
     \\
     \infer{\Gamma \vdash_\mathrm{e} \mathit{con}: \mathit{type}}{
@@ -103,6 +106,14 @@ $\fbox{$\Gamma \vdash_\mathrm{e} \mathit{expr}: \mathit{type}$}$
         &
         \Gamma \vdash_\mathrm{t} \mathit{type}_0 \preceq \mathit{type}
     }
+\end{gather*}
+
+$\fbox{$\Gamma; \mathit{type} \rightsquigarrow_\mathrm{t} \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\epsilon; \mathit{type} \rightsquigarrow_\mathrm{t} \mathit{type}}{}
+    \\
+    \infer{\Gamma; }{}
 \end{gather*}
 
 $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{\#case}} \mathit{case\_body}: \mathit{type}$}$
@@ -289,10 +300,10 @@ $\fbox{$\mathit{expr\_interp\_string\_item}; \mathit{expr} \rightsquigarrow_\mat
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{type} \mid \Delta$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m)}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#tuple}(\mathit{item}_1; \cdots; \mathit{item}_n): \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m) \mid \Delta}{
         \begin{array}{c}
             \Gamma \vdash_\mathrm{t} \mathrm{\#tuple\_sig}(\mathit{sig\_item}_1; \cdots; \mathit{sig\_item}_m): \mathrm{\#Type}
             \\
@@ -302,7 +313,7 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{typ
             \\
             \mathit{sig\_bindvar}_1; \cdots; \mathit{sig\_bindvar}_m \vdash \mathit{may\_bindvar}_1; \cdots; \mathit{may\_bindvar}_n \rightsquigarrow_\mathrm{match\_bindvar} i_1; \cdots; i_n
             \\
-            \Delta_0 = \Gamma
+            \Gamma_0 = \Gamma
             \hspace{1em}
             \mathit{sig\_item}_0 = \mathrm{\#noname}: \mathrm{\#Type}
             \\
@@ -315,6 +326,8 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple}: \mathit{typ
             \Gamma_{n - 1} \vdash_{\mathrm{e}; \mathrm{l}} \mathit{item}_n: \mathit{sig\_item}_{i_n} \mid \Delta_n
             \hspace{1em}
             \Gamma_n = \Gamma_{n - 1}; \Delta_n
+            \\
+            \Delta = \Delta_1; \cdots; \Delta_n
         \end{array}
     }
 \end{gather*}
@@ -471,7 +484,14 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple\_item}: \math
 
 \begin{gather*}
     \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: \mathrm{\#prom}(\mathit{bindvar}; \mathit{type}_0) \mid \Delta}{
-        \text{TODO}
+        \begin{array}{c}
+            \Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: (\mathit{bindvar}: \mathit{type}_0 = \mathit{type})
+            \\
+            \Delta = \left\{\begin{array}{ll}
+                \epsilon &(\mathit{bindvar} = \mathrm{\#noname}) \\
+                \mathrm{\#prom}(\mathit{bindvar}): \mathit{type}_0 = \mathit{type} &(\mathit{bindvar} \in \mathcal{A}_\mathit{declvar})
+            \end{array}\right.
+        \end{array}
     }
     \\
     \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_expr}: (\mathit{bindvar}: \mathit{type}) \mid \Delta}{
@@ -492,10 +512,10 @@ $\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{expr\_tuple\_item}: \math
     }
 \end{gather*}
 
-$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: \text{TODO}$}$
+$\fbox{$\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathit{bind\_prom\_type}: (\mathit{bindvar}: \mathit{type}_0 = \mathit{type})$}$
 
 \begin{gather*}
-    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#bind\_prom}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type}): \text{TODO}}{
+    \infer{\Gamma \vdash_{\mathrm{e}; \mathrm{l}} \mathrm{\#bind\_prom}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type}): (\mathit{bindvar}: \mathit{type}_0)}{
         \Gamma \vdash_\mathrm{t} \mathit{type} \vartriangleright \mathit{decl\_sig}: \mathit{type}_0
     }
 \end{gather*}
