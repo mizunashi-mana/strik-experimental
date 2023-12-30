@@ -636,8 +636,8 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \m
         \Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
     }
     \\
-    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_block} \rightsquigarrow_\mathrm{weak} \text{TODO}}{
-        \text{TODO}
+    \infer{\Gamma \vdash_\mathrm{t} \mathit{type\_block} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma \vdash_\mathrm{type\_block} \mathit{type\_block} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
     }
     \\
     \infer{\Gamma \vdash_\mathrm{t} \mathit{literal} \rightsquigarrow_\mathrm{weak} \mathit{literal}}{}
@@ -661,6 +661,36 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type} \rightsquigarrow_\mathrm{weak} \m
     }
 \end{gather*}
 
+$\fbox{$\Gamma \vdash_\mathrm{type\_block} \mathit{type\_block} \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{type\_block} \mathrm{\#block\_items}(\mathit{item}_1; \cdots; \mathit{item}_n) \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}}{
+        \Gamma \vdash_\mathrm{type\_block} \mathrm{\#tuple}(); \mathit{item}_1; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{block} \mathit{type} \mid \Delta
+        &
+        \Delta; \mathit{type} \rightsquigarrow_\mathrm{subst} \mathit{type}_1
+        &
+        \Gamma \vdash_\mathrm{t} \mathit{type}_1 \rightsquigarrow_\mathrm{weak} \mathit{weak\_norm\_type}
+    }
+\end{gather*}
+
+$\fbox{$\Gamma \vdash_\mathrm{type\_block} \mathit{type}; \mathit{type\_block\_item}_1; \cdots; \mathit{type\_block\_item}_n \rightsquigarrow_\mathrm{block} \mathit{type}$}$
+
+\begin{gather*}
+    \infer{\Gamma \vdash_\mathrm{type\_block} \mathit{type} \rightsquigarrow_\mathrm{block} \mathit{type} \mid \epsilon}{}
+    \\
+    \infer{\Gamma \vdash_\mathrm{type\_block} \mathit{type}_0; \mathit{type}_1; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{block} \mathit{type} \mid \Delta}{
+        \Gamma \vdash_\mathrm{type\_block} \mathit{type}_1; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{block} \mathit{type} \mid \Delta
+    }
+    \\
+    \infer{\Gamma \vdash_\mathrm{type\_block} \mathit{type}_0; \mathit{local\_type\_decl}; \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{block} \mathit{type} \mid \Delta}{
+        \Gamma \vdash \mathit{local\_type\_decl} \mid \Delta_1
+        &
+        \Gamma \vdash_\mathrm{type\_block} \mathrm{\#tuple}(); \mathit{item}_2; \cdots; \mathit{item}_n \rightsquigarrow_\mathrm{block} \mathit{type} \mid \Delta_2
+        &
+        \Delta = \Delta_1; \Delta_2
+    }
+\end{gather*}
+
 $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
 
 \begin{gather*}
@@ -678,8 +708,8 @@ $\fbox{$\Gamma \vdash_\mathrm{t} \mathit{type}: \mathit{type}$}$
         \Gamma \vdash_\mathrm{t} \mathit{type}_2(\mathit{type_1}; \mathit{type}_3): \mathit{type}_0
     }
     \\
-    \infer{\Gamma \vdash_\mathrm{t} \mathrm{\#app}(\mathit{type}_1; \mathit{type\_tuple}_2): \mathit{type}_0}{
-        \Gamma \vdash_\mathrm{t} \mathit{type}_1: \Lambda(\mathit{type\_tuple\_sig}_1; \mathit{type}_2)
+    \infer{\Gamma \vdash_\mathrm{t} \mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}): \mathit{type}_0}{
+        \Gamma \vdash_\mathrm{t} \mathit{type}: \Lambda(\mathit{type\_tuple\_sig}_1; \mathit{type}_1)
         &
         \text{TODO}
     }
