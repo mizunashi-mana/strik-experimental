@@ -6,19 +6,19 @@ Overview:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{lexical\_program}
-        &\Coloneq &(\mathit{whitespace} \mathrel{/} \mathit{lexeme}){*}\; \mathbf{EOS} \\
-        \mathit{lexeme}
-        &\Coloneq &\mathit{literal\_part} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{special\_char} \\
-        &\mathrel{/} &\mathit{keyword\_id} \\
-        &\mathrel{/} &\mathit{keyword\_sym} \\
-        &\mathrel{/} &\mathit{free\_id} \\
-        &\mathrel{/} &\mathit{var\_id} \\
-        &\mathrel{/} &\mathit{var\_sym} \\
-        &\mathrel{/} &\mathit{con\_id} \\
-        &\mathrel{/} &\mathit{con\_sym}
+        \mathit{program}^\mathrm{lex}
+        &\Coloneq &(\mathit{whitespace}^\mathrm{lex} \mathrel{/} \mathit{lexeme}^\mathrm{lex}){*}\; \mathbf{EOS} \\
+        \mathit{lexeme}^\mathrm{lex}
+        &\Coloneq &\mathit{literal\_part}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{delimit\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{keyword\_id}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{keyword\_sym}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{free\_id}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{var\_id}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{var\_sym}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{con\_id}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{con\_sym}^\mathrm{lex}
     \end{array}
 \end{align*}
 
@@ -26,16 +26,16 @@ Identifier:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{var\_id}
-        &\Coloneq &\mathit{id\_small\_char}\; \mathit{id\_char}{*}\; \mathop{!} \mathit{id\_char} \\
-        \mathit{con\_id}
-        &\Coloneq &\mathit{id\_large\_char}\; \mathit{id\_char}{*}\; \mathop{!} \mathit{id\_char} \\
-        \mathit{var\_sym}
-        &\Coloneq &\mathit{sym\_normal\_char}\; \mathit{sym\_char}{*}\; \mathop{!} \mathit{sym\_char} \\
-        \mathit{con\_sym}
-        &\Coloneq &\mathit{sym\_sp\_char}\; \mathit{sym\_char}{*}\; \mathop{!} \mathit{sym\_char} \\
-        \mathit{free\_id}
-        &\Coloneq &\mathit{keyword\_prefix\_char}\; \mathit{string}
+        \mathit{var\_id}^\mathrm{lex}
+        &\Coloneq &\mathit{id\_small\_char}^\mathrm{lex}\; \mathit{id\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{id\_char}^\mathrm{lex} \\
+        \mathit{con\_id}^\mathrm{lex}
+        &\Coloneq &\mathit{id\_large\_char}^\mathrm{lex}\; \mathit{id\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{id\_char}^\mathrm{lex} \\
+        \mathit{var\_sym}^\mathrm{lex}
+        &\Coloneq &\mathit{sym\_normal\_char}^\mathrm{lex}\; \mathit{sym\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{sym\_char}^\mathrm{lex} \\
+        \mathit{con\_sym}^\mathrm{lex}
+        &\Coloneq &\mathit{sym\_sp\_char}^\mathrm{lex}\; \mathit{sym\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{sym\_char}^\mathrm{lex} \\
+        \mathit{free\_id}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_prefix\_char}^\mathrm{lex}\; \mathit{string}^\mathrm{lex}
     \end{array}
 \end{align*}
 
@@ -43,17 +43,17 @@ Reserved:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{keyword\_prefixed}
-        &\Coloneq &\mathit{keyword\_prefix\_char}\; \mathit{id\_char}{+}\; \mathop{!} \mathit{id\_char} \\
-        &\mathrel{/} &\mathit{keyword\_prefix\_char}\; \mathit{sym\_char}{+}\; \mathop{!} \mathit{sym\_char} \\
-        &\mathrel{/} &\mathit{keyword\_prefix\_char}\; (\texttt{"\{"} \mathrel{/} \texttt{"["} \mathrel{/} \texttt{"("}) \\
-        \mathit{keyword\_id}
-        &\Coloneq &\mathit{keyword\_id\_unit}\; \mathop{!} \mathit{id\_char} \\
-        \mathit{keyword\_id\_unit}
+        \mathit{keyword\_prefixed}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_prefix\_char}^\mathrm{lex}\; \mathit{id\_char}^\mathrm{lex}{+}\; \mathop{!} \mathit{id\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{keyword\_prefix\_char}^\mathrm{lex}\; \mathit{sym\_char}^\mathrm{lex}{+}\; \mathop{!} \mathit{sym\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{keyword\_prefix\_char}^\mathrm{lex}\; (\texttt{"\{"} \mathrel{/} \texttt{"["} \mathrel{/} \texttt{"("}) \\
+        \mathit{keyword\_id}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_id\_unit}^\mathrm{lex}\; \mathop{!} \mathit{id\_char}^\mathrm{lex} \\
+        \mathit{keyword\_id\_unit}^\mathrm{lex}
         &\Coloneq &\texttt{"\_"} \\
-        \mathit{keyword\_sym}
-        &\Coloneq &\mathit{keyword\_sym\_unit}\; \mathop{!} \mathit{sym\_char} \\
-        \mathit{keyword\_sym\_unit}
+        \mathit{keyword\_sym}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_sym\_unit}^\mathrm{lex}\; \mathop{!} \mathit{sym\_char}^\mathrm{lex} \\
+        \mathit{keyword\_sym\_unit}^\mathrm{lex}
         &\Coloneq &\texttt{"="} \\
         &\mathrel{/} &\texttt{"\^{}"} \\
         &\mathrel{/} &\texttt{":"} \\
@@ -65,12 +65,12 @@ Literal Overview:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{literal\_part}
-        &\Coloneq &\mathit{interp\_string\_part} \\
-        \mathit{literal}
-        &\Coloneq &\mathit{string} \\
-        &\mathrel{/} &\mathit{rational} \\
-        &\mathrel{/} &\mathit{integer}
+        \mathit{literal\_part}^\mathrm{lex}
+        &\Coloneq &\mathit{interp\_string\_part}^\mathrm{lex} \\
+        \mathit{literal}^\mathrm{lex}
+        &\Coloneq &\mathit{string}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{rational}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{integer}^\mathrm{lex}
     \end{array}
 \end{align*}
 
@@ -78,34 +78,38 @@ Number Literal:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{rational}
-        &\Coloneq &\mathit{sign\_char}{?}\; (\mathop{!} \mathit{zero\_char})\; \mathit{decimal}\; \mathit{num\_dot\_sym\_char}\; \mathit{decimal} \\
-        \mathit{integer}
-        &\Coloneq &\mathit{number\_prefix}\; \mathit{hexit\_prefix\_char}\; \mathit{heximal} \\
-        &\mathrel{/} &\mathit{number\_prefix}\; \mathit{digit\_prefix\_char}\; \mathit{decimal} \\
-        &\mathrel{/} &\mathit{sign\_char}{?}\; (\mathop{!} \mathit{zero\_char})\; \mathit{decimal} \\
-        \mathit{number\_prefix}
-        &\Coloneq &\mathit{sign\_char}{?}\; \mathit{zero\_char} \\
-        \mathit{decimal}
-        &\Coloneq &\mathit{digit\_char}\; (\mathit{digit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}){*}\; \mathop{!} (\mathit{digit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}) \\
-        \mathit{heximal}
-        &\Coloneq &\mathit{hexit\_char}\; (\mathit{hexit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}){*}\; \mathop{!} (\mathit{hexit\_char} \mathrel{/} \mathit{num\_sep\_sym\_char}) \\
-        \mathit{sign\_char}
+        \mathit{rational}^\mathrm{lex}
+        &\Coloneq &\mathit{sign\_char}^\mathrm{lex}{?}\; (\mathop{!} \mathit{zero\_char}^\mathrm{lex})\; \mathit{decimal}^\mathrm{lex}\; \mathit{num\_dot\_sym\_char}^\mathrm{lex}\; \mathit{decimal}^\mathrm{lex} \\
+        \mathit{integer}^\mathrm{lex}
+        &\Coloneq &\mathit{number\_prefix}^\mathrm{lex}\; \mathit{hexit\_prefix\_char}^\mathrm{lex}\; \mathit{heximal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{number\_prefix}^\mathrm{lex}\; \mathit{digit\_prefix\_char}^\mathrm{lex}\; \mathit{decimal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{sign\_char}^\mathrm{lex}{?}\; (\mathop{!} \mathit{zero\_char}^\mathrm{lex})\; \mathit{decimal}^\mathrm{lex} \\
+        \mathit{number\_prefix}^\mathrm{lex}
+        &\Coloneq &\mathit{sign\_char}^\mathrm{lex}{?}\; \mathit{zero\_char}^\mathrm{lex} \\
+        \mathit{decimal}^\mathrm{lex}
+        &\Coloneq &\mathit{digit\_char}^\mathrm{lex}\; \mathit{decimal\_unit\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{decimal\_unit\_char}^\mathrm{lex} \\
+        \mathit{decimal\_unit\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{digit\_char}^\mathrm{lex} \mathrel{/} \mathit{num\_sep\_sym\_char}^\mathrm{lex} \\
+        \mathit{heximal}^\mathrm{lex}
+        &\Coloneq &\mathit{hexit\_char}^\mathrm{lex}\; \mathit{heximal\_unit\_char}^\mathrm{lex}{*}\; \mathop{!} \mathit{heximal\_unit\_char}^\mathrm{lex} \\
+        \mathit{heximal\_unit\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{hexit\_char}^\mathrm{lex} \mathrel{/} \mathit{num\_sep\_sym\_char}^\mathrm{lex} \\
+        \mathit{sign\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"+"} \\
         &\mathrel{/} &\texttt{"-"} \\
-        \mathit{zero\_char}
+        \mathit{zero\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{Digit=0\}"} \\
-        \mathit{num\_dot\_sym\_char}
+        \mathit{num\_dot\_sym\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"."} \\
-        \mathit{num\_sep\_sym\_char}
+        \mathit{num\_sep\_sym\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\_"} \\
-        \mathit{hexit\_char}
-        &\Coloneq &\mathit{digit\_char} \\
+        \mathit{hexit\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{digit\_char}^\mathrm{lex} \\
         &\mathrel{/} &\texttt{"A"} \mathrel{/} \texttt{"B"} \mathrel{/} \cdots \mathrel{/} \texttt{"F"} \\
         &\mathrel{/} &\texttt{"a"} \mathrel{/} \texttt{"b"} \mathrel{/} \cdots \mathrel{/} \texttt{"f"} \\
-        \mathit{hexit\_prefix\_char}
+        \mathit{hexit\_prefix\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"x"} \mathrel{/} \texttt{"X"} \\
-        \mathit{digit\_prefix\_char}
+        \mathit{digit\_prefix\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"d"} \mathrel{/} \texttt{"D"}
     \end{array}
 \end{align*}
@@ -114,46 +118,46 @@ String Literal:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{interp\_string\_part}
-        &\Coloneq &\mathit{interp\_string\_start} \\
-        &\mathrel{/} &\mathit{interp\_string\_cont} \\
-        &\mathrel{/} &\mathit{interp\_string\_end} \\
-        \mathit{string}
-        &\Coloneq &\mathit{string\_sep\_char}\; \mathit{interp\_string\_graphic}{*}\; \mathit{string\_sep\_char} \\
-        \mathit{interp\_string\_start}
-        &\Coloneq &\mathit{string\_sep\_char}\; \mathit{interp\_string\_graphic}{*}\; \mathit{interp\_open} \\
-        \mathit{interp\_string\_cont}
-        &\Coloneq &\mathit{interp\_close}\; \mathit{interp\_string\_graphic}{*}\; \mathit{interp\_open} \\
-        \mathit{interp\_string\_end}
-        &\Coloneq &\mathit{interp\_close}\; \mathit{interp\_string\_graphic}{*}\; \mathit{string\_sep\_char} \\
-        \mathit{interp\_open}
-        &\Coloneq &\mathit{interp\_open\_char}\; \texttt{"\{"} \\
-        \mathit{interp\_close}
-        &\Coloneq &\mathit{keyword\_prefix\_char}\; \texttt{"\}"} \\
-        \mathit{escape\_open\_char}
+        \mathit{interp\_string\_part}^\mathrm{lex}
+        &\Coloneq &\mathit{interp\_string\_start}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{interp\_string\_cont}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{interp\_string\_end}^\mathrm{lex} \\
+        \mathit{string}^\mathrm{lex}
+        &\Coloneq &\mathit{string\_sep\_char}^\mathrm{lex}\; \mathit{interp\_string\_graphic}^\mathrm{lex}{*}\; \mathit{string\_sep\_char}^\mathrm{lex} \\
+        \mathit{interp\_string\_start}^\mathrm{lex}
+        &\Coloneq &\mathit{string\_sep\_char}^\mathrm{lex}\; \mathit{interp\_string\_graphic}^\mathrm{lex}{*}\; \mathit{interp\_open}^\mathrm{lex} \\
+        \mathit{interp\_string\_cont}^\mathrm{lex}
+        &\Coloneq &\mathit{interp\_close}^\mathrm{lex}\; \mathit{interp\_string\_graphic}^\mathrm{lex}{*}\; \mathit{interp\_open}^\mathrm{lex} \\
+        \mathit{interp\_string\_end}^\mathrm{lex}
+        &\Coloneq &\mathit{interp\_close}^\mathrm{lex}\; \mathit{interp\_string\_graphic}^\mathrm{lex}{*}\; \mathit{string\_sep\_char}^\mathrm{lex} \\
+        \mathit{interp\_open}^\mathrm{lex}
+        &\Coloneq &\mathit{interp\_open\_char}^\mathrm{lex}\; \texttt{"\{"} \\
+        \mathit{interp\_close}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_prefix\_char}^\mathrm{lex}\; \texttt{"\}"} \\
+        \mathit{escape\_open\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash"} \\
-        \mathit{interp\_open\_char}
-        &\Coloneq &\mathit{keyword\_prefix\_char} \\
-        \mathit{interp\_string\_graphic}
-        &\Coloneq &\mathit{uni\_escape} \\
-        &\mathrel{/} &\mathit{bstr\_graphic} \\
-        \mathit{bstr\_graphic}
-        &\Coloneq &\mathit{byte\_escape} \\
-        &\mathrel{/} &\mathit{char\_escape} \\
-        &\mathrel{/} &\mathit{bstr\_graphic\_char} \\
-        \mathit{bstr\_graphic\_char}
-        &\Coloneq &\mathit{white\_char} \\
-        &\mathrel{/} &(\mathop{!} (\mathit{escape\_open\_char} \mathrel{/} \mathit{string\_sep\_char} \mathrel{/} \mathit{interp\_open\_char}))\; \mathit{graphic\_char} \\
-        \mathit{uni\_escape}
-        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{unicode\_prefix\_char}\; \texttt{"\{"}\; \mathit{hexit\_char}{+}\; \texttt{"\}"} \\
-        \mathit{byte\_escape}
-        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{hexit\_prefix\_char}\; \mathit{hexit\_char}\; \mathit{hexit\_char} \\
-        \mathit{char\_escape}
-        &\Coloneq &\mathit{escape\_open\_char}\; \mathit{charesc\_char} \\
-        \mathit{charesc\_char}
+        \mathit{interp\_open\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_prefix\_char}^\mathrm{lex} \\
+        \mathit{interp\_string\_graphic}^\mathrm{lex}
+        &\Coloneq &\mathit{uni\_escape}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{bstr\_graphic}^\mathrm{lex} \\
+        \mathit{bstr\_graphic}^\mathrm{lex}
+        &\Coloneq &\mathit{byte\_escape}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{char\_escape}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{bstr\_graphic\_char}^\mathrm{lex} \\
+        \mathit{bstr\_graphic\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{white\_char}^\mathrm{lex} \\
+        &\mathrel{/} &(\mathop{!} (\mathit{escape\_open\_char}^\mathrm{lex} \mathrel{/} \mathit{string\_sep\_char}^\mathrm{lex} \mathrel{/} \mathit{interp\_open\_char}^\mathrm{lex}))\; \mathit{graphic\_char}^\mathrm{lex} \\
+        \mathit{uni\_escape}^\mathrm{lex}
+        &\Coloneq &\mathit{escape\_open\_char}^\mathrm{lex}\; \mathit{unicode\_prefix\_char}^\mathrm{lex}\; \texttt{"\{"}\; \mathit{hexit\_char}^\mathrm{lex}{+}\; \texttt{"\}"} \\
+        \mathit{byte\_escape}^\mathrm{lex}
+        &\Coloneq &\mathit{escape\_open\_char}^\mathrm{lex}\; \mathit{hexit\_prefix\_char}^\mathrm{lex}\; \mathit{hexit\_char}^\mathrm{lex}\; \mathit{hexit\_char}^\mathrm{lex} \\
+        \mathit{char\_escape}^\mathrm{lex}
+        &\Coloneq &\mathit{escape\_open\_char}^\mathrm{lex}\; \mathit{charesc\_char}^\mathrm{lex} \\
+        \mathit{charesc\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"0"} \mathrel{/} \texttt{"a"} \mathrel{/} \texttt{"b"} \mathrel{/} \texttt{"f"} \mathrel{/} \texttt{"n"} \mathrel{/} \texttt{"r"} \mathrel{/} \texttt{"t"} \mathrel{/} \texttt{"v"} \\
-        &\mathrel{/} &\mathit{escape\_open\_char} \mathrel{/} \mathit{string\_sep\_char} \mathrel{/} \mathit{interp\_open\_char} \\
-        \mathit{unicode\_prefix\_char}
+        &\mathrel{/} &\mathit{escape\_open\_char}^\mathrm{lex} \mathrel{/} \mathit{string\_sep\_char}^\mathrm{lex} \mathrel{/} \mathit{interp\_open\_char}^\mathrm{lex} \\
+        \mathit{unicode\_prefix\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"u"} \mathrel{/} \texttt{"U"}
     \end{array}
 \end{align*}
@@ -162,11 +166,11 @@ White Space:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{whitespace}
-        &\Coloneq &\mathit{whitestuff}{+} \\
-        \mathit{whitestuff}
-        &\Coloneq &\mathit{white\_char} \\
-        &\mathrel{/} &\mathit{comment}
+        \mathit{whitespace}^\mathrm{lex}
+        &\Coloneq &\mathit{whitestuff}^\mathrm{lex}{+} \\
+        \mathit{whitestuff}^\mathrm{lex}
+        &\Coloneq &\mathit{white\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{comment}^\mathrm{lex}
     \end{array}
 \end{align*}
 
@@ -174,27 +178,27 @@ Comment:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{comment}
-        &\Coloneq &\mathit{line\_comment} \\
-        &\mathrel{/} &\mathit{multiline\_comment} \\
-        \mathit{line\_comment}
-        &\Coloneq &\mathit{line\_comment\_open}\; \mathit{any\_1l\_char}{*}\; (\mathit{newline} \mathrel{/} \mathbf{EOS}) \\
-        \mathit{multiline\_comment}
-        &\Coloneq &\mathit{multiline\_comment\_open}; \mathit{anys}\; (\mathit{multiline\_comment\_close} \mathrel{/} \mathbf{EOS}) \\
-        \mathit{line\_comment\_open}
+        \mathit{comment}^\mathrm{lex}
+        &\Coloneq &\mathit{line\_comment}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{multiline\_comment}^\mathrm{lex} \\
+        \mathit{line\_comment}^\mathrm{lex}
+        &\Coloneq &\mathit{line\_comment\_open}^\mathrm{lex}\; \mathit{any\_1l\_char}^\mathrm{lex}{*}\; (\mathit{newline}^\mathrm{lex} \mathrel{/} \mathbf{EOS}^\mathrm{lex}) \\
+        \mathit{multiline\_comment}^\mathrm{lex}
+        &\Coloneq &\mathit{multiline\_comment\_open}^\mathrm{lex}; \mathit{anys}^\mathrm{lex}\; (\mathit{multiline\_comment\_close}^\mathrm{lex} \mathrel{/} \mathbf{EOS}^\mathrm{lex}) \\
+        \mathit{line\_comment\_open}^\mathrm{lex}
         &\Coloneq &\texttt{"//"} \\
-        \mathit{multiline\_comment\_open}
+        \mathit{multiline\_comment\_open}^\mathrm{lex}
         &\Coloneq &\texttt{"/*"} \\
-        \mathit{multiline\_comment\_close}
+        \mathit{multiline\_comment\_close}^\mathrm{lex}
         &\Coloneq &\texttt{"*/"} \\
-        \mathit{any\_1l\_char}
-        &\Coloneq &\mathit{graphic\_char} \\
-        &\mathrel{/} &\mathit{space\_char} \\
-        \mathit{anys}
-        &\Coloneq &((\mathop{!} \mathit{multiline\_comment\_close})\; \mathit{any\_char}){*} \\
-        \mathit{any\_char}
-        &\Coloneq &\mathit{graphic\_char} \\
-        &\mathrel{/} &\mathit{white\_char}
+        \mathit{any\_1l\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{graphic\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{space\_char}^\mathrm{lex} \\
+        \mathit{anys}^\mathrm{lex}
+        &\Coloneq &((\mathop{!} \mathit{multiline\_comment\_close}^\mathrm{lex})\; \mathit{any\_char}^\mathrm{lex}){*} \\
+        \mathit{any\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{graphic\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{white\_char}^\mathrm{lex}
     \end{array}
 \end{align*}
 
@@ -202,45 +206,44 @@ Base Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{graphic\_char}
-        &\Coloneq &\mathit{small\_char} \\
-        &\mathrel{/} &\mathit{large\_char} \\
-        &\mathrel{/} &\mathit{symbol\_char} \\
-        &\mathrel{/} &\mathit{digit\_char} \\
-        &\mathrel{/} &\mathit{other\_char} \\
-        &\mathrel{/} &\mathit{special\_char} \\
-        &\mathrel{/} &\mathit{other\_special\_char} \\
-        &\mathrel{/} &\mathit{other\_graphic\_char} \\
-        \mathit{id\_char}
-        &\Coloneq &\mathit{id\_small\_char} \\
-        &\mathrel{/} &\mathit{id\_large\_char} \\
-        &\mathrel{/} &\mathit{digit\_char} \\
-        &\mathrel{/} &\mathit{other\_char} \\
-        \mathit{id\_small\_char}
-        &\Coloneq &\mathit{small\_char} \\
-        \mathit{id\_large\_char}
-        &\Coloneq &\mathit{large\_char} \\
-        \mathit{sym\_char}
-        &\Coloneq &\mathit{sym\_normal\_char} \\
-        &\mathrel{/} &\mathit{sym\_sp\_char} \\
-        &\mathrel{/} &\mathit{other\_char} \\
-        \mathit{sym\_normal\_char}
-        &\Coloneq &(\mathop{!} \mathit{sym\_sp\_char})\; \mathit{symbol\_char} \\
-        \mathit{sym\_sp\_char}
+        \mathit{graphic\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{small\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{large\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{symbol\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{digit\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{other\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{special\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{other\_graphic\_char}^\mathrm{lex} \\
+        \mathit{id\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{id\_small\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{id\_large\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{digit\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{other\_char}^\mathrm{lex} \\
+        \mathit{id\_small\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{small\_char}^\mathrm{lex} \\
+        \mathit{id\_large\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{large\_char}^\mathrm{lex} \\
+        \mathit{sym\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{sym\_normal\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{sym\_sp\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{other\_char}^\mathrm{lex} \\
+        \mathit{sym\_normal\_char}^\mathrm{lex}
+        &\Coloneq &(\mathop{!} \mathit{sym\_sp\_char}^\mathrm{lex})\; \mathit{symbol\_char}^\mathrm{lex} \\
+        \mathit{sym\_sp\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textasciitilde"} \\
-        \mathit{white\_char}
+        \mathit{white\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash v"} \\
-        &\mathrel{/} &\mathit{space\_char} \\
-        &\mathrel{/} &\mathit{newline\_char} \\
-        \mathit{space\_char}
+        &\mathrel{/} &\mathit{space\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{newline\_char}^\mathrm{lex} \\
+        \mathit{space\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash t"} \\
         &\mathrel{/} &\texttt{"\textbackslash u\{200E\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash u\{200F\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Space\_Separator\}"} \\
-        \mathit{newline}
+        \mathit{newline}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash r\textbackslash n"} \\
-        &\mathrel{/} &\mathit{newline\_char} \\
-        \mathit{newline\_char}
+        &\mathrel{/} &\mathit{newline\_char}^\mathrm{lex} \\
+        \mathit{newline\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash r"} \\
         &\mathrel{/} &\texttt{"\textbackslash n"} \\
         &\mathrel{/} &\texttt{"\textbackslash f"} \\
@@ -251,25 +254,25 @@ Base Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{small\_char}
+        \mathit{small\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Lowercase\_Letter\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Other\_Letter\}"} \\
         &\mathrel{/} &\texttt{"\_"} \\
-        \mathit{large\_char}
+        \mathit{large\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Uppercase\_Letter\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Titlecase\_Letter\}"} \\
-        \mathit{symbol\_char}
-        &\Coloneq &(\mathop{!} (\mathit{special\_char} \mathrel{/} \mathit{other\_special\_char} \mathrel{/} "\_"))\; \mathit{symbol\_cat\_char} \\
-        \mathit{symbol\_cat\_char}
+        \mathit{symbol\_char}^\mathrm{lex}
+        &\Coloneq &(\mathop{!} (\mathit{special\_char}^\mathrm{lex} \mathrel{/} "\_"))\; \mathit{symbol\_cat\_char}^\mathrm{lex} \\
+        \mathit{symbol\_cat\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Connector\_Punctuation\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Dash\_Punctuation\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Other\_Punctuation\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Symbol\}"} \\
-        \mathit{digit\_char}
+        \mathit{digit\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Decimal\_Number\}"} \\
-        \mathit{other\_char}
-        &\Coloneq &(\mathop{!} \mathit{white\_char})\; \mathit{other\_cat\_char} \\
-        \mathit{other\_cat\_char}
+        \mathit{other\_char}^\mathrm{lex}
+        &\Coloneq &(\mathop{!} \mathit{white\_char}^\mathrm{lex})\; \mathit{other\_cat\_char}^\mathrm{lex} \\
+        \mathit{other\_cat\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Modifier\_Letter\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Mark\}"} \\
         &\mathrel{/} &\texttt{"\textbackslash p\{General\_Category=Letter\_Number\}"} \\
@@ -280,7 +283,10 @@ Base Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{special\_char}
+        \mathit{special\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{delimit\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{special\_prefix\_char}^\mathrm{lex} \\
+        \mathit{delimit\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\{"} \\
         &\mathrel{/} &\texttt{"\}"} \\
         &\mathrel{/} &\texttt{"["} \\
@@ -289,17 +295,17 @@ Base Unit:
         &\mathrel{/} &\texttt{")"} \\
         &\mathrel{/} &\texttt{";"} \\
         &\mathrel{/} &\texttt{".""} \\
-        \mathit{other\_special\_char}
-        &\Coloneq &\mathit{keyword\_prefix\_char} \\
-        &\mathrel{/} &\mathit{string\_sep\_char} \\
+        \mathit{special\_prefix\_char}^\mathrm{lex}
+        &\Coloneq &\mathit{keyword\_prefix\_char}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{string\_sep\_char}^\mathrm{lex} \\
         &\mathrel{/} &\texttt{"'"} \\
-        \mathit{keyword\_prefix\_char}
+        \mathit{keyword\_prefix\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\#"} \\
-        \mathit{string\_sep\_char}
+        \mathit{string\_sep\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash \textbackslash "} \\
-        \mathit{other\_graphic\_char}
-        &\Coloneq &(\mathop{!} (\mathit{symbol\_cat\_char} \mathrel{/} \mathit{special\_char} \mathrel{/} \mathit{other\_special\_char}))\; \mathit{other\_graphic\_cat\_char} \\
-        \mathit{other\_graphic\_cat\_char}
+        \mathit{other\_graphic\_char}^\mathrm{lex}
+        &\Coloneq &(\mathop{!} (\mathit{symbol\_cat\_char}^\mathrm{lex} \mathrel{/} \mathit{special\_char}^\mathrm{lex}))\; \mathit{other\_graphic\_cat\_char}^\mathrm{lex} \\
+        \mathit{other\_graphic\_cat\_char}^\mathrm{lex}
         &\Coloneq &\texttt{"\textbackslash p\{General\_Category=Punctuation\}"}
     \end{array}
 \end{align*}
@@ -314,7 +320,7 @@ Pre-Process:
         \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
         \Comment{Insert the top-level implicit layout.}
         \While{$(\mathit{current\_token}, \mathit{current\_line}, \mathit{current\_col}) \assign \mathbf{consume}$}
-            \If{$\mathit{current\_token} \not\in \mathcal{A}_\mathit{lexeme}$}
+            \If{$\mathit{current\_token} \not\in \mathcal{A}_{\mathit{lexeme}^\mathrm{lex}}$}
                 \State{$\mathbf{continue}$}
                 \Comment{Skip white-spaces.}
             \EndIf
@@ -327,11 +333,11 @@ Pre-Process:
                 \State{$\mathit{pre\_line} \assign \mathit{current\_line}$}
             \EndIf
             \State{$\mathbf{yield}\; \mathit{current\_token}$}
-            \If{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_imp\_open} \cup \mathcal{A}_\mathit{lp\_imp\_open}$}
+            \If{$\mathit{current\_token} \in \mathcal{A}_{\mathit{lb\_imp\_open}^\mathrm{lex}} \cup \mathcal{A}_{\mathit{lp\_imp\_open}^\mathrm{lex}}$}
                 \State{$\mathit{should\_open\_imp\_layout} \assign \top$}
-            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_exp\_open} \cup \mathcal{A}_\mathit{lp\_exp\_open}$}
+            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_{\mathit{lb\_exp\_open}^\mathrm{lex}} \cup \mathcal{A}_{\mathit{lp\_exp\_open}^\mathrm{lex}}$}
                 \State{$\mathbf{yield}\; \{\mathrm{open\_exp}\}$}
-            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_\mathit{lb\_close} \cup \mathcal{A}_\mathit{lp\_close}$}
+            \ElsIf{$\mathit{current\_token} \in \mathcal{A}_{\mathit{lb\_close}^\mathrm{lex}} \cup \mathcal{A}_{\mathit{lp\_close}^\mathrm{lex}}$}
                 \State{$\mathbf{yield}\; \{\mathrm{close}\}$}
             \EndIf
         \EndWhile
