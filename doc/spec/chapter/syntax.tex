@@ -390,18 +390,18 @@ Add Layout Tokens:
     \EndProcedure
 \end{algorithmic}
 
-\section{The Grammar}
+\section{Parsing Structure}
 
 Program:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{program}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{program\_body}\; \mathit{lb\_close}\; \mathbf{EOS} \\
-        &\mathrel{/} &\mathit{program\_body}\; \mathbf{EOS} \\
-        \mathit{program\_body}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{decl}\; (\mathit{lsemis}\; \mathit{decl}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?}
+        \mathit{program}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{program\_body}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{program\_body}^\mathrm{parse} \\
+        \mathit{program\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{decl}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{decl}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?}
     \end{array}
 \end{align*}
 
@@ -409,13 +409,13 @@ Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{decl}
-        &\Coloneq &\mathit{decl\_func} \\
-        &\mathrel{/} &\mathit{bind\_prom\_type} \\
-        \mathit{decl\_func}
-        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}\; \mathit{type\_tuple\_sig}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{expr} \\
-        \mathit{decl\_sig}
-        &\Coloneq &\texttt{":"}\; \mathit{type}
+        \mathit{decl}^\mathrm{parse}
+        &\Coloneq &\mathit{decl\_func}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_prom\_type}^\mathrm{parse} \\
+        \mathit{decl\_func}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#fun"}\; \mathit{declvar}^\mathrm{parse}\; \mathit{type\_tuple\_sig}^\mathrm{parse}\; \mathit{decl\_sig}^\mathrm{parse}{?}\; \texttt{"="}\; \mathit{expr}^\mathrm{parse} \\
+        \mathit{decl\_sig}^\mathrm{parse}
+        &\Coloneq &\texttt{":"}\; \mathit{type}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -423,30 +423,30 @@ Local Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{local\_decl}
-        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_body} \\
-        &\mathrel{/} &\texttt{"\#rec"}\; \mathit{let\_body} \\
-        &\mathrel{/} &\mathit{decl\_func} \\
-        \mathit{local\_type\_decl}
-        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_type\_body} \\
-        \mathit{let\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_body\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{let\_body\_item} \\
-        \mathit{let\_body\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_body\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{let\_body\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        \mathit{let\_type\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{let\_type\_body\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{let\_type\_body\_item} \\
-        \mathit{let\_type\_body\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{let\_type\_body\_item}\; (\mathit{lsemis}\; \mathit{let\_type\_body\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{let\_type\_body\_item}
-        &\Coloneq & \mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_type}
+        \mathit{local\_decl}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_body}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\#rec"}\; \mathit{let\_body}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{decl\_func}^\mathrm{parse} \\
+        \mathit{local\_type\_decl}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{let\_type\_body}^\mathrm{parse} \\
+        \mathit{let\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{let\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{let\_item}^\mathrm{parse} \\
+        \mathit{let\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{let\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{let\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{let\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{parse} \\
+        \mathit{let\_type\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{let\_type\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{let\_type\_item}^\mathrm{parse} \\
+        \mathit{let\_type\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{let\_type\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{let\_type\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{let\_type\_item}^\mathrm{parse}
+        &\Coloneq & \mathit{bind\_prom\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_type}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -454,24 +454,24 @@ Where Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{where\_decl}
-        &\Coloneq &\texttt{"\#where"}\; \mathit{where\_body} \\
-        \mathit{where\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{where\_body\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{where\_body\_item} \\
-        \mathit{where\_body\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{where\_body\_item}\; (\mathit{lsemis}\; \mathit{where\_body\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{where\_body\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        &\mathrel{/} &\mathit{local\_decl} \\
-        \mathit{bind\_expr}
-        &\Coloneq &\mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{expr} \\
-        \mathit{bind\_type}
-        &\Coloneq &\mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{type} \\
-        \mathit{bind\_prom\_type}
-        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}\; \mathit{decl\_sig}{?}\; \texttt{"="}\; \mathit{type}
+        \mathit{where\_decl}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#where"}\; \mathit{where\_body}^\mathrm{parse} \\
+        \mathit{where\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{where\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{where\_item}^\mathrm{parse} \\
+        \mathit{where\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{where\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{where\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{where\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{parse} \\
+        \mathit{bind\_expr}^\mathrm{parse}
+        &\Coloneq &\mathit{bindvar}^\mathrm{parse}\; \mathit{decl\_sig}^\mathrm{parse}{?}\; \texttt{"="}\; \mathit{expr}^\mathrm{parse} \\
+        \mathit{bind\_type}^\mathrm{parse}
+        &\Coloneq &\mathit{bindvar}^\mathrm{parse}\; \mathit{decl\_sig}^\mathrm{parse}{?}\; \texttt{"="}\; \mathit{type}^\mathrm{parse} \\
+        \mathit{bind\_prom\_type}^\mathrm{parse}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}^\mathrm{parse}\; \mathit{decl\_sig}^\mathrm{parse}{?}\; \texttt{"="}\; \mathit{type}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -479,97 +479,99 @@ Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr}
-        &\Coloneq &\mathit{expr\_ann}\; \mathit{where\_decl}{*} \\
-        \mathit{expr\_ann}
-        &\Coloneq &\mathit{expr\_infix}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{expr\_infix} \\
-        \mathit{expr\_infix}
-        &\Coloneq &\mathit{expr\_apps}\; (\mathit{expr\_op}\; \mathit{expr\_apps}){*} \\
-        \mathit{expr\_op}
-        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{expr}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
-        &\mathrel{/} &\mathit{sym} \\
-        \mathit{expr\_apps}
-        &\Coloneq &\mathit{expr\_struct}\; \mathit{expr\_app\_arg}{*} \\
-        \mathit{expr\_app\_arg}
-        &\Coloneq &\mathit{expr\_tuple} \\
-        \mathit{expr\_struct}
-        &\Coloneq &\texttt{"\textbackslash"}\; \mathit{expr} \\
-        &\mathrel{/} &\texttt{"\#match"}\; \mathit{expr\_tuple\_items}\; \texttt{"\#in"}\; \mathit{expr} \\
-        &\mathrel{/} &\texttt{"\#case"}\; \mathit{case\_body} \\
-        &\mathrel{/} &\texttt{"\#when"}\; \mathit{case\_body} \\
-        &\mathrel{/} &\mathit{expr\_atomic} \\
-        \mathit{expr\_atomic}
-        &\Coloneq &\mathit{expr\_proc} \\
-        &\mathrel{/} &\mathit{expr\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{expr\_interp\_string} \\
-        &\mathrel{/} &\mathit{expr\_tuple} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var}
+        \mathit{expr}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_ann}^\mathrm{parse}\; \mathit{where\_decl}^\mathrm{parse}{*} \\
+        \mathit{expr\_ann}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_infix}^\mathrm{parse}\; \texttt{":"}\; \mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr\_infix}^\mathrm{parse} \\
+        \mathit{expr\_infix}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_apps}^\mathrm{parse}\; (\mathit{expr\_op}^\mathrm{parse}\; \mathit{expr\_apps}^\mathrm{parse}){*} \\
+        \mathit{expr\_op}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{expr}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{lp\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{sym}^\mathrm{parse} \\
+        \mathit{expr\_apps}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_struct}^\mathrm{parse}\; \mathit{expr\_app\_arg}^\mathrm{parse}{*} \\
+        \mathit{expr\_app\_arg}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_tuple}^\mathrm{parse} \\
+        \mathit{expr\_struct}^\mathrm{parse}
+        &\Coloneq &\texttt{"\textbackslash"}\; \mathit{expr}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\#match"}\; \mathit{expr\_tuple\_items}^\mathrm{parse}\; \texttt{"\#in"}\; \mathit{expr}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\#case"}\; \mathit{case\_body}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\#when"}\; \mathit{case\_body}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr\_atomic}^\mathrm{parse} \\
+        \mathit{expr\_atomic}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_proc}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr\_block}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{expr\_interp\_string}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr\_tuple}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{con}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{var}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{case\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{case\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{case\_item} \\
-        \mathit{case\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{case\_item}\; (\mathit{lsemis}\; \mathit{case\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{case\_item}
-        &\Coloneq &\mathit{view}\; \texttt{"\#-"}\; \mathit{expr}
+        \mathit{case\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{case\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{case\_item}^\mathrm{parse} \\
+        \mathit{case\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{case\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{case\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{case\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{view}^\mathrm{parse}\; \texttt{"\#-"}\; \mathit{expr}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_proc}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_proc\_items}\; \mathit{lb\_close} \\
-        \mathit{expr\_proc\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_proc\_item}\; (\mathit{lsemis}\; \mathit{expr\_proc\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{expr\_proc\_item}
-        &\Coloneq &\mathit{pat\_tuple\_items}\; \mathit{pat\_guard}{?}\; \texttt{"\#-"}\; \mathit{expr}
+        \mathit{expr\_proc}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{expr\_proc\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        \mathit{expr\_proc\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{expr\_proc\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{expr\_proc\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{expr\_proc\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_tuple\_items}^\mathrm{parse}\; \mathit{pat\_guard}^\mathrm{parse}{?}\; \texttt{"\#-"}\; \mathit{expr}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_block}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{expr\_block\_items}\; \mathit{lb\_close} \\
-        \mathit{expr\_block\_items}
-        &\mathrel{/} &\mathit{lsemis}{?}\; \mathit{expr\_block\_item}\; (\mathit{lsemis}\; \mathit{expr\_block\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{expr\_block\_item}
-        &\Coloneq &\mathit{expr} \\
-        &\mathrel{/} &\mathit{local\_decl}
+        \mathit{expr\_block}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{expr\_block\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        \mathit{expr\_block\_items}^\mathrm{parse}
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{expr\_block\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{expr\_block\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{expr\_block\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{expr}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_interp\_string}
-        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block\_items}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
-        \mathit{expr\_interp\_string\_item}
-        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block\_items}
+        \mathit{expr\_interp\_string}^\mathrm{parse}
+        &\Coloneq &\mathit{interp\_string\_start}^\mathrm{parse}\; \mathit{expr\_interp\_string\_items}^\mathrm{parse}\; \mathit{interp\_string\_end}^\mathrm{parse} \\
+        \mathit{expr\_interp\_string\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{expr\_block\_items}^\mathrm{parse}\; \mathit{expr\_interp\_string\_item}^\mathrm{parse}{*} \\
+        \mathit{expr\_interp\_string\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{interp\_string\_cont}^\mathrm{parse}\; \mathit{expr\_block\_items}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_tuple}
-        &\Coloneq &\mathit{lp\_open}\; \mathit{expr\_tuple\_items}\; \mathit{lp\_close} \\
-        \mathit{expr\_tuple\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{expr\_tuple\_item}\; (\mathit{lsemis}\; \mathit{expr\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{expr\_tuple\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{expr} \\
-        &\mathrel{/} &\mathit{local\_decl}
+        \mathit{expr\_tuple}^\mathrm{parse}
+        &\Coloneq &\mathit{lp\_open}^\mathrm{parse}\; \mathit{expr\_tuple\_items}^\mathrm{parse}\; \mathit{lp\_close}^\mathrm{parse} \\
+        \mathit{expr\_tuple\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{expr\_tuple\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{expr\_tuple\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{expr\_tuple\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -577,92 +579,92 @@ Type Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type}
-        &\Coloneq &\mathit{type\_ann}\; \mathit{where\_decl}{*} \\
-        \mathit{type\_ann}
-        &\Coloneq &\mathit{type\_infix}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{type\_infix} \\
-        \mathit{type\_infix}
-        &\Coloneq &\mathit{type\_apps}\; (\mathit{type\_op}\; \mathit{type\_apps}){*} \\
-        \mathit{type\_op}
-        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{type}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
-        &\mathrel{/} &\mathit{sym} \\
-        \mathit{type\_apps}
-        &\Coloneq &\mathit{type\_atomic}\; \mathit{type\_app\_arg}{*} \\
-        \mathit{type\_app\_arg}
-        &\Coloneq &\mathit{type\_tuple} \\
-        \mathit{type\_atomic}
-        &\Coloneq &\mathit{type\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{type\_literal} \\
-        &\mathrel{/} &\mathit{type\_func\_sig} \\
-        &\mathrel{/} &\mathit{type\_block\_sig} \\
-        &\mathrel{/} &\mathit{type\_tuple} \\
-        &\mathrel{/} &\mathit{type\_tuple\_sig} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var}
+        \mathit{type}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_ann}^\mathrm{parse}\; \mathit{where\_decl}^\mathrm{parse}{*} \\
+        \mathit{type\_ann}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_infix}^\mathrm{parse}\; \texttt{":"}\; \mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_infix}^\mathrm{parse} \\
+        \mathit{type\_infix}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_apps}^\mathrm{parse}\; (\mathit{type\_op}^\mathrm{parse}\; \mathit{type\_apps}^\mathrm{parse}){*} \\
+        \mathit{type\_op}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{type}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{lp\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{sym}^\mathrm{parse} \\
+        \mathit{type\_apps}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_atomic}^\mathrm{parse}\; \mathit{type\_app\_arg}^\mathrm{parse}{*} \\
+        \mathit{type\_app\_arg}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_tuple}^\mathrm{parse} \\
+        \mathit{type\_atomic}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_block}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{type\_literal}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_func\_sig}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_block\_sig}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_tuple}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_tuple\_sig}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{con}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{var}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_block}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{type\_block\_items}\; \mathit{lb\_close} \\
-        \mathit{type\_block\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_block\_item}\; (\mathit{lsemis}\; \mathit{type\_block\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{type\_block\_item}
-        &\Coloneq &\mathit{type} \\
-        &\mathrel{/} &\mathit{local\_type\_decl}
+        \mathit{type\_block}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{type\_block\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        \mathit{type\_block\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{type\_block\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{type\_block\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{type\_block\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_literal}
-        &\Coloneq &\mathrm{\#Type} \\
-        &\mathrel{/} &\mathrm{\#String} \\
-        &\mathrel{/} &\mathrm{\#Integer} \\
-        &\mathrel{/} &\mathrm{\#Rational} \\
-        &\mathrel{/} &\mathrm{\#Proc}
+        \mathit{type\_literal}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#Type"} \\
+        &\mathrel{/} &\texttt{"\#String"} \\
+        &\mathrel{/} &\texttt{"\#Integer"} \\
+        &\mathrel{/} &\texttt{"\#Rational"} \\
+        &\mathrel{/} &\texttt{"\#Proc"}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_func\_sig}
-        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#>"}\; \mathit{type} \\
-        \mathit{type\_block\_sig}
-        &\Coloneq &\mathit{type\_tuple\_sig}\; \texttt{"\#-|"}\; \mathit{type}
+        \mathit{type\_func\_sig}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_tuple\_sig}^\mathrm{parse}\; \texttt{"\#>"}\; \mathit{type}^\mathrm{parse} \\
+        \mathit{type\_block\_sig}^\mathrm{parse}
+        &\Coloneq &\mathit{type\_tuple\_sig}^\mathrm{parse}\; \texttt{"\#-|"}\; \mathit{type}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_tuple}
-        &\Coloneq &\mathit{lp\_open}\; \mathit{type\_tuple\_items}\; \mathit{lp\_close} \\
-        \mathit{type\_tuple\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_tuple\_item}\; (\mathit{lsemis}\; \mathit{type\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{type\_tuple\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_type} \\
-        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type\_infix} \\
-        &\mathrel{/} &\mathit{type\_infix} \\
-        &\mathrel{/} &\mathit{local\_type\_decl}
+        \mathit{type\_tuple}^\mathrm{parse}
+        &\Coloneq &\mathit{lp\_open}^\mathrm{parse}\; \mathit{type\_tuple\_items}^\mathrm{parse}\; \mathit{lp\_close}^\mathrm{parse} \\
+        \mathit{type\_tuple\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{type\_tuple\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{type\_tuple\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{type\_tuple\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bind\_type}^\mathrm{parse} \\
+        &\mathrel{/} &\texttt{"\^{}"}\; \mathit{type\_infix}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{type\_infix}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_tuple\_sig}
-        &\Coloneq &\mathit{lp\_open}\; \mathit{type\_tuple\_sig\_items}\; \mathit{lp\_close} \\
-        \mathit{type\_tuple\_sig\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{type\_tuple\_sig\_item}\; (\mathit{lsemis}\; \mathit{type\_tuple\_sig\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{type\_tuple\_sig\_item}
-        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{bindvar}\; \texttt{":"}\; \mathit{type}
+        \mathit{type\_tuple\_sig}^\mathrm{parse}
+        &\Coloneq &\mathit{lp\_open}^\mathrm{parse}\; \mathit{type\_tuple\_sig\_items}^\mathrm{parse}\; \mathit{lp\_close}^\mathrm{parse} \\
+        \mathit{type\_tuple\_sig\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{type\_tuple\_sig\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{type\_tuple\_sig\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{type\_tuple\_sig\_item}^\mathrm{parse}
+        &\Coloneq &\texttt{"\^{}"}\; \mathit{bindvar}^\mathrm{parse}\; \texttt{":"}\; \mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bindvar}^\mathrm{parse}\; \texttt{":"}\; \mathit{type}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -670,50 +672,50 @@ Pattern:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat}
-        &\Coloneq &\mathit{pat\_ann}\; \mathit{pat\_guard}{*} \\
-        \mathit{pat\_guard}
-        &\Coloneq &\texttt{"\#if"}\; \mathit{view} \\
-        \mathit{pat\_ann}
-        &\Coloneq &\mathit{pat\_infix}\; \texttt{":"}\; \mathit{type} \\
-        &\mathrel{/} &\mathit{pat\_infix} \\
-        \mathit{pat\_infix}
-        &\Coloneq &\mathit{pat\_apps}\; (\mathit{pat\_op}\; \mathit{pat\_apps}){*} \\
-        \mathit{pat\_op}
-        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; \mathit{con}\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
-        &\mathrel{/} &\mathit{con\_sym} \\
-        \mathit{pat\_apps}
-        &\Coloneq &\mathit{con}\; \mathit{pat\_app\_arg}{*} \\
-        \mathit{pat\_app\_arg}
-        &\Coloneq &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{pat\_atomic} \\
-        \mathit{pat\_atomic}
-        &\Coloneq &\mathit{pat\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{bindvar}
+        \mathit{pat}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_ann}^\mathrm{parse}\; \mathit{pat\_guard}^\mathrm{parse}{*} \\
+        \mathit{pat\_guard}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#if"}\; \mathit{view}^\mathrm{parse} \\
+        \mathit{pat\_ann}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_infix}^\mathrm{parse}\; \texttt{":"}\; \mathit{type}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{pat\_infix}^\mathrm{parse} \\
+        \mathit{pat\_infix}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_apps}^\mathrm{parse}\; (\mathit{pat\_op}^\mathrm{parse}\; \mathit{pat\_apps}^\mathrm{parse}){*} \\
+        \mathit{pat\_op}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#op"}\; \mathit{lp\_open}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{con}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{lp\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{con\_sym}^\mathrm{lex} \\
+        \mathit{pat\_apps}^\mathrm{parse}
+        &\Coloneq &\mathit{con}^\mathrm{parse}\; \mathit{pat\_app\_arg}^\mathrm{parse}{*} \\
+        \mathit{pat\_app\_arg}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_tuple}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{pat\_atomic}^\mathrm{parse} \\
+        \mathit{pat\_atomic}^\mathrm{parse}
+        &\Coloneq &\mathit{pat\_block}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{pat\_tuple}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{bindvar}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat\_block}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{pat\_block\_items}\; \mathit{lb\_close} \\
-        \mathit{pat\_block\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; (\mathit{view\_block\_item}\; \mathit{lsemis}){*}\; \mathit{pat}\; \mathit{lsemis}{?}
+        \mathit{pat\_block}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{pat\_block\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        \mathit{pat\_block\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; (\mathit{view\_block\_item}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}){*}\; \mathit{pat}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat\_tuple}
-        &\Coloneq &\mathit{lp\_open}\; \mathit{pat\_tuple\_items}\; \mathit{lp\_close} \\
-        \mathit{pat\_tuple\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{pat\_tuple\_item}\; (\mathit{lsemis}\; \mathit{pat\_tuple\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{pat\_tuple\_item}
-        &\Coloneq &\mathit{declvar}\; \texttt{"="}\; \mathit{pat} \\
-        &\mathrel{/} &\mathit{pat}
+        \mathit{pat\_tuple}^\mathrm{parse}
+        &\Coloneq &\mathit{lp\_open}^\mathrm{parse}\; \mathit{pat\_tuple\_items}^\mathrm{parse}\; \mathit{lp\_close}^\mathrm{parse} \\
+        \mathit{pat\_tuple\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{pat\_tuple\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{pat\_tuple\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{pat\_tuple\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{declvar}^\mathrm{parse}\; \texttt{"="}\; \mathit{pat}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{pat}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -721,33 +723,33 @@ View:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{view}
-        &\Coloneq &\mathit{view\_block} \\
-        &\mathrel{/} &\mathit{view\_bind} \\
-        &\mathrel{/} &\mathit{expr} \\
-        \mathit{view\_bind}
-        &\Coloneq &\mathit{pat}\; \texttt{"="}\; \mathit{expr}
+        \mathit{view}^\mathrm{parse}
+        &\Coloneq &\mathit{view\_block}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{view\_bind}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{expr}^\mathrm{parse} \\
+        \mathit{view\_bind}^\mathrm{parse}
+        &\Coloneq &\mathit{pat}^\mathrm{parse}\; \texttt{"="}\; \mathit{expr}^\mathrm{parse}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{view\_block}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_block\_items}\; \mathit{lb\_close} \\
-        \mathit{view\_block\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view\_block\_item}\; (\mathit{lsemis}\; \mathit{view\_block\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{view\_block\_item}
-        &\Coloneq &\texttt{"\#let"}\; \mathit{view\_let\_body} \\
-        &\mathrel{/} &\mathit{view} \\
-        \mathit{view\_let\_body}
-        &\Coloneq &\mathit{lb\_open}\; \mathit{view\_let\_body\_items}\; \mathit{lb\_close} \\
-        &\mathrel{/} &\mathit{view\_let\_body\_item} \\
-        \mathit{view\_let\_body\_items}
-        &\Coloneq &\mathit{lsemis}{?}\; \mathit{view\_let\_body\_item}\; (\mathit{lsemis}\; \mathit{view\_let\_body\_item}){*}\; \mathit{lsemis}{?} \\
-        &\mathrel{/} &\mathit{lsemis}{?} \\
-        \mathit{view\_let\_body\_item}
-        &\Coloneq &\mathit{view\_bind}
+        \mathit{view\_block}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{view\_block\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        \mathit{view\_block\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{view\_block\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{view\_block\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{view\_block\_item}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#let"}\; \mathit{view\_let\_body}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{view}^\mathrm{parse} \\
+        \mathit{view\_let\_body}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_open}^\mathrm{parse}\; \mathit{view\_let\_items}^\mathrm{parse}\; \mathit{lb\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{view\_let\_item}^\mathrm{parse} \\
+        \mathit{view\_let\_items}^\mathrm{parse}
+        &\Coloneq &\mathit{lsemis}^\mathrm{parse}{?}\; \mathit{view\_let\_item}^\mathrm{parse}\; (\mathit{lsemis}^\mathrm{parse}\; \mathit{view\_let\_item}^\mathrm{parse}){*}\; \mathit{lsemis}^\mathrm{parse}{?} \\
+        &\mathrel{/} &\mathit{lsemis}^\mathrm{parse}{?} \\
+        \mathit{view\_let\_item}^\mathrm{parse}
+        &\Coloneq &\mathit{view\_bind}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -755,21 +757,21 @@ Base Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{declvar}
-        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; (\mathit{var\_sym}\; \mathrel{/} \mathit{var\_id})\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
-        &\mathrel{/} &\mathit{var\_id} \\
-        &\mathrel{/} &\mathit{free\_id} \\
-        \mathit{bindvar}
-        &\Coloneq &\mathit{declvar} \\
+        \mathit{declvar}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; (\mathit{var\_sym}^\mathrm{lex}\; \mathrel{/} \mathit{var\_id}^\mathrm{lex})\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{lp\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{var\_id}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{free\_id}^\mathrm{lex} \\
+        \mathit{bindvar}^\mathrm{parse}
+        &\Coloneq &\mathit{declvar}^\mathrm{parse} \\
         &\mathrel{/} &\texttt{"\_"} \\
-        \mathit{sym}
-        &\Coloneq &\mathit{con\_sym} \\
-        &\mathrel{/} &\mathit{var\_sym} \\
-        \mathit{con}
-        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}\; \mathit{lsemis}{?}\; (\mathit{con\_sym}\; \mathrel{/} \mathit{con\_id})\; \mathit{lsemis}{?}\; \mathit{lp\_close} \\
-        &\mathrel{/} &\mathit{con\_id} \\
-        \mathit{var}
-        &\Coloneq &\mathit{declvar}
+        \mathit{sym}^\mathrm{parse}
+        &\Coloneq &\mathit{con\_sym}^\mathrm{lex} \\
+        &\mathrel{/} &\mathit{var\_sym}^\mathrm{lex} \\
+        \mathit{con}^\mathrm{parse}
+        &\Coloneq &\texttt{"\#id"}\; \mathit{lp\_open}^\mathrm{parse}\; \mathit{lsemis}^\mathrm{parse}{?}\; (\mathit{con\_sym}^\mathrm{lex}\; \mathrel{/} \mathit{con\_id}^\mathrm{lex})\; \mathit{lsemis}^\mathrm{parse}{?}\; \mathit{lp\_close}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{con\_id}^\mathrm{lex} \\
+        \mathit{var}^\mathrm{parse}
+        &\Coloneq &\mathit{declvar}^\mathrm{parse}
     \end{array}
 \end{align*}
 
@@ -777,37 +779,45 @@ Layout Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{lb\_open}
-        &\Coloneq &\mathit{lb\_imp\_open} \\
-        &\mathrel{/} &\mathit{lb\_exp\_open} \\
-        \mathit{lb\_imp\_open}
+        \mathit{lb\_open}^\mathrm{parse}
+        &\Coloneq &\mathit{lb\_imp\_open}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{lb\_exp\_open}^\mathrm{parse} \\
+        \mathit{lb\_imp\_open}^\mathrm{parse}
         &\Coloneq &\texttt{"\{"} \\
-        \mathit{lb\_exp\_open}
+        \mathit{lb\_exp\_open}^\mathrm{parse}
         &\Coloneq &\texttt{"\#\{"} \\
-        \mathit{lb\_close}
+        \mathit{lb\_close}^\mathrm{parse}
         &\Coloneq &\texttt{"\}"} \\
-        \mathit{lp\_open}
-        &\Coloneq &\mathit{lp\_imp\_open} \\
-        &\mathrel{/} &\mathit{lp\_exp\_open} \\
-        \mathit{lp\_imp\_open}
+        \mathit{lp\_open}^\mathrm{parse}
+        &\Coloneq &\mathit{lp\_imp\_open}^\mathrm{parse} \\
+        &\mathrel{/} &\mathit{lp\_exp\_open}^\mathrm{parse} \\
+        \mathit{lp\_imp\_open}^\mathrm{parse}
         &\Coloneq &\texttt{"("} \\
-        \mathit{lp\_exp\_open}
+        \mathit{lp\_exp\_open}^\mathrm{parse}
         &\Coloneq &\texttt{"\#("} \\
-        \mathit{lp\_close}
+        \mathit{lp\_close}^\mathrm{parse}
         &\Coloneq &\texttt{")"} \\
-        \mathit{lsemis}
+        \mathit{lsemis}^\mathrm{parse}
         &\Coloneq &(\texttt{<;>}\; \mathrel{/} \texttt{";"}){+}
     \end{array}
 \end{align*}
 
-\section{Parsed Abstract Tree}
+\section{Literal Parsing}
+
+\subsection{Integer}
+
+\subsection{Rational}
+
+\subsection{String}
+
+\section{Abstract Parsed Tree}
 
 Program:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{program}
-        &\Coloneq &\mathrm{\#prog}(\mathit{decl}*)
+        \mathit{program}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#prog}(\mathit{decl}^\mathrm{apt}*)
     \end{array}
 \end{align*}
 
@@ -815,13 +825,13 @@ Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{decl}
-        &\Coloneq &\mathit{decl\_func} \\
-        &\mathrel{/} &\mathit{bind\_prom\_type} \\
-        \mathit{decl\_func}
-        &\Coloneq &\mathrm{\#fun}(\mathit{declvar}; \mathit{type\_tuple\_sig}; \mathit{decl\_sig}; \mathit{expr}) \\
-        \mathit{decl\_sig}
-        &\Coloneq &\mathrm{\#decl\_sig}(\mathit{type}) \\
+        \mathit{decl}^\mathrm{apt}
+        &\Coloneq &\mathit{decl\_func}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        \mathit{decl\_func}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#fun}(\mathit{declvar}^\mathrm{apt}; \mathit{type\_tuple\_sig}^\mathrm{apt}; \mathit{decl\_sig}^\mathrm{apt}; \mathit{expr}^\mathrm{apt}) \\
+        \mathit{decl\_sig}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#decl\_sig}(\mathit{type}^\mathrm{apt}) \\
         &\mathrel{/} &\mathrm{\#decl\_sig\_nothing}
     \end{array}
 \end{align*}
@@ -830,18 +840,18 @@ Local Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{local\_decl}
-        &\Coloneq &\mathrm{\#let}(\mathit{let\_item}{*}) \\
-        &\mathrel{/} &\mathrm{\#rec}(\mathit{let\_item}{*}) \\
-        &\mathrel{/} &\mathit{decl\_func} \\
-        \mathit{local\_type\_decl}
-        &\Coloneq &\mathrm{\#let}(\mathit{let\_type\_item}{*}) \\
-        \mathit{let\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        \mathit{let\_type\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_type}
+        \mathit{local\_decl}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#let}(\mathit{let\_item}^\mathrm{apt}{*}) \\
+        &\mathrel{/} &\mathrm{\#rec}(\mathit{let\_item}^\mathrm{apt}{*}) \\
+        &\mathrel{/} &\mathit{decl\_func}^\mathrm{apt} \\
+        \mathit{local\_type\_decl}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#let}(\mathit{let\_type\_item}^\mathrm{apt}{*}) \\
+        \mathit{let\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{apt} \\
+        \mathit{let\_type\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_type}^\mathrm{apt}
     \end{array}
 \end{align*}
 
@@ -871,7 +881,7 @@ Expression:
         \mathit{expr}
         &\Coloneq &\mathit{expr}\; \mathit{where\_decl} \\
         &\mathrel{/} &\mathit{expr}: \mathit{type} \\
-        &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}; \mathit{expr}; \mathit{expr}) \\
+        &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}; \mathit{expr\_infix\_item}{+}) \\
         &\mathrel{/} &\mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}) \\
         &\mathrel{/} &\lambda(\mathit{expr}) \\
         &\mathrel{/} &\mathrm{\#match}(\mathit{expr\_tuple}; \mathit{expr}) \\
@@ -884,6 +894,13 @@ Expression:
         &\mathrel{/} &\mathit{expr\_tuple} \\
         &\mathrel{/} &\mathit{con} \\
         &\mathrel{/} &\mathit{var}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{expr\_infix\_item}
+        &\Coloneq &\mathrm{\#infix\_item}(\mathit{expr}; \mathit{expr})
     \end{array}
 \end{align*}
 
