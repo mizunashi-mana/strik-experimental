@@ -810,6 +810,12 @@ Layout Unit:
 
 \subsection{String}
 
+\section{Identifier Parsing}
+
+\subsection{Normal Identifier}
+
+\subsection{Free Identifier}
+
 \section{Abstract Parsed Tree}
 
 Program:
@@ -859,18 +865,18 @@ Where Declaration:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{where\_decl}
-        &\Coloneq &\mathrm{\#where}(\mathit{where\_item}{*}) \\
-        \mathit{where\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        &\mathrel{/} &\mathit{local\_decl} \\
-        \mathit{bind\_expr}
-        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{expr}) \\
-        \mathit{bind\_type}
-        &\Coloneq &\mathrm{\#bind\_type}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type}) \\
-        \mathit{bind\_prom\_type}
-        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{bindvar}; \mathit{decl\_sig}; \mathit{type})
+        \mathit{where\_decl}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#where}(\mathit{where\_item}^\mathrm{apt}{*}) \\
+        \mathit{where\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{apt} \\
+        \mathit{bind\_expr}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#bind\_expr}(\mathit{bindvar}^\mathrm{apt}; \mathit{decl\_sig}^\mathrm{apt}; \mathit{expr}^\mathrm{apt}) \\
+        \mathit{bind\_type}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#bind\_type}(\mathit{bindvar}^\mathrm{apt}; \mathit{decl\_sig}^\mathrm{apt}; \mathit{type}^\mathrm{apt}) \\
+        \mathit{bind\_prom\_type}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#bind\_prom}(\mathit{bindvar}^\mathrm{apt}; \mathit{decl\_sig}^\mathrm{apt}; \mathit{type}^\mathrm{apt})
     \end{array}
 \end{align*}
 
@@ -878,82 +884,84 @@ Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr}
-        &\Coloneq &\mathit{expr}\; \mathit{where\_decl} \\
-        &\mathrel{/} &\mathit{expr}: \mathit{type} \\
-        &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}; \mathit{expr\_infix\_item}{+}) \\
-        &\mathrel{/} &\mathrm{\#app}(\mathit{expr}; \mathit{expr\_tuple}) \\
-        &\mathrel{/} &\lambda(\mathit{expr}) \\
-        &\mathrel{/} &\mathrm{\#match}(\mathit{expr\_tuple}; \mathit{expr}) \\
-        &\mathrel{/} &\mathrm{\#case}(\mathit{case\_body}) \\
-        &\mathrel{/} &\mathrm{\#when}(\mathit{case\_body}) \\
-        &\mathrel{/} &\mathit{expr\_proc} \\
-        &\mathrel{/} &\mathit{expr\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{expr\_interp\_string} \\
-        &\mathrel{/} &\mathit{expr\_tuple} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var}
+        \mathit{expr}^\mathrm{apt}
+        &\Coloneq &\mathit{expr}^\mathrm{apt}\; \mathit{where\_decl}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{expr}^\mathrm{apt}: \mathit{type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathrm{\#infix}(\mathit{expr}^\mathrm{apt}; \mathit{expr\_infix\_item}^\mathrm{apt}{+}) \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{expr}^\mathrm{apt}; \mathit{expr\_tuple}^\mathrm{apt}) \\
+        &\mathrel{/} &\lambda(\mathit{expr}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathrm{\#match}(\mathit{expr\_tuple}^\mathrm{apt}; \mathit{expr}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathrm{\#case}(\mathit{case\_body}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathrm{\#when}(\mathit{case\_body}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{expr\_proc}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{expr\_block}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{expr\_interp\_string}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{expr\_tuple}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{con}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{var}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_infix\_item}
-        &\Coloneq &\mathrm{\#infix\_item}(\mathit{expr}; \mathit{expr})
+        \mathit{expr\_infix\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#infix\_item}(\mathit{expr}^\mathrm{apt}; \mathit{expr}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{case\_body}
-        &\Coloneq &\mathrm{\#case\_items}(\mathit{case\_item}{*}) \\
-        \mathit{case\_item}
-        &\Coloneq &\mathrm{\#case\_item}(\mathit{view}; \mathit{expr})
+        \mathit{case\_body}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#case\_items}(\mathit{case\_item}^\mathrm{apt}{*}) \\
+        \mathit{case\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#case\_item}(\mathit{view}^\mathrm{apt}; \mathit{expr}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_proc}
-        &\Coloneq &\mathrm{\#proc\_items}(\mathit{expr\_proc\_item}{*}) \\
-        \mathit{expr\_proc\_item}
-        &\Coloneq &\mathrm{\#proc\_item}(\mathit{pat\_tuple}; \mathit{expr\_proc\_guard}; \mathit{expr}) \\
-        \mathit{expr\_proc\_guard}
-        &\Coloneq &\mathrm{\#proc\_guard}(\mathit{view}) \\
+        \mathit{expr\_proc}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#proc\_items}(\mathit{expr\_proc\_item}^\mathrm{apt}{*}) \\
+        \mathit{expr\_proc\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#proc\_item}(\mathit{pat\_tuple}^\mathrm{apt}; \mathit{expr\_proc\_guard}^\mathrm{apt}; \mathit{expr}^\mathrm{apt}) \\
+        \mathit{expr\_proc\_guard}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#proc\_guard}(\mathit{view}^\mathrm{apt}) \\
         &\mathrel{/} &\mathrm{\#proc\_guard\_nothing}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_block}
-        &\Coloneq &\mathrm{\#block\_items}(\mathit{expr\_block\_item}{*}) \\
-        \mathit{expr\_block\_item}
-        &\Coloneq &\mathit{expr} \\
-        &\mathrel{/} &\mathit{local\_decl}
+        \mathit{expr\_block}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{expr\_block\_item}^\mathrm{apt}{*}) \\
+        \mathit{expr\_block\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{expr}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_interp\_string}
-        &\Coloneq &\mathit{interp\_string\_start}\; \mathit{expr\_block}\; \mathit{expr\_interp\_string\_item}{*}\; \mathit{interp\_string\_end} \\
-        \mathit{expr\_interp\_string\_item}
-        &\Coloneq &\mathit{interp\_string\_cont}\; \mathit{expr\_block}
+        \mathit{expr\_interp\_string}^\mathrm{apt}
+        &\Coloneq &\mathit{interp\_string\_start}^\mathrm{apt}\; \mathit{expr\_interp\_string\_items}^\mathrm{apt}\; \mathit{interp\_string\_end}^\mathrm{apt} \\
+        \mathit{expr\_interp\_string\_items}^\mathrm{apt}
+        &\Coloneq &\mathit{expr\_block}^\mathrm{apt}\; \mathit{expr\_interp\_string\_item}^\mathrm{apt}{*} \\
+        \mathit{expr\_interp\_string\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{interp\_string\_cont}^\mathrm{apt}\; \mathit{expr\_block}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{expr\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{expr\_tuple\_item}{*}) \\
-        \mathit{expr\_tuple\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_expr} \\
-        &\mathrel{/} &\mathrm{\#prom}(\mathit{type}) \\
-        &\mathrel{/} &\mathit{expr} \\
-        &\mathrel{/} &\mathit{local\_decl}
+        \mathit{expr\_tuple}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#tuple}(\mathit{expr\_tuple\_item}^\mathrm{apt}{*}) \\
+        \mathit{expr\_tuple\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_expr}^\mathrm{apt} \\
+        &\mathrel{/} &\mathrm{\#prom}(\mathit{type}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{expr}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{local\_decl}^\mathrm{apt}
     \end{array}
 \end{align*}
 
@@ -961,36 +969,43 @@ Type Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type}
-        &\Coloneq &\mathit{type}\; \mathit{where\_decl} \\
-        &\mathrel{/} &\mathit{type}: \mathit{type} \\
-        &\mathrel{/} &\mathrm{\#infix}(\mathit{type}; \mathit{type}; \mathit{type}) \\
-        &\mathrel{/} &\mathrm{\#app}(\mathit{type}; \mathit{type\_tuple}) \\
-        &\mathrel{/} &\mathit{type\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{type\_literal} \\
-        &\mathrel{/} &\mathit{type\_func\_sig} \\
-        &\mathrel{/} &\mathit{type\_proc\_sig} \\
-        &\mathrel{/} &\mathit{type\_tuple} \\
-        &\mathrel{/} &\mathit{type\_tuple\_sig} \\
-        &\mathrel{/} &\mathit{con} \\
-        &\mathrel{/} &\mathit{var}
+        \mathit{type}^\mathrm{apt}
+        &\Coloneq &\mathit{type}^\mathrm{apt}\; \mathit{where\_decl}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{type}^\mathrm{apt}: \mathit{type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathrm{\#infix}(\mathit{type}^\mathrm{apt}; \mathit{type\_infix\_item}^\mathrm{apt}{+}) \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{type}^\mathrm{apt}; \mathit{type\_tuple}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{type\_block}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lit} \\
+        &\mathrel{/} &\mathit{type\_literal}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{type\_func\_sig}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{type\_proc\_sig}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{type\_tuple}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{type\_tuple\_sig}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{con}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{var}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_block}
-        &\Coloneq &\mathrm{\#block\_items}(\mathit{type\_block\_item}{*}) \\
-        \mathit{type\_block\_item}
-        &\Coloneq &\mathit{type} \\
-        &\mathrel{/} &\mathit{local\_type\_decl}
+        \mathit{type\_infix\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#infix\_item}(\mathit{type}^\mathrm{apt}; \mathit{type}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_literal}
+        \mathit{type\_block}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{type\_block\_item}^\mathrm{apt}{*}) \\
+        \mathit{type\_block\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}^\mathrm{apt}
+    \end{array}
+\end{align*}
+
+\begin{align*}
+    \begin{array}{rcll}
+        \mathit{type\_literal}^\mathrm{apt}
         &\Coloneq &\mathrm{\#Type} \\
         &\mathrel{/} &\mathrm{\#String} \\
         &\mathrel{/} &\mathrm{\#Integer} \\
@@ -1001,38 +1016,38 @@ Type Expression:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_func\_sig}
-        &\Coloneq &\Lambda(\mathit{type\_tuple\_sig}; \mathit{type})
+        \mathit{type\_func\_sig}^\mathrm{apt}
+        &\Coloneq &\Lambda(\mathit{type\_tuple\_sig}^\mathrm{apt}; \mathit{type}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_proc\_sig}
-        &\Coloneq &\mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}; \mathit{type})
+        \mathit{type\_proc\_sig}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#proc\_sig}(\mathit{type\_tuple\_sig}^\mathrm{apt}; \mathit{type}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{type\_tuple\_item}{*}) \\
-        \mathit{type\_tuple\_item}
-        &\Coloneq &\mathit{bind\_prom\_type} \\
-        &\mathrel{/} &\mathit{bind\_type} \\
-        &\mathrel{/} &\mathrm{\#prom}(\mathit{type}) \\
-        &\mathrel{/} &\mathit{type} \\
-        &\mathrel{/} &\mathit{local\_type\_decl}
+        \mathit{type\_tuple}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#tuple}(\mathit{type\_tuple\_item}^\mathrm{apt}{*}) \\
+        \mathit{type\_tuple\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{bind\_prom\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bind\_type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathrm{\#prom}(\mathit{type}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{local\_type\_decl}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{type\_tuple\_sig}
-        &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}{*}) \\
-        \mathit{type\_tuple\_sig\_item}
-        &\Coloneq &\mathrm{\#prom}(\mathit{bindvar}; \mathit{type}) \\
-        &\mathrel{/} &\mathit{bindvar}: \mathit{type}
+        \mathit{type\_tuple\_sig}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#tuple\_sig}(\mathit{type\_tuple\_sig\_item}^\mathrm{apt}{*}) \\
+        \mathit{type\_tuple\_sig\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#prom}(\mathit{bindvar}^\mathrm{apt}; \mathit{type}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{bindvar}^\mathrm{apt}: \mathit{type}^\mathrm{apt}
     \end{array}
 \end{align*}
 
@@ -1040,32 +1055,32 @@ Pattern:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat}
-        &\Coloneq &\mathit{pat}\; \mathrm{\#if}\; \mathit{view} \\
-        &\mathrel{/} &\mathit{pat}: \mathit{type} \\
-        &\mathrel{/} &\mathrm{\#infix}(\mathit{pat}; \mathit{con}; \mathit{pat}) \\
-        &\mathrel{/} &\mathrm{\#app}(\mathit{con}; \mathit{pat\_tuple}) \\
-        &\mathrel{/} &\mathit{pat\_block} \\
-        &\mathrel{/} &\mathit{literal} \\
-        &\mathrel{/} &\mathit{pat\_tuple} \\
-        &\mathrel{/} &\mathit{bindvar}
+        \mathit{pat}^\mathrm{apt}
+        &\Coloneq &\mathit{pat}^\mathrm{apt}\; \mathrm{\#if}\; \mathit{view}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{pat}^\mathrm{apt}: \mathit{type}^\mathrm{apt} \\
+        &\mathrel{/} &\mathrm{\#infix}(\mathit{pat}^\mathrm{apt}; \mathit{con}^\mathrm{apt}; \mathit{pat}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathrm{\#app}(\mathit{con}^\mathrm{apt}; \mathit{pat\_tuple}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{pat\_block}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{literal}^\mathrm{lit} \\
+        &\mathrel{/} &\mathit{pat\_tuple}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{bindvar}^\mathrm{apt}
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat\_block}
-        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}{*}; \mathit{pat})
+        \mathit{pat\_block}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}^\mathrm{apt}{*}; \mathit{pat}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{pat\_tuple}
-        &\Coloneq &\mathrm{\#tuple}(\mathit{pat\_tuple\_item}{*}) \\
-        \mathit{pat\_tuple\_item}
-        &\Coloneq &\mathrm{\#bind}(\mathit{declvar}; \mathit{pat}) \\
-        &\mathrel{/} &\mathit{pat}
+        \mathit{pat\_tuple}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#tuple}(\mathit{pat\_tuple\_item}^\mathrm{apt}{*}) \\
+        \mathit{pat\_tuple\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#bind}(\mathit{declvar}^\mathrm{apt}; \mathit{pat}^\mathrm{apt}) \\
+        &\mathrel{/} &\mathit{pat}^\mathrm{apt}
     \end{array}
 \end{align*}
 
@@ -1073,24 +1088,24 @@ View:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{view}
-        &\Coloneq &\mathit{view\_block} \\
-        &\mathrel{/} &\mathit{view\_bind} \\
-        &\mathrel{/} &\mathit{expr} \\
-        \mathit{view\_bind}
-        &\Coloneq &\mathrm{\#bind}(\mathit{pat}; \mathit{expr})
+        \mathit{view}^\mathrm{apt}
+        &\Coloneq &\mathit{view\_block}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{view\_bind}^\mathrm{apt} \\
+        &\mathrel{/} &\mathit{expr}^\mathrm{apt} \\
+        \mathit{view\_bind}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#bind}(\mathit{pat}^\mathrm{apt}; \mathit{expr}^\mathrm{apt})
     \end{array}
 \end{align*}
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{view\_block}
-        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}{*}) \\
-        \mathit{view\_block\_item}
-        &\Coloneq &\mathrm{\#let}(\mathit{view\_let\_item}{*}) \\
-        &\mathrel{/} &\mathit{view} \\
-        \mathit{view\_let\_item}
-        &\Coloneq &\mathit{view\_bind}
+        \mathit{view\_block}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#block\_items}(\mathit{view\_block\_item}^\mathrm{apt}{*}) \\
+        \mathit{view\_block\_item}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#let}(\mathit{view\_let\_item}^\mathrm{apt}{*}) \\
+        &\mathrel{/} &\mathit{view}^\mathrm{apt} \\
+        \mathit{view\_let\_item}^\mathrm{apt}
+        &\Coloneq &\mathit{view\_bind}^\mathrm{apt}
     \end{array}
 \end{align*}
 
@@ -1098,20 +1113,14 @@ Basic Unit:
 
 \begin{align*}
     \begin{array}{rcll}
-        \mathit{declvar}
-        &\Coloneq &\mathrm{\#var}(x) \\
-        \mathit{bindvar}
-        &\Coloneq &\mathit{declvar} \\
+        \mathit{declvar}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#var}(\mathit{var}^\mathrm{id}) \\
+        \mathit{bindvar}^\mathrm{apt}
+        &\Coloneq &\mathit{declvar}^\mathrm{apt} \\
         &\mathrel{/} &\mathrm{\#noname} \\
-        \mathit{con}
-        &\Coloneq &\mathrm{\#con}(x) \\
-        \mathit{var}
-        &\Coloneq &\mathit{declvar}
+        \mathit{con}^\mathrm{apt}
+        &\Coloneq &\mathrm{\#con}(\mathit{con}^\mathrm{id}) \\
+        \mathit{var}^\mathrm{apt}
+        &\Coloneq &\mathit{declvar}^\mathrm{apt}
     \end{array}
-\end{align*}
-
-\subsection{Convenient Notations}
-
-\begin{align*}
-    \mathit{expr}(\cdots) = \mathrm{\#app}(\mathit{expr}; \mathrm{\#tuple}(\cdots))
 \end{align*}
